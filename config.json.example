@@ -1,0 +1,40 @@
+{
+  "app": {
+    "name": "golang-taaruf"
+  },
+  "web": {
+    "prefork": false,
+    "port": 3000
+  },
+  "log": {
+    "level": 6,
+    "output": "stdout"
+  },
+  "database": {
+    "driver": "mysql",
+    "host": "172.22.0.2",
+    "port": 3306,
+    "username": "root",
+    "password": "setiaji",
+    "name": "taaruf",
+    "pool": {
+      "idle": 10,
+      "max": 100,
+      "lifetime": 300
+    }
+  },
+  "rabbitmq": {
+    "url": "amqp://guest:guest@localhost:5672/",
+    "queue": "golang_lms"
+  },
+  "jwt": {
+    "secret": "$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK"
+  },
+  "mail": {
+    "host": "smtp.hostinger.com",
+    "port": 465,
+    "username": "support@presensi-amc.lanterntechno.com",
+    "password": "$DemonLord1979",
+    "from": "support@presensi-amc.lanterntechno.com"
+  }
+}
