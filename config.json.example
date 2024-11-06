@@ -12,11 +12,11 @@
   },
   "database": {
     "driver": "mysql",
-    "host": "172.22.0.2",
+    "host": "127.0.0.1",
     "port": 3306,
     "username": "root",
-    "password": "setiaji",
-    "name": "taaruf",
+    "password": "password",
+    "name": "your-db",
     "pool": {
       "idle": 10,
       "max": 100,
@@ -36,5 +36,11 @@
     "username": "support@presensi-amc.lanterntechno.com",
     "password": "$DemonLord1979",
     "from": "support@presensi-amc.lanterntechno.com"
+  },
+  "auth0": {
+    "domain": "blablabla.us.auth0.com",
+    "client_id": "your_client_id",
+    "client_secret": "your_client_secret",
+    "redirect_url": "http://localhost:8080/api/oauth/callback"
   }
 }
