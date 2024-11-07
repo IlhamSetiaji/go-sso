@@ -15,6 +15,15 @@ type Authenticator struct {
 	oauth2.Config
 }
 
+type AppConfig struct {
+	RedirectURI string
+}
+
+var AppConfigs = map[string]AppConfig{
+	"google": {RedirectURI: "https://www.google.com"},
+	"github": {RedirectURI: "https://www.github.com"},
+}
+
 func NewAuth0(config *viper.Viper) (*Authenticator, error) {
 	config.SetConfigName("config")
 	config.SetConfigType("json")

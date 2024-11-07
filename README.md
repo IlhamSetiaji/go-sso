@@ -36,7 +36,7 @@ To migrate the database
 go run ./cmd/migration/main.go
 ```
 
-Make sure you fill the required credentials
+Make sure you fill the required credentials and fill your app name on auth0.go
 ## Demo
 
 You could test the SSO using two methods. The first one use JWT and make this repo as Authentication Server. The second one use Auth0 as Third-party Authentication Server.
@@ -50,6 +50,6 @@ You could test the SSO using two methods. The first one use JWT and make this re
 ## Using Auth0
 Make sure to open it on web browser because it will redirect you to Auth0 login page. And before using this, make sure you add some users on Auth0 platform and add those users to your own database.
 ```bash
-/oauth/login
+/oauth/login?state=your_app_name
 ```
 

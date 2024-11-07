@@ -6,6 +6,7 @@ import (
 	request "app/go-sso/internal/http/request/user"
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -84,12 +85,20 @@ func (h *UserHandler) Me(ctx *gin.Context) {
 }
 
 func (h *UserHandler) LoginOAuth(ctx *gin.Context) {
-	url := h.OAuthConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
+	state := ctx.Query("state")
+	url := h.OAuthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
 	ctx.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (h *UserHandler) CallbackOAuth(ctx *gin.Context) {
 	code := ctx.Query("code")
+	state := ctx.Query("state")
+	appConfig, appExists := config.AppConfigs[state]
+	if !appExists {
+		utils.ErrorResponse(ctx, 400, "error", "Invalid state")
+		h.Log.Panicf("Invalid state")
+		return
+	}
 	token, err := h.OAuthConfig.Exchange(ctx, code)
 	if err != nil {
 		utils.ErrorResponse(ctx, 500, "error", err.Error())
@@ -121,5 +130,7 @@ func (h *UserHandler) CallbackOAuth(ctx *gin.Context) {
 		h.Log.Panicf("Error when generating token: %v", err)
 		return
 	}
-	utils.SuccessResponse(ctx, 200, "success", jwtToken)
+	redirectURL := fmt.Sprintf("%s?token=%s", appConfig.RedirectURI, jwtToken)
+	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
+	// utils.SuccessResponse(ctx, 200, "success", jwtToken)
 }
