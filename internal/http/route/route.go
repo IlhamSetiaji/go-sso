@@ -8,14 +8,12 @@ import (
 )
 
 type RouteConfig struct {
-	App                               *gin.Engine
-	UserHandler                       handler.UserHandlerInterface
-	AuthMiddleware                    gin.HandlerFunc
-	GlobalTemplateVariablesMiddleware gin.HandlerFunc
+	App            *gin.Engine
+	UserHandler    handler.UserHandlerInterface
+	AuthMiddleware gin.HandlerFunc
 }
 
 func (c *RouteConfig) SetupRoutes() {
-	c.App.Use(c.GlobalTemplateVariablesMiddleware)
 	c.App.GET("/", func(ctx *gin.Context) {
 		index := views.NewView("base", "views/index.html")
 		data := map[string]interface{}{

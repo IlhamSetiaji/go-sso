@@ -38,14 +38,12 @@ func main() {
 
 	// handle middleware
 	authMiddleware := middleware.NewAuth(viperConfig)
-	globalTemplateVariablesMiddleware := middleware.GlobalTemplateVariablesMiddleware()
 
 	// setup route config
 	routeConfig := route.RouteConfig{
-		App:                               app,
-		UserHandler:                       userHandler,
-		AuthMiddleware:                    authMiddleware,
-		GlobalTemplateVariablesMiddleware: globalTemplateVariablesMiddleware,
+		App:            app,
+		UserHandler:    userHandler,
+		AuthMiddleware: authMiddleware,
 	}
 	routeConfig.SetupRoutes()
 
