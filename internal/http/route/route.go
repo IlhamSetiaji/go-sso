@@ -2,25 +2,20 @@ package route
 
 import (
 	"app/go-sso/internal/http/handler"
-	"app/go-sso/views"
+	"app/go-sso/internal/http/handler/web"
 
 	"github.com/gin-gonic/gin"
 )
 
 type RouteConfig struct {
-	App            *gin.Engine
-	UserHandler    handler.UserHandlerInterface
-	AuthMiddleware gin.HandlerFunc
+	App              *gin.Engine
+	UserHandler      handler.UserHandlerInterface
+	DashboardHandler web.DashboardHandlerInterface
+	AuthMiddleware   gin.HandlerFunc
 }
 
 func (c *RouteConfig) SetupRoutes() {
-	c.App.GET("/", func(ctx *gin.Context) {
-		index := views.NewView("base", "views/index.html")
-		data := map[string]interface{}{
-			"Title": "Go SSO",
-		}
-		index.Render(ctx, data)
-	})
+	c.App.GET("/", c.DashboardHandler.Index)
 	c.SetupApiRoutes()
 }
 

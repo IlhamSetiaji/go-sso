@@ -3,6 +3,7 @@ package main
 import (
 	"app/go-sso/internal/config"
 	"app/go-sso/internal/http/handler"
+	"app/go-sso/internal/http/handler/web"
 	"app/go-sso/internal/http/middleware"
 	"app/go-sso/internal/http/route"
 	"strconv"
@@ -35,15 +36,17 @@ func main() {
 
 	//handle handler
 	userHandler := handler.UserHandlerFactory(log, validate, auth)
+	dashboardHandler := web.DashboardHandlerFactory(log, validate)
 
 	// handle middleware
 	authMiddleware := middleware.NewAuth(viperConfig)
 
 	// setup route config
 	routeConfig := route.RouteConfig{
-		App:            app,
-		UserHandler:    userHandler,
-		AuthMiddleware: authMiddleware,
+		App:              app,
+		UserHandler:      userHandler,
+		DashboardHandler: dashboardHandler,
+		AuthMiddleware:   authMiddleware,
 	}
 	routeConfig.SetupRoutes()
 
