@@ -1,0 +1,51 @@
+{{define "alert"}} {{if .Errors}} {{range .Errors}}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+  {{.}}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{{end}} {{end}} {{if .Status}}
+<div class="alert alert-info alert-dismissible show fade">
+  {{.Status}}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{{end}} {{if .Success}}
+<div class="alert alert-success alert-dismissible show fade">
+  {{.Success}}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{{end}} {{if .Error}}
+<div class="alert alert-danger alert-dismissible show fade">
+  {{.Error}}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{{end}} {{if .Warning}}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+  {{.Warning}}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{{end}} {{end}}
