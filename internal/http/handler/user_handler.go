@@ -21,7 +21,14 @@ type UserHandler struct {
 	OAuthConfig *config.Authenticator
 }
 
-func UserHandlerFactory(log *log.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator) *UserHandler {
+type UserHandlerInterface interface {
+	Login(ctx *gin.Context)
+	Me(ctx *gin.Context)
+	LoginOAuth(ctx *gin.Context)
+	CallbackOAuth(ctx *gin.Context)
+}
+
+func UserHandlerFactory(log *log.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator) UserHandlerInterface {
 	return &UserHandler{
 		Log:         log,
 		Validate:    validator,
