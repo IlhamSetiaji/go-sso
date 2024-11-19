@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	csrf "github.com/utrack/gin-csrf"
 )
 
 var LayoutDir = "views/layouts"
@@ -41,6 +42,9 @@ func (v *View) Render(c *gin.Context, data interface{}) {
 	}
 	if _, exists := dataMap["AssetBase"]; !exists {
 		dataMap["AssetBase"] = "/assets"
+	}
+	if _, exists := dataMap["CsrfToken"]; !exists {
+		dataMap["CsrfToken"] = csrf.GetToken(c)
 	}
 
 	session := sessions.Default(c)

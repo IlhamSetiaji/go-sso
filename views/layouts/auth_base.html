@@ -1,0 +1,10 @@
+{{define "auth_base"}}
+<!DOCTYPE html>
+<html lang="en">
+  {{template "header" .}}
+  <body>
+    <script src="{{ .AssetBase }}/mazer/assets/static/js/initTheme.js"></script>
+    {{block "content" .}}{{end}}{{template "script" .}}
+  </body>
+</html>
+{{end}}
