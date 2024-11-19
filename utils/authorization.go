@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"app/go-sso/internal/config"
 	"app/go-sso/internal/entity"
 
 	"github.com/gin-contrib/sessions"
@@ -8,14 +9,19 @@ import (
 )
 
 func GetLoggedInUser(ctx *gin.Context) (*entity.User, error) {
+	db := config.NewDatabase()
 	session := sessions.Default(ctx)
 	profile := session.Get("profile")
 	if profile == nil {
 		return nil, nil
 	}
-	user, ok := profile.(entity.User)
+	userProfile, ok := profile.(entity.User)
 	if !ok {
 		return nil, nil
+	}
+	var user entity.User
+	if err := db.Preload("Roles.Permissions").First(&user, userProfile.ID).Error; err != nil {
+		return nil, err
 	}
 	return &user, nil
 }

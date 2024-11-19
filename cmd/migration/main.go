@@ -11,7 +11,7 @@ import (
 func main() {
 	viper := config.NewViper()
 	log := config.NewLogger(viper)
-	db := config.NewDatabase(log)
+	db := config.NewDatabase()
 
 	// Migrate the schema
 	err := db.AutoMigrate(&entity.Client{}, &entity.Role{}, &entity.User{}, &entity.Permission{}, &entity.RolePermission{}, &entity.UserRole{})

@@ -8,10 +8,9 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
-func NewDatabase(log *log.Logger) *gorm.DB {
+func NewDatabase() *gorm.DB {
 	config := viper.New()
 
 	config.SetConfigName("config")
@@ -33,15 +32,7 @@ func NewDatabase(log *log.Logger) *gorm.DB {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", username, password, host, port, database)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.New(&logWriter{Logger: log}, logger.Config{
-			SlowThreshold:             time.Second * 5,
-			Colorful:                  false,
-			IgnoreRecordNotFoundError: true,
-			ParameterizedQueries:      true,
-			LogLevel:                  logger.Info,
-		}),
-	})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
@@ -56,12 +47,4 @@ func NewDatabase(log *log.Logger) *gorm.DB {
 	connection.SetConnMaxLifetime(time.Second * time.Duration(maxLifeTimeConnection))
 
 	return db
-}
-
-type logWriter struct {
-	Logger *log.Logger
-}
-
-func (l *logWriter) Printf(message string, args ...interface{}) {
-	l.Logger.Printf(message, args...)
 }
