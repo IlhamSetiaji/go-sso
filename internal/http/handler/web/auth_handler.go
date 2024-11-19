@@ -5,6 +5,7 @@ import (
 	apiRequest "app/go-sso/internal/http/request/user"
 	webRequest "app/go-sso/internal/http/request/web/user"
 	usecase "app/go-sso/internal/usecase/user"
+	"app/go-sso/utils"
 	"app/go-sso/views"
 	"log"
 
@@ -21,6 +22,7 @@ type AuthHandler struct {
 type AuthHandlerInterface interface {
 	LoginView(ctx *gin.Context)
 	Login(ctx *gin.Context)
+	Logout(ctx *gin.Context)
 }
 
 func AuthHandlerFactory(log *log.Logger, validator *validator.Validate) AuthHandlerInterface {
@@ -75,11 +77,19 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		Username: response.User.Username,
 	}
 	session.Set("profile", profile)
-	session.Delete("error") // Clear any previous error messages
+	session.Delete("error")
 	if err := session.Save(); err != nil {
 		h.Log.Printf("Session save error: %v", err)
 		ctx.Redirect(302, ctx.Request.Referer())
 		return
 	}
 	ctx.Redirect(302, "/")
+}
+
+func (h *AuthHandler) Logout(ctx *gin.Context) {
+	session := utils.NewSession(ctx)
+	session.Delete("profile")
+	session.Set("success", "You have been logged out")
+	session.Save()
+	ctx.Redirect(302, "/login")
 }

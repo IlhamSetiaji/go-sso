@@ -47,6 +47,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 	c.App.Use(c.WebAuthMiddleware)
 	{
 		c.App.GET("/", c.DashboardHandler.Index)
+		c.App.GET("/logout", c.AuthWebHandler.Logout)
 	}
 }
 
