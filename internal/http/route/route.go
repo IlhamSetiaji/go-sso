@@ -2,26 +2,24 @@ package route
 
 import (
 	"app/go-sso/internal/http/handler"
-	"app/go-sso/views"
+	"app/go-sso/internal/http/handler/web"
 
 	"github.com/gin-gonic/gin"
 )
 
 type RouteConfig struct {
-	App            *gin.Engine
-	UserHandler    handler.UserHandlerInterface
-	AuthMiddleware gin.HandlerFunc
+	App               *gin.Engine
+	UserHandler       handler.UserHandlerInterface
+	DashboardHandler  web.DashboardHandlerInterface
+	AuthWebHandler    web.AuthHandlerInterface
+	WebAuthMiddleware gin.HandlerFunc
+	AuthMiddleware    gin.HandlerFunc
 }
 
 func (c *RouteConfig) SetupRoutes() {
-	c.App.GET("/", func(ctx *gin.Context) {
-		index := views.NewView("base", "views/index.html")
-		data := map[string]interface{}{
-			"Title": "Go SSO",
-		}
-		index.Render(ctx, data)
-	})
 	c.SetupApiRoutes()
+	c.SetupWebRoutes()
+	c.SetupOAuthRoutes()
 }
 
 func (c *RouteConfig) SetupApiRoutes() {
@@ -40,12 +38,21 @@ func (c *RouteConfig) SetupApiRoutes() {
 			oAuthRoute.GET("/callback", c.UserHandler.CallbackOAuth)
 		}
 	}
+}
 
-	webRoute := c.App.Group("/")
+func (c *RouteConfig) SetupWebRoutes() {
+
+	c.App.GET("/login", c.AuthWebHandler.LoginView)
+	c.App.POST("/login", c.AuthWebHandler.Login)
+	c.App.Use(c.WebAuthMiddleware)
 	{
-		webOAuthRoute := webRoute.Group("/oauth")
-		{
-			webOAuthRoute.GET("/login", c.UserHandler.LoginOAuth)
-		}
+		c.App.GET("/", c.DashboardHandler.Index)
+	}
+}
+
+func (c *RouteConfig) SetupOAuthRoutes() {
+	oAuthRoute := c.App.Group("/oauth")
+	{
+		oAuthRoute.GET("/login", c.UserHandler.LoginOAuth)
 	}
 }

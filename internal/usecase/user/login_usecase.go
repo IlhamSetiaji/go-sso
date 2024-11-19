@@ -39,12 +39,14 @@ func (uc *LoginUseCase) Login(request request.LoginRequest) (*LoginUseCaseRespon
 	}
 
 	if user == nil {
-		uc.Log.Panicf("User not found")
+		// uc.Log.Panicf("User not found")
 		return nil, errors.New("User not found")
 	}
+
 	checkedPassword := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
 	if checkedPassword != nil {
-		uc.Log.Fatalf("Password not match")
+		// uc.Log.Fatalf("Password not match")
+		// return nil, errors.New("Password not match:" + checkedPassword.Error())
 		return nil, errors.New("Password not match")
 	}
 

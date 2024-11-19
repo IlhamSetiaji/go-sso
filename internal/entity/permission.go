@@ -8,7 +8,7 @@ import (
 type Permission struct {
 	gorm.Model
 	ID        uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
-	Name      string    `json:"name" gorm:"type:varchar(255);not null;unique"`
+	Name      string    `json:"name" gorm:"type:varchar(255);not null"`
 	Label     string    `json:"label" gorm:"type:varchar(255);not null"`
 	GuardName string    `json:"guard_name" gorm:"type:varchar(255);not null;default:'web'"` // default guard name is web
 	Roles     []Role    `json:"roles" gorm:"many2many:role_permissions;"`                   // many to many relationship

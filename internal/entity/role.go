@@ -10,7 +10,9 @@ import (
 type Role struct {
 	// gorm.Model
 	ID          uuid.UUID    `json:"id" gorm:"type:char(36);primaryKey"`
-	Name        string       `json:"name" gorm:"unique;not null"`
+	ClientID    uuid.UUID    `json:"client_id" gorm:"type:char(36);not null"`
+	Client      Client       `json:"client" gorm:"foreignKey:ClientID;references:ID"`
+	Name        string       `json:"name" gorm:"not null"`
 	GuardName   string       `json:"guard_name" gorm:"default:web"`
 	Users       []User       `json:"users" gorm:"many2many:user_roles;"`             // many to many relationship
 	Permissions []Permission `json:"permissions" gorm:"many2many:role_permissions;"` // many to many relationship
