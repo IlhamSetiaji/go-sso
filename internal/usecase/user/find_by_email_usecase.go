@@ -4,11 +4,12 @@ import (
 	"app/go-sso/internal/entity"
 	"app/go-sso/internal/repository"
 	"errors"
-	"log"
+
+	"github.com/sirupsen/logrus"
 )
 
 type FindByEmailUseCase struct {
-	Log            *log.Logger
+	Log            *logrus.Logger
 	UserRepository repository.UserRepositoryInterface
 }
 
@@ -17,7 +18,7 @@ type FindByEmailUseCaseResponse struct {
 }
 
 func FindByEmailUseCaseFactory(
-	log *log.Logger,
+	log *logrus.Logger,
 ) *FindByEmailUseCase {
 	return &FindByEmailUseCase{
 		Log:            log,

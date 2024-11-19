@@ -7,16 +7,16 @@ import (
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
 
 type UserHandler struct {
-	Log         *log.Logger
+	Log         *logrus.Logger
 	Validate    *validator.Validate
 	OAuthConfig *config.Authenticator
 }
@@ -28,7 +28,7 @@ type UserHandlerInterface interface {
 	CallbackOAuth(ctx *gin.Context)
 }
 
-func UserHandlerFactory(log *log.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator) UserHandlerInterface {
+func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator) UserHandlerInterface {
 	return &UserHandler{
 		Log:         log,
 		Validate:    validator,

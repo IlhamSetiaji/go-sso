@@ -4,16 +4,16 @@ import (
 	"app/go-sso/internal/http/middleware"
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/views"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 )
 
 type UserHandler struct {
-	Log      *log.Logger
+	Log      *logrus.Logger
 	Validate *validator.Validate
 }
 
@@ -21,7 +21,7 @@ type UserHandlerInterface interface {
 	Index(ctx *gin.Context)
 }
 
-func UserHandlerFactory(log *log.Logger, validator *validator.Validate) UserHandlerInterface {
+func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate) UserHandlerInterface {
 	return &UserHandler{
 		Log:      log,
 		Validate: validator,

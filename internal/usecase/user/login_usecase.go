@@ -5,13 +5,13 @@ import (
 	request "app/go-sso/internal/http/request/user"
 	"app/go-sso/internal/repository"
 	"errors"
-	"log"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginUseCase struct {
-	Log            *log.Logger
+	Log            *logrus.Logger
 	UserRepository repository.UserRepositoryInterface
 }
 
@@ -24,7 +24,7 @@ type LoginUseCaseInterface interface {
 }
 
 func LoginUseCaseFactory(
-	log *log.Logger,
+	log *logrus.Logger,
 ) LoginUseCaseInterface {
 	return &LoginUseCase{
 		Log:            log,
@@ -39,14 +39,13 @@ func (uc *LoginUseCase) Login(request request.LoginRequest) (*LoginUseCaseRespon
 	}
 
 	if user == nil {
-		// uc.Log.Panicf("User not found")
+		uc.Log.Error("User not found")
 		return nil, errors.New("User not found")
 	}
 
 	checkedPassword := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
 	if checkedPassword != nil {
-		// uc.Log.Fatalf("Password not match")
-		// return nil, errors.New("Password not match:" + checkedPassword.Error())
+		uc.Log.Error("Password not match")
 		return nil, errors.New("Password not match")
 	}
 

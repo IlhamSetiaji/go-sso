@@ -10,7 +10,7 @@ import (
 
 func main() {
 	viper := config.NewViper()
-	log := config.NewLogger(viper)
+	log := config.NewLogrus(viper)
 	db := config.NewDatabase()
 
 	// Migrate the schema

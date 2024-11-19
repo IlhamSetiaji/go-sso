@@ -7,15 +7,15 @@ import (
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
 	"app/go-sso/views"
-	"log"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 )
 
 type AuthHandler struct {
-	Log      *log.Logger
+	Log      *logrus.Logger
 	Validate *validator.Validate
 }
 
@@ -25,7 +25,7 @@ type AuthHandlerInterface interface {
 	Logout(ctx *gin.Context)
 }
 
-func AuthHandlerFactory(log *log.Logger, validator *validator.Validate) AuthHandlerInterface {
+func AuthHandlerFactory(log *logrus.Logger, validator *validator.Validate) AuthHandlerInterface {
 	return &AuthHandler{
 		Log:      log,
 		Validate: validator,

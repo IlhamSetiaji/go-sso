@@ -26,7 +26,7 @@ func init() {
 func main() {
 	// setup config
 	viperConfig := config.NewViper()
-	log := config.NewLogger(viperConfig)
+	log := config.NewLogrus(viperConfig)
 	validate := config.NewValidator(viperConfig)
 	auth, err := config.NewAuth0(viperConfig)
 	if err != nil {

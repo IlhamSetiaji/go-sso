@@ -2,14 +2,14 @@ package web
 
 import (
 	"app/go-sso/views"
-	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 )
 
 type DashboardHandler struct {
-	Log      *log.Logger
+	Log      *logrus.Logger
 	validate *validator.Validate
 }
 
@@ -17,7 +17,7 @@ type DashboardHandlerInterface interface {
 	Index(ctx *gin.Context)
 }
 
-func DashboardHandlerFactory(log *log.Logger, validate *validator.Validate) DashboardHandlerInterface {
+func DashboardHandlerFactory(log *logrus.Logger, validate *validator.Validate) DashboardHandlerInterface {
 	return &DashboardHandler{
 		Log:      log,
 		validate: validate,

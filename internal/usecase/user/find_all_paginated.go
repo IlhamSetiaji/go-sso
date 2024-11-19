@@ -4,11 +4,12 @@ import (
 	"app/go-sso/internal/entity"
 	"app/go-sso/internal/repository"
 	"errors"
-	"log"
+
+	"github.com/sirupsen/logrus"
 )
 
 type FindAllPaginated struct {
-	Log            *log.Logger
+	Log            *logrus.Logger
 	UserRepository repository.UserRepositoryInterface
 }
 
@@ -23,7 +24,7 @@ type FindAllPaginatedRequest struct {
 }
 
 func FindAllPaginatedFactory(
-	log *log.Logger,
+	log *logrus.Logger,
 ) *FindAllPaginated {
 	return &FindAllPaginated{
 		Log:            log,
