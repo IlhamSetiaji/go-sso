@@ -9,23 +9,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepository struct {
-	Repository[entity.User]
-	Log *logrus.Logger
-	DB  *gorm.DB
-}
-
 type UserRepositoryInterface interface {
 	FindByEmail(email string) (*entity.User, error)
 	FindAllPaginated(page int, pageSize int) (*[]entity.User, int64, error)
 }
 
-// Repository: Repository[entity.User]{DB: db},
-// , db *gorm.DB
-func UserRepositoryFactory(log *logrus.Logger) UserRepositoryInterface {
+type UserRepository struct {
+	Log *logrus.Logger
+	DB  *gorm.DB
+}
+
+func NewUserRepository(log *logrus.Logger, db *gorm.DB) UserRepositoryInterface {
 	return &UserRepository{
 		Log: log,
-		DB:  config.NewDatabase(),
+		DB:  db,
 	}
 }
 
@@ -60,4 +57,9 @@ func (r *UserRepository) FindAllPaginated(page int, pageSize int) (*[]entity.Use
 	}
 
 	return &users, totalCount, nil
+}
+
+func UserRepositoryFactory(log *logrus.Logger) UserRepositoryInterface {
+	db := config.NewDatabase()
+	return NewUserRepository(log, db)
 }
