@@ -49,8 +49,11 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		h.Log.Panicf("Error when validating request: %v", err)
 		return
 	}
-	usecase := usecase.LoginUseCaseFactory(h.Log)
-	response, err := usecase.Login(*payload)
+	factory := usecase.LoginUseCaseFactory(h.Log)
+	response, err := factory.Execute(usecase.ILoginUseCaseRequest{
+		Email:    payload.Email,
+		Password: payload.Password,
+	})
 	if err != nil {
 		utils.ErrorResponse(ctx, 500, "error", err.Error())
 		h.Log.Panicf("Error when login: %v", err)
@@ -124,8 +127,11 @@ func (h *UserHandler) CallbackOAuth(ctx *gin.Context) {
 		h.Log.Panicf("Error when getting profile: %v", err)
 		return
 	}
-	usecase := usecase.FindByEmailUseCaseFactory(h.Log)
-	response, err := usecase.FindByEmail(profile["email"].(string))
+	factory := usecase.FindByEmailUseCaseFactory(h.Log)
+	response, err := factory.Execute(usecase.IFindByEmailUseCaseRequest{
+		Email: profile["email"].(string),
+	})
+
 	if err != nil {
 		utils.ErrorResponse(ctx, 500, "error", err.Error())
 		h.Log.Panicf("Error when finding user by email: %v", err)

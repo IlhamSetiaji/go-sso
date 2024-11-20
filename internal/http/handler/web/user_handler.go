@@ -38,13 +38,13 @@ func (h *UserHandler) Index(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "10"))
 
-	factory := usecase.FindAllPaginatedFactory(h.Log)
+	factory := usecase.FindAllPaginatedUseCaseFactory(h.Log)
 
-	req := &usecase.FindAllPaginatedRequest{
+	req := &usecase.IFindAllPaginatedRequest{
 		Page:     page,
 		PageSize: pageSize,
 	}
-	resp, err := factory.FindAllPaginated(req)
+	resp, err := factory.Execute(req)
 	if err != nil {
 		h.Log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

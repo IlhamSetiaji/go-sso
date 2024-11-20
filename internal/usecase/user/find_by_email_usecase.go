@@ -8,26 +8,32 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type IFindByEmailUseCaseRequest struct {
+	Email string `json:"email"`
+}
+
+type IFindByEmailUseCaseResponse struct {
+	User *entity.User `json:"user"`
+}
+
+type IFindByEmailUseCase interface {
+	Execute(request IFindByEmailUseCaseRequest) (*IFindByEmailUseCaseResponse, error)
+}
+
 type FindByEmailUseCase struct {
 	Log            *logrus.Logger
 	UserRepository repository.UserRepositoryInterface
 }
 
-type FindByEmailUseCaseResponse struct {
-	User *entity.User `json:"user"`
-}
-
-func FindByEmailUseCaseFactory(
-	log *logrus.Logger,
-) *FindByEmailUseCase {
+func NewFindByEmailUseCase(log *logrus.Logger, userRepository repository.UserRepositoryInterface) IFindByEmailUseCase {
 	return &FindByEmailUseCase{
 		Log:            log,
-		UserRepository: repository.UserRepositoryFactory(log),
+		UserRepository: userRepository,
 	}
 }
 
-func (uc *FindByEmailUseCase) FindByEmail(email string) (*FindByEmailUseCaseResponse, error) {
-	user, err := uc.UserRepository.FindByEmail(email)
+func (uc *FindByEmailUseCase) Execute(request IFindByEmailUseCaseRequest) (*IFindByEmailUseCaseResponse, error) {
+	user, err := uc.UserRepository.FindByEmail(request.Email)
 	if err != nil {
 		return nil, errors.New("[FindByEmailUseCase.FindByEmail] " + err.Error())
 	}
@@ -37,7 +43,12 @@ func (uc *FindByEmailUseCase) FindByEmail(email string) (*FindByEmailUseCaseResp
 		return nil, errors.New("User not found")
 	}
 
-	return &FindByEmailUseCaseResponse{
+	return &IFindByEmailUseCaseResponse{
 		User: user,
 	}, nil
+}
+
+func FindByEmailUseCaseFactory(log *logrus.Logger) IFindByEmailUseCase {
+	userRepository := repository.UserRepositoryFactory(log)
+	return NewFindByEmailUseCase(log, userRepository)
 }

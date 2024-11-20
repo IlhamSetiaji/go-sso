@@ -8,38 +8,48 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type IFindAllPaginatedRequest struct {
+	Page     int `json:"page"`
+	PageSize int `json:"page_size"`
+}
+
+type IFindAllPaginatedResponse struct {
+	Users *[]entity.User `json:"users"`
+	Total int64          `json:"total"`
+}
+
+type IFindAllPaginated interface {
+	Execute(request *IFindAllPaginatedRequest) (*IFindAllPaginatedResponse, error)
+}
+
 type FindAllPaginated struct {
 	Log            *logrus.Logger
 	UserRepository repository.UserRepositoryInterface
 }
 
-type FindAllPaginatedResponse struct {
-	Users *[]entity.User `json:"users"`
-	Total int64          `json:"total"`
-}
-
-type FindAllPaginatedRequest struct {
-	Page     int `json:"page"`
-	PageSize int `json:"page_size"`
-}
-
-func FindAllPaginatedFactory(
+func NewFindAllPaginated(
 	log *logrus.Logger,
-) *FindAllPaginated {
+	userRepository repository.UserRepositoryInterface,
+) IFindAllPaginated {
 	return &FindAllPaginated{
 		Log:            log,
-		UserRepository: repository.UserRepositoryFactory(log),
+		UserRepository: userRepository,
 	}
 }
 
-func (uc *FindAllPaginated) FindAllPaginated(req *FindAllPaginatedRequest) (*FindAllPaginatedResponse, error) {
+func (uc *FindAllPaginated) Execute(req *IFindAllPaginatedRequest) (*IFindAllPaginatedResponse, error) {
 	users, total, err := uc.UserRepository.FindAllPaginated(req.Page, req.PageSize)
 	if err != nil {
-		return nil, errors.New("[FindAllPaginated.FindAllPaginated] " + err.Error())
+		return nil, errors.New("[FindAllPaginatedUseCase.FindAllPaginated] " + err.Error())
 	}
 
-	return &FindAllPaginatedResponse{
+	return &IFindAllPaginatedResponse{
 		Users: users,
 		Total: total,
 	}, nil
+}
+
+func FindAllPaginatedUseCaseFactory(log *logrus.Logger) IFindAllPaginated {
+	userRepository := repository.UserRepositoryFactory(log)
+	return NewFindAllPaginated(log, userRepository)
 }

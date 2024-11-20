@@ -2,7 +2,6 @@ package web
 
 import (
 	"app/go-sso/internal/entity"
-	apiRequest "app/go-sso/internal/http/request/user"
 	webRequest "app/go-sso/internal/http/request/web/user"
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
@@ -58,8 +57,8 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		ctx.Redirect(302, ctx.Request.Referer())
 		return
 	}
-	usecase := usecase.LoginUseCaseFactory(h.Log)
-	response, err := usecase.Login(apiRequest.LoginRequest{
+	factory := usecase.LoginUseCaseFactory(h.Log)
+	response, err := factory.Execute(usecase.ILoginUseCaseRequest{
 		Email:    payload.Email,
 		Password: payload.Password,
 	})
