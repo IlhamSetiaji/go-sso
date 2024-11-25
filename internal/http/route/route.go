@@ -32,6 +32,7 @@ func (c *RouteConfig) SetupApiRoutes() {
 			userRoute.Use(c.AuthMiddleware)
 			{
 				userRoute.GET("/me", c.UserHandler.Me)
+				userRoute.GET("/logout", c.UserHandler.Logout)
 			}
 		}
 		oAuthRoute := apiRoute.Group("/oauth")

@@ -9,6 +9,7 @@ import (
 	"app/go-sso/utils"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,7 @@ type UserHandler struct {
 
 type UserHandlerInterface interface {
 	Login(ctx *gin.Context)
+	Logout(ctx *gin.Context)
 	Me(ctx *gin.Context)
 	LoginOAuth(ctx *gin.Context)
 	CallbackOAuth(ctx *gin.Context)
@@ -93,6 +95,44 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		"user":       response.User,
 	}
 	utils.SuccessResponse(ctx, 200, "success", data)
+}
+
+func (h *UserHandler) Logout(ctx *gin.Context) {
+	user, err := middleware.GetUser(ctx)
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.Log.Panicf("Error when getting user: %v", err)
+		return
+	}
+	if user == nil {
+		utils.ErrorResponse(ctx, 404, "error", "User not found")
+		h.Log.Panicf("User not found")
+		return
+	}
+	authHeader := ctx.GetHeader("Authorization")
+	if authHeader == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "No Authorization header provided"})
+		ctx.Abort()
+		return
+	}
+
+	bearerToken := strings.Split(authHeader, " ")
+	if len(bearerToken) != 2 {
+		utils.ErrorResponse(ctx, 401, "error", "Invalid Authorization header format")
+		h.Log.Panicf("Invalid Authorization header format")
+		return
+	}
+	factory := authUsecase.DeleteTokenUseCaseFactory(h.Log)
+	message, err := factory.Execute(authUsecase.IDeleteTokenUseCaseRequest{
+		UserID: user["userId"].(string),
+		Token:  bearerToken[1],
+	})
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.Log.Panicf("Error when deleting token: %v", err)
+		return
+	}
+	utils.SuccessResponse(ctx, 200, "success", message)
 }
 
 func (h *UserHandler) Me(ctx *gin.Context) {
