@@ -4,10 +4,12 @@ import (
 	"app/go-sso/internal/config"
 	"app/go-sso/internal/http/middleware"
 	request "app/go-sso/internal/http/request/user"
+	authUsecase "app/go-sso/internal/usecase/auth_token"
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -65,13 +67,22 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		utils.ErrorResponse(ctx, 500, "error", err.Error())
 		return
 	}
+
+	authFactory := authUsecase.StoreTokenUseCaseFactory(h.Log)
+	authToken, err := authFactory.Execute(authUsecase.IStoreTokenUseCaseRequest{
+		UserID:    response.User.ID,
+		Token:     token,
+		ExpiredAt: time.Now().Add(6 * time.Hour),
+	})
+
 	if err != nil {
-		h.Log.Panicf("Error when login: %v", err)
 		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.Log.Panicf("Error when storing token: %v", err)
 		return
 	}
+
 	var data = map[string]interface{}{
-		"token":      token,
+		"token":      authToken.AuthToken.Token,
 		"token_type": "Bearer",
 		"user":       response.User,
 	}

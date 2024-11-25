@@ -11,7 +11,7 @@ import (
 )
 
 type IStoreTokenUseCaseRequest struct {
-	UserID    string    `json:"user_id"`
+	UserID    uuid.UUID `json:"user_id"`
 	Token     string    `json:"token"`
 	ExpiredAt time.Time `json:"expired_at"`
 }
@@ -39,7 +39,7 @@ func NewStoreTokenUseCase(log *logrus.Logger, authTokenRepository repository.IAu
 
 func (uc *StoreTokenUseCase) Execute(request IStoreTokenUseCaseRequest) (*IStoreTokenUseCaseResponse, error) {
 	authToken := entity.AuthToken{
-		UserID:    uuid.MustParse(request.UserID),
+		UserID:    request.UserID,
 		Token:     request.Token,
 		ExpiredAt: request.ExpiredAt,
 	}

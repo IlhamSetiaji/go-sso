@@ -4,12 +4,13 @@ import (
 	"app/go-sso/internal/entity"
 	"app/go-sso/internal/repository"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
 type IFindTokenUseCaseRequest struct {
-	UserID string `json:"user_id"`
-	Token  string `json:"token"`
+	UserID uuid.UUID `json:"user_id"`
+	Token  string    `json:"token"`
 }
 
 type IFindTokenUseCaseResponse struct {

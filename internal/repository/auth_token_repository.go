@@ -4,13 +4,14 @@ import (
 	"app/go-sso/internal/config"
 	"app/go-sso/internal/entity"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type IAuthTokenRepository interface {
 	StoreAuthToken(user *entity.User, token *entity.AuthToken) error
-	FindAuthToken(userID string, token string) (*entity.AuthToken, error)
+	FindAuthToken(userID uuid.UUID, token string) (*entity.AuthToken, error)
 	DeleteAuthToken(userID string, token string) error
 }
 
@@ -34,7 +35,7 @@ func (r *AuthTokenRepository) StoreAuthToken(user *entity.User, token *entity.Au
 	return nil
 }
 
-func (r *AuthTokenRepository) FindAuthToken(userID string, token string) (*entity.AuthToken, error) {
+func (r *AuthTokenRepository) FindAuthToken(userID uuid.UUID, token string) (*entity.AuthToken, error) {
 	var authToken entity.AuthToken
 	err := r.DB.Where("user_id = ? AND token = ?", userID, token).First(&authToken).Error
 	if err != nil {
