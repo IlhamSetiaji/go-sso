@@ -19,7 +19,20 @@ type AuthToken struct {
 
 func (authToken *AuthToken) BeforeCreate(tx *gorm.DB) (err error) {
 	authToken.ID = uuid.New()
-	return
+	authToken.CreatedAt = time.Now().Add(time.Hour * 7)
+	authToken.UpdatedAt = time.Now().Add(time.Hour * 7)
+	if !authToken.ExpiredAt.IsZero() {
+		authToken.ExpiredAt = authToken.ExpiredAt.Add(time.Hour * 7)
+	}
+	return nil
+}
+
+func (authToken *AuthToken) BeforeUpdate(tx *gorm.DB) (err error) {
+	authToken.UpdatedAt = time.Now().Add(time.Hour * 7)
+	if !authToken.ExpiredAt.IsZero() {
+		authToken.ExpiredAt = authToken.ExpiredAt.Add(time.Hour * 7)
+	}
+	return nil
 }
 
 func (AuthToken) TableName() string {

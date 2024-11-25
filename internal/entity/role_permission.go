@@ -16,6 +16,17 @@ type RolePermission struct {
 	Permission Permission `json:"permission" gorm:"foreignKey:PermissionID;references:ID"`
 }
 
+func (client *RolePermission) BeforeCreate() (err error) {
+	client.CreatedAt = time.Now().Add(time.Hour * 7)
+	client.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
+}
+
+func (client *RolePermission) BeforeUpdate() (err error) {
+	client.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
+}
+
 func (RolePermission) TableName() string {
 	return "role_permissions"
 }

@@ -20,7 +20,14 @@ type Client struct {
 
 func (client *Client) BeforeCreate(tx *gorm.DB) (err error) {
 	client.ID = uuid.New()
-	return
+	client.CreatedAt = time.Now().Add(time.Hour * 7)
+	client.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
+}
+
+func (client *Client) BeforeUpdate(tx *gorm.DB) (err error) {
+	client.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
 }
 
 func (Client) TableName() string {

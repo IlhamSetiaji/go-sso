@@ -23,7 +23,14 @@ type Role struct {
 
 func (role *Role) BeforeCreate(tx *gorm.DB) (err error) {
 	role.ID = uuid.New()
-	return
+	role.CreatedAt = time.Now().Add(time.Hour * 7)
+	role.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
+}
+
+func (role *Role) BeforeUpdate(tx *gorm.DB) (err error) {
+	role.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
 }
 
 func (Role) TableName() string {

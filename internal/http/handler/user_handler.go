@@ -72,7 +72,7 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	authToken, err := authFactory.Execute(authUsecase.IStoreTokenUseCaseRequest{
 		UserID:    response.User.ID,
 		Token:     token,
-		ExpiredAt: time.Now().Add(6 * time.Hour),
+		ExpiredAt: time.Now().Add((6) * time.Hour),
 	})
 
 	if err != nil {

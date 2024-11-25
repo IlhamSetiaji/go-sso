@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -16,6 +18,13 @@ type Permission struct {
 
 func (permission *Permission) BeforeCreate(tx *gorm.DB) (err error) {
 	permission.ID = uuid.New()
+	permission.CreatedAt = time.Now().Add(time.Hour * 7)
+	permission.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return
+}
+
+func (permission *Permission) BeforeUpdate(tx *gorm.DB) (err error) {
+	permission.UpdatedAt = time.Now().Add(time.Hour * 7)
 	return
 }
 
