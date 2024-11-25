@@ -14,7 +14,7 @@ func main() {
 	db := config.NewDatabase()
 
 	// Migrate the schema
-	err := db.AutoMigrate(&entity.Client{}, &entity.Role{}, &entity.User{}, &entity.Permission{}, &entity.RolePermission{}, &entity.UserRole{})
+	err := db.AutoMigrate(&entity.Client{}, &entity.Role{}, &entity.User{}, &entity.Permission{}, &entity.RolePermission{}, &entity.UserRole{}, &entity.AuthToken{})
 
 	if err != nil {
 		log.Fatalf("failed to migrate schema: %v", err)

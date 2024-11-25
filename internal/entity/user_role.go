@@ -16,6 +16,17 @@ type UserRole struct {
 	Role Role `json:"role" gorm:"foreignKey:RoleID;references:ID"`
 }
 
+func (userRole *UserRole) BeforeCreate() (err error) {
+	userRole.CreatedAt = time.Now().Add(time.Hour * 7)
+	userRole.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
+}
+
+func (userRole *UserRole) BeforeUpdate() (err error) {
+	userRole.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
+}
+
 func (UserRole) TableName() string {
 	return "user_roles"
 }

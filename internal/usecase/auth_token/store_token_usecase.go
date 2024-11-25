@@ -11,7 +11,7 @@ import (
 )
 
 type IStoreTokenUseCaseRequest struct {
-	UserID    string    `json:"user_id"`
+	UserID    uuid.UUID `json:"user_id"`
 	Token     string    `json:"token"`
 	ExpiredAt time.Time `json:"expired_at"`
 }
@@ -30,16 +30,17 @@ type StoreTokenUseCase struct {
 	UserRepository      repository.IUserRepository
 }
 
-func NewStoreTokenUseCase(log *logrus.Logger, authTokenRepository repository.IAuthTokenRepository) IStoreTokenUseCase {
+func NewStoreTokenUseCase(log *logrus.Logger, authTokenRepository repository.IAuthTokenRepository, userRepository repository.IUserRepository) IStoreTokenUseCase {
 	return &StoreTokenUseCase{
 		Log:                 log,
 		AuthTokenRepository: authTokenRepository,
+		UserRepository:      userRepository,
 	}
 }
 
 func (uc *StoreTokenUseCase) Execute(request IStoreTokenUseCaseRequest) (*IStoreTokenUseCaseResponse, error) {
 	authToken := entity.AuthToken{
-		UserID:    uuid.MustParse(request.UserID),
+		UserID:    request.UserID,
 		Token:     request.Token,
 		ExpiredAt: request.ExpiredAt,
 	}
@@ -64,5 +65,6 @@ func (uc *StoreTokenUseCase) Execute(request IStoreTokenUseCaseRequest) (*IStore
 
 func StoreTokenUseCaseFactory(log *logrus.Logger) IStoreTokenUseCase {
 	authTokenRepository := repository.AuthTokenRepositoryFactory(log)
-	return NewStoreTokenUseCase(log, authTokenRepository)
+	userRepository := repository.UserRepositoryFactory(log)
+	return NewStoreTokenUseCase(log, authTokenRepository, userRepository)
 }

@@ -26,12 +26,14 @@ func (c *RouteConfig) SetupRoutes() {
 func (c *RouteConfig) SetupApiRoutes() {
 	apiRoute := c.App.Group("/api")
 	{
-		userRoute := apiRoute.Group("/user")
+		userRoute := apiRoute.Group("/users")
 		{
 			userRoute.POST("/login", c.UserHandler.Login)
 			userRoute.Use(c.AuthMiddleware)
 			{
 				userRoute.GET("/me", c.UserHandler.Me)
+				userRoute.GET("/logout", c.UserHandler.Logout)
+				userRoute.POST("/check-token", c.UserHandler.CheckAuthToken)
 			}
 		}
 		oAuthRoute := apiRoute.Group("/oauth")

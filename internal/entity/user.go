@@ -41,7 +41,14 @@ type User struct {
 
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 	user.ID = uuid.New()
-	return
+	user.CreatedAt = time.Now().Add(time.Hour * 7)
+	user.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
+}
+
+func (user *User) BeforeUpdate(tx *gorm.DB) (err error) {
+	user.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
 }
 
 func (User) TableName() string {

@@ -5,6 +5,7 @@ import (
 	"app/go-sso/internal/entity"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -12,7 +13,7 @@ import (
 type IUserRepository interface {
 	FindByEmail(email string) (*entity.User, error)
 	FindAllPaginated(page int, pageSize int) (*[]entity.User, int64, error)
-	FindById(id string) (*entity.User, error)
+	FindById(id uuid.UUID) (*entity.User, error)
 }
 
 type UserRepository struct {
@@ -60,7 +61,7 @@ func (r *UserRepository) FindAllPaginated(page int, pageSize int) (*[]entity.Use
 	return &users, totalCount, nil
 }
 
-func (r *UserRepository) FindById(id string) (*entity.User, error) {
+func (r *UserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 	var user entity.User
 	err := r.DB.Preload("Roles.Permissions").Where("id = ?", id).First(&user).Error
 	if err != nil {
