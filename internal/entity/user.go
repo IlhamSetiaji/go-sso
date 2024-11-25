@@ -32,6 +32,7 @@ type User struct {
 	Gender          UserGender `json:"gender" gorm:"not null"`
 	EmailVerifiedAt time.Time  `json:"email_verified_at" gorm:"default:null"`
 	Status          UserStatus `json:"status" gorm:"default:PENDING"`
+	Token           string     `json:"token" gorm:"default:null"`
 	Roles           []Role     `json:"roles" gorm:"many2many:user_roles;"` // many to many relationship
 	// CreatedAt       time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	// UpdatedAt       time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
