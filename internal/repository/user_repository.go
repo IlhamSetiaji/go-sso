@@ -9,12 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepositoryInterface interface {
+type IUserRepository interface {
 	FindByEmail(email string) (*entity.User, error)
 	FindAllPaginated(page int, pageSize int) (*[]entity.User, int64, error)
-	StoreAuthToken(user *entity.User, token *entity.AuthToken) error
-	FindAuthToken(userID string, token string) (*entity.AuthToken, error)
-	DeleteAuthToken(userID string, token string) error
+	FindById(id string) (*entity.User, error)
 }
 
 type UserRepository struct {
@@ -22,7 +20,7 @@ type UserRepository struct {
 	DB  *gorm.DB
 }
 
-func NewUserRepository(log *logrus.Logger, db *gorm.DB) UserRepositoryInterface {
+func NewUserRepository(log *logrus.Logger, db *gorm.DB) IUserRepository {
 	return &UserRepository{
 		Log: log,
 		DB:  db,
@@ -62,45 +60,22 @@ func (r *UserRepository) FindAllPaginated(page int, pageSize int) (*[]entity.Use
 	return &users, totalCount, nil
 }
 
-func (r *UserRepository) StoreAuthToken(user *entity.User, token *entity.AuthToken) error {
-	if err := r.DB.Model(user).Association("AuthTokens").Append(token); err != nil {
-		r.Log.Error("[UserRepository.StoreAuthToken] " + err.Error())
-		return errors.New("[UserRepository.StoreAuthToken] " + err.Error())
-	}
-	return nil
-}
-
-func (r *UserRepository) FindAuthToken(userID string, token string) (*entity.AuthToken, error) {
-	var authToken entity.AuthToken
-	err := r.DB.Where("user_id = ? AND token = ?", userID, token).First(&authToken).Error
+func (r *UserRepository) FindById(id string) (*entity.User, error) {
+	var user entity.User
+	err := r.DB.Preload("Roles.Permissions").Where("id = ?", id).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			r.Log.Warn("[UserRepository.FindAuthToken] Auth token not found")
+			r.Log.Warn("[UserRepository.FindById] User not found")
 			return nil, nil
 		} else {
-			r.Log.Error("[UserRepository.FindAuthToken] " + err.Error())
-			return nil, errors.New("[UserRepository.FindAuthToken] " + err.Error())
+			r.Log.Error("[UserRepository.FindById] " + err.Error())
+			return nil, errors.New("[UserRepository.FindById] " + err.Error())
 		}
 	}
-	return &authToken, nil
+	return &user, nil
 }
 
-func (r *UserRepository) DeleteAuthToken(userID string, token string) error {
-	authToken, err := r.FindAuthToken(userID, token)
-	if err != nil {
-		return err
-	}
-	if authToken == nil {
-		return errors.New("[UserRepository.DeleteAuthToken] Auth token not found")
-	}
-	if err := r.DB.Delete(authToken).Error; err != nil {
-		r.Log.Error("[UserRepository.DeleteAuthToken] " + err.Error())
-		return errors.New("[UserRepository.DeleteAuthToken] " + err.Error())
-	}
-	return nil
-}
-
-func UserRepositoryFactory(log *logrus.Logger) UserRepositoryInterface {
+func UserRepositoryFactory(log *logrus.Logger) IUserRepository {
 	db := config.NewDatabase()
 	return NewUserRepository(log, db)
 }

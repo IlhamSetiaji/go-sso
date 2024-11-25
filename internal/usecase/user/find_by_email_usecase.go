@@ -22,10 +22,10 @@ type IFindByEmailUseCase interface {
 
 type FindByEmailUseCase struct {
 	Log            *logrus.Logger
-	UserRepository repository.UserRepositoryInterface
+	UserRepository repository.IUserRepository
 }
 
-func NewFindByEmailUseCase(log *logrus.Logger, userRepository repository.UserRepositoryInterface) IFindByEmailUseCase {
+func NewFindByEmailUseCase(log *logrus.Logger, userRepository repository.IUserRepository) IFindByEmailUseCase {
 	return &FindByEmailUseCase{
 		Log:            log,
 		UserRepository: userRepository,

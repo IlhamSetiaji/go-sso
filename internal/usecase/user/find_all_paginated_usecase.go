@@ -24,12 +24,12 @@ type IFindAllPaginated interface {
 
 type FindAllPaginated struct {
 	Log            *logrus.Logger
-	UserRepository repository.UserRepositoryInterface
+	UserRepository repository.IUserRepository
 }
 
 func NewFindAllPaginated(
 	log *logrus.Logger,
-	userRepository repository.UserRepositoryInterface,
+	userRepository repository.IUserRepository,
 ) IFindAllPaginated {
 	return &FindAllPaginated{
 		Log:            log,

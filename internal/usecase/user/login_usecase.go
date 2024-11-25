@@ -24,10 +24,10 @@ type ILoginUseCase interface {
 
 type LoginUseCase struct {
 	Log            *logrus.Logger
-	UserRepository repository.UserRepositoryInterface
+	UserRepository repository.IUserRepository
 }
 
-func NewLoginUseCase(log *logrus.Logger, userRepository repository.UserRepositoryInterface) ILoginUseCase {
+func NewLoginUseCase(log *logrus.Logger, userRepository repository.IUserRepository) ILoginUseCase {
 	return &LoginUseCase{
 		Log:            log,
 		UserRepository: userRepository,
