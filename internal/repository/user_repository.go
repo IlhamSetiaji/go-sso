@@ -12,6 +12,9 @@ import (
 type UserRepositoryInterface interface {
 	FindByEmail(email string) (*entity.User, error)
 	FindAllPaginated(page int, pageSize int) (*[]entity.User, int64, error)
+	StoreAuthToken(user *entity.User, token *entity.AuthToken) error
+	FindAuthToken(userID string, token string) (*entity.AuthToken, error)
+	DeleteAuthToken(userID string, token string) error
 }
 
 type UserRepository struct {
@@ -57,6 +60,44 @@ func (r *UserRepository) FindAllPaginated(page int, pageSize int) (*[]entity.Use
 	}
 
 	return &users, totalCount, nil
+}
+
+func (r *UserRepository) StoreAuthToken(user *entity.User, token *entity.AuthToken) error {
+	if err := r.DB.Model(user).Association("AuthTokens").Append(token); err != nil {
+		r.Log.Error("[UserRepository.StoreAuthToken] " + err.Error())
+		return errors.New("[UserRepository.StoreAuthToken] " + err.Error())
+	}
+	return nil
+}
+
+func (r *UserRepository) FindAuthToken(userID string, token string) (*entity.AuthToken, error) {
+	var authToken entity.AuthToken
+	err := r.DB.Where("user_id = ? AND token = ?", userID, token).First(&authToken).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			r.Log.Warn("[UserRepository.FindAuthToken] Auth token not found")
+			return nil, nil
+		} else {
+			r.Log.Error("[UserRepository.FindAuthToken] " + err.Error())
+			return nil, errors.New("[UserRepository.FindAuthToken] " + err.Error())
+		}
+	}
+	return &authToken, nil
+}
+
+func (r *UserRepository) DeleteAuthToken(userID string, token string) error {
+	authToken, err := r.FindAuthToken(userID, token)
+	if err != nil {
+		return err
+	}
+	if authToken == nil {
+		return errors.New("[UserRepository.DeleteAuthToken] Auth token not found")
+	}
+	if err := r.DB.Delete(authToken).Error; err != nil {
+		r.Log.Error("[UserRepository.DeleteAuthToken] " + err.Error())
+		return errors.New("[UserRepository.DeleteAuthToken] " + err.Error())
+	}
+	return nil
 }
 
 func UserRepositoryFactory(log *logrus.Logger) UserRepositoryInterface {
