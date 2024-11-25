@@ -11,7 +11,7 @@ type AuthToken struct {
 	ID        uuid.UUID `json:"id" gorm:"type:char(36);primaryKey"`
 	UserID    uuid.UUID `json:"user_id" gorm:"type:char(36);not null"`
 	User      User      `json:"user" gorm:"foreignKey:UserID;references:ID"`
-	Token     string    `json:"token" gorm:"unique;not null"`
+	Token     string    `json:"token" gorm:"type:text;not null"`
 	ExpiredAt time.Time `json:"expired_at" gorm:"not null"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`

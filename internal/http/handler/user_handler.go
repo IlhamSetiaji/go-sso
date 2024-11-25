@@ -81,6 +81,12 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		return
 	}
 
+	if authToken == nil {
+		utils.ErrorResponse(ctx, 500, "error", "Failed to store auth token")
+		h.Log.Panicf("Failed to store auth token")
+		return
+	}
+
 	var data = map[string]interface{}{
 		"token":      authToken.AuthToken.Token,
 		"token_type": "Bearer",

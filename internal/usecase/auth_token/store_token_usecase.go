@@ -30,10 +30,11 @@ type StoreTokenUseCase struct {
 	UserRepository      repository.IUserRepository
 }
 
-func NewStoreTokenUseCase(log *logrus.Logger, authTokenRepository repository.IAuthTokenRepository) IStoreTokenUseCase {
+func NewStoreTokenUseCase(log *logrus.Logger, authTokenRepository repository.IAuthTokenRepository, userRepository repository.IUserRepository) IStoreTokenUseCase {
 	return &StoreTokenUseCase{
 		Log:                 log,
 		AuthTokenRepository: authTokenRepository,
+		UserRepository:      userRepository,
 	}
 }
 
@@ -64,5 +65,6 @@ func (uc *StoreTokenUseCase) Execute(request IStoreTokenUseCaseRequest) (*IStore
 
 func StoreTokenUseCaseFactory(log *logrus.Logger) IStoreTokenUseCase {
 	authTokenRepository := repository.AuthTokenRepositoryFactory(log)
-	return NewStoreTokenUseCase(log, authTokenRepository)
+	userRepository := repository.UserRepositoryFactory(log)
+	return NewStoreTokenUseCase(log, authTokenRepository, userRepository)
 }
