@@ -37,7 +37,7 @@ func (r *AuthTokenRepository) StoreAuthToken(user *entity.User, token *entity.Au
 
 func (r *AuthTokenRepository) FindAuthToken(userID uuid.UUID, token string) (*entity.AuthToken, error) {
 	var authToken entity.AuthToken
-	err := r.DB.Where("user_id = ? AND token = ?", userID, token).First(&authToken).Error
+	err := r.DB.Preload("User").Where("user_id = ? AND token = ?", userID, token).First(&authToken).Error
 	if err != nil {
 		r.Log.Error("[AuthTokenRepository.FindAuthToken] " + err.Error())
 		return nil, err

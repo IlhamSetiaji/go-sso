@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
@@ -27,6 +28,7 @@ type UserHandler struct {
 type UserHandlerInterface interface {
 	Login(ctx *gin.Context)
 	Logout(ctx *gin.Context)
+	CheckAuthToken(ctx *gin.Context)
 	Me(ctx *gin.Context)
 	LoginOAuth(ctx *gin.Context)
 	CallbackOAuth(ctx *gin.Context)
@@ -133,6 +135,39 @@ func (h *UserHandler) Logout(ctx *gin.Context) {
 		return
 	}
 	utils.SuccessResponse(ctx, 200, "success", message)
+}
+
+func (h *UserHandler) CheckAuthToken(ctx *gin.Context) {
+	payload := new(request.CheckAuthTokenRequest)
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		utils.ErrorResponse(ctx, 400, "error", err.Error())
+		h.Log.Panicf("Error when binding request: %v", err)
+		return
+	}
+	err := h.Validate.Struct(payload)
+	if err != nil {
+		utils.ErrorResponse(ctx, 400, "error", err.Error())
+		h.Log.Panicf("Error when validating request: %v", err)
+		return
+	}
+	factory := authUsecase.FindTokenUseCaseFactory(h.Log)
+	response, err := factory.Execute(authUsecase.IFindTokenUseCaseRequest{
+		UserID: uuid.MustParse(payload.UserID),
+		Token:  payload.Token,
+	})
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.Log.Panicf("Error when finding token: %v", err)
+		return
+	}
+
+	if response == nil {
+		utils.ErrorResponse(ctx, 404, "error", "Token not found")
+		h.Log.Panicf("Token not found")
+		return
+	}
+
+	utils.SuccessResponse(ctx, 200, "success", response)
 }
 
 func (h *UserHandler) Me(ctx *gin.Context) {
