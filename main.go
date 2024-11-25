@@ -18,18 +18,19 @@ import (
 )
 
 func init() {
-	// Register entity.User with gob
 	gob.Register(entity.User{})
+	// gob.Register([]entity.Role{})
+	// gob.Register([]entity.Permission{})
 }
 
 func main() {
 	// setup config
 	viperConfig := config.NewViper()
-	log := config.NewLogger(viperConfig)
+	log := config.NewLogrus(viperConfig)
 	validate := config.NewValidator(viperConfig)
 	auth, err := config.NewAuth0(viperConfig)
 	if err != nil {
-		log.Panicf("Failed to initialize the authenticator: %v", err)
+		log.Printf("Failed to initialize the authenticator: %v", err)
 	}
 
 	// setup gin engine
@@ -61,6 +62,7 @@ func main() {
 	userHandler := handler.UserHandlerFactory(log, validate, auth)
 	dashboardHandler := web.DashboardHandlerFactory(log, validate)
 	authWebHandler := web.AuthHandlerFactory(log, validate)
+	userWebHandler := web.UserHandlerFactory(log, validate)
 
 	// handle middleware
 	authMiddleware := middleware.NewAuth(viperConfig)
@@ -72,6 +74,7 @@ func main() {
 		UserHandler:       userHandler,
 		DashboardHandler:  dashboardHandler,
 		AuthWebHandler:    authWebHandler,
+		UserWebHandler:    userWebHandler,
 		AuthMiddleware:    authMiddleware,
 		WebAuthMiddleware: authWebMiddleware,
 	}

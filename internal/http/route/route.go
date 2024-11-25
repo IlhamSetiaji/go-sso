@@ -10,6 +10,7 @@ import (
 type RouteConfig struct {
 	App               *gin.Engine
 	UserHandler       handler.UserHandlerInterface
+	UserWebHandler    web.UserHandlerInterface
 	DashboardHandler  web.DashboardHandlerInterface
 	AuthWebHandler    web.AuthHandlerInterface
 	WebAuthMiddleware gin.HandlerFunc
@@ -47,6 +48,11 @@ func (c *RouteConfig) SetupWebRoutes() {
 	c.App.Use(c.WebAuthMiddleware)
 	{
 		c.App.GET("/", c.DashboardHandler.Index)
+		c.App.GET("/logout", c.AuthWebHandler.Logout)
+		userRoutes := c.App.Group("/users")
+		{
+			userRoutes.GET("/", c.UserWebHandler.Index)
+		}
 	}
 }
 

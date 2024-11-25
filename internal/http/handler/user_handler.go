@@ -7,16 +7,16 @@ import (
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
 
 type UserHandler struct {
-	Log         *log.Logger
+	Log         *logrus.Logger
 	Validate    *validator.Validate
 	OAuthConfig *config.Authenticator
 }
@@ -28,7 +28,7 @@ type UserHandlerInterface interface {
 	CallbackOAuth(ctx *gin.Context)
 }
 
-func UserHandlerFactory(log *log.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator) UserHandlerInterface {
+func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator) UserHandlerInterface {
 	return &UserHandler{
 		Log:         log,
 		Validate:    validator,
@@ -49,8 +49,11 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		h.Log.Panicf("Error when validating request: %v", err)
 		return
 	}
-	usecase := usecase.LoginUseCaseFactory(h.Log)
-	response, err := usecase.Login(*payload)
+	factory := usecase.LoginUseCaseFactory(h.Log)
+	response, err := factory.Execute(usecase.ILoginUseCaseRequest{
+		Email:    payload.Email,
+		Password: payload.Password,
+	})
 	if err != nil {
 		utils.ErrorResponse(ctx, 500, "error", err.Error())
 		h.Log.Panicf("Error when login: %v", err)
@@ -124,8 +127,11 @@ func (h *UserHandler) CallbackOAuth(ctx *gin.Context) {
 		h.Log.Panicf("Error when getting profile: %v", err)
 		return
 	}
-	usecase := usecase.FindByEmailUseCaseFactory(h.Log)
-	response, err := usecase.FindByEmail(profile["email"].(string))
+	factory := usecase.FindByEmailUseCaseFactory(h.Log)
+	response, err := factory.Execute(usecase.IFindByEmailUseCaseRequest{
+		Email: profile["email"].(string),
+	})
+
 	if err != nil {
 		utils.ErrorResponse(ctx, 500, "error", err.Error())
 		h.Log.Panicf("Error when finding user by email: %v", err)

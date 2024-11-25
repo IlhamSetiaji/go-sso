@@ -2,55 +2,60 @@ package usecase
 
 import (
 	"app/go-sso/internal/entity"
-	request "app/go-sso/internal/http/request/user"
 	"app/go-sso/internal/repository"
 	"errors"
-	"log"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type LoginUseCase struct {
-	Log            *log.Logger
-	UserRepository repository.UserRepositoryInterface
+type ILoginUseCaseRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-type LoginUseCaseResponse struct {
+type ILoginUseCaseResponse struct {
 	User entity.User `json:"user"`
 }
 
-type LoginUseCaseInterface interface {
-	Login(request request.LoginRequest) (*LoginUseCaseResponse, error)
+type ILoginUseCase interface {
+	Execute(request ILoginUseCaseRequest) (*ILoginUseCaseResponse, error)
 }
 
-func LoginUseCaseFactory(
-	log *log.Logger,
-) LoginUseCaseInterface {
+type LoginUseCase struct {
+	Log            *logrus.Logger
+	UserRepository repository.IUserRepository
+}
+
+func NewLoginUseCase(log *logrus.Logger, userRepository repository.IUserRepository) ILoginUseCase {
 	return &LoginUseCase{
 		Log:            log,
-		UserRepository: repository.UserRepositoryFactory(log),
+		UserRepository: userRepository,
 	}
 }
 
-func (uc *LoginUseCase) Login(request request.LoginRequest) (*LoginUseCaseResponse, error) {
+func (uc *LoginUseCase) Execute(request ILoginUseCaseRequest) (*ILoginUseCaseResponse, error) {
 	user, err := uc.UserRepository.FindByEmail(request.Email)
 	if err != nil {
-		return nil, errors.New("[LoginUseCase.Login] " + err.Error())
+		return nil, errors.New("[LoginUseCase.Execute] " + err.Error())
 	}
 
 	if user == nil {
-		// uc.Log.Panicf("User not found")
-		return nil, errors.New("User not found")
+		uc.Log.Error("User not found")
+		return nil, errors.New("Email or password is incorrect")
 	}
 
-	checkedPassword := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
-	if checkedPassword != nil {
-		// uc.Log.Fatalf("Password not match")
-		// return nil, errors.New("Password not match:" + checkedPassword.Error())
-		return nil, errors.New("Password not match")
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)); err != nil {
+		uc.Log.Error("Password not match")
+		return nil, errors.New("Email or password is incorrect")
 	}
 
-	return &LoginUseCaseResponse{
+	return &ILoginUseCaseResponse{
 		User: *user,
 	}, nil
+}
+
+func LoginUseCaseFactory(log *logrus.Logger) ILoginUseCase {
+	userRepository := repository.UserRepositoryFactory(log)
+	return NewLoginUseCase(log, userRepository)
 }

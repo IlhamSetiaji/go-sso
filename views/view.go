@@ -53,6 +53,8 @@ func (v *View) Render(c *gin.Context, data interface{}) {
 	dataMap["Success"] = session.Get("success")
 	dataMap["Error"] = session.Get("error")
 	dataMap["Warning"] = session.Get("warning")
+	dataMap["Profile"] = session.Get("profile")
+	dataMap["CurrentPath"] = c.Request.URL.Path
 	session.Save()
 
 	err := v.Template.ExecuteTemplate(c.Writer, v.Layout, dataMap)

@@ -4,29 +4,36 @@ import (
 	"app/go-sso/internal/entity"
 	"app/go-sso/internal/repository"
 	"errors"
-	"log"
+
+	"github.com/sirupsen/logrus"
 )
 
-type FindByEmailUseCase struct {
-	Log            *log.Logger
-	UserRepository repository.UserRepositoryInterface
+type IFindByEmailUseCaseRequest struct {
+	Email string `json:"email"`
 }
 
-type FindByEmailUseCaseResponse struct {
+type IFindByEmailUseCaseResponse struct {
 	User *entity.User `json:"user"`
 }
 
-func FindByEmailUseCaseFactory(
-	log *log.Logger,
-) *FindByEmailUseCase {
+type IFindByEmailUseCase interface {
+	Execute(request IFindByEmailUseCaseRequest) (*IFindByEmailUseCaseResponse, error)
+}
+
+type FindByEmailUseCase struct {
+	Log            *logrus.Logger
+	UserRepository repository.IUserRepository
+}
+
+func NewFindByEmailUseCase(log *logrus.Logger, userRepository repository.IUserRepository) IFindByEmailUseCase {
 	return &FindByEmailUseCase{
 		Log:            log,
-		UserRepository: repository.UserRepositoryFactory(log),
+		UserRepository: userRepository,
 	}
 }
 
-func (uc *FindByEmailUseCase) FindByEmail(email string) (*FindByEmailUseCaseResponse, error) {
-	user, err := uc.UserRepository.FindByEmail(email)
+func (uc *FindByEmailUseCase) Execute(request IFindByEmailUseCaseRequest) (*IFindByEmailUseCaseResponse, error) {
+	user, err := uc.UserRepository.FindByEmail(request.Email)
 	if err != nil {
 		return nil, errors.New("[FindByEmailUseCase.FindByEmail] " + err.Error())
 	}
@@ -36,7 +43,12 @@ func (uc *FindByEmailUseCase) FindByEmail(email string) (*FindByEmailUseCaseResp
 		return nil, errors.New("User not found")
 	}
 
-	return &FindByEmailUseCaseResponse{
+	return &IFindByEmailUseCaseResponse{
 		User: user,
 	}, nil
+}
+
+func FindByEmailUseCaseFactory(log *logrus.Logger) IFindByEmailUseCase {
+	userRepository := repository.UserRepositoryFactory(log)
+	return NewFindByEmailUseCase(log, userRepository)
 }
