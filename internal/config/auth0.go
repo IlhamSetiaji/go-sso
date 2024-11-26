@@ -31,7 +31,7 @@ func NewAuth0(config *viper.Viper) (*Authenticator, error) {
 	err := config.ReadInConfig()
 
 	if err != nil {
-		panic(fmt.Errorf("Fatal error config file: %w \n", err))
+		panic(fmt.Errorf("fatal error config file: %w", err))
 	}
 
 	provider, err := oidc.NewProvider(

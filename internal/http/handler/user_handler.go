@@ -7,6 +7,8 @@ import (
 	authUsecase "app/go-sso/internal/usecase/auth_token"
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -20,9 +22,10 @@ import (
 )
 
 type UserHandler struct {
-	Log         *logrus.Logger
-	Validate    *validator.Validate
-	OAuthConfig *config.Authenticator
+	Log               *logrus.Logger
+	Validate          *validator.Validate
+	OAuthConfig       *config.Authenticator
+	GoogleOAuthConfig *config.GoogleAuthenticator
 }
 
 type UserHandlerInterface interface {
@@ -32,13 +35,16 @@ type UserHandlerInterface interface {
 	Me(ctx *gin.Context)
 	LoginOAuth(ctx *gin.Context)
 	CallbackOAuth(ctx *gin.Context)
+	GoogleLoginOAuth(ctx *gin.Context)
+	GoogleCallbackOAuth(ctx *gin.Context)
 }
 
-func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator) UserHandlerInterface {
+func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator, googleOAuthConfig *config.GoogleAuthenticator) UserHandlerInterface {
 	return &UserHandler{
-		Log:         log,
-		Validate:    validator,
-		OAuthConfig: oAuthConfig,
+		Log:               log,
+		Validate:          validator,
+		OAuthConfig:       oAuthConfig,
+		GoogleOAuthConfig: googleOAuthConfig,
 	}
 }
 
@@ -237,5 +243,76 @@ func (h *UserHandler) CallbackOAuth(ctx *gin.Context) {
 	}
 	redirectURL := fmt.Sprintf("%s?token=%s", appConfig.RedirectURI, jwtToken)
 	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
-	// utils.SuccessResponse(ctx, 200, "success", jwtToken)
+}
+
+func (h *UserHandler) GoogleLoginOAuth(ctx *gin.Context) {
+	state := ctx.Query("state")
+	url := h.GoogleOAuthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
+	ctx.Redirect(http.StatusTemporaryRedirect, url)
+}
+
+func (h *UserHandler) GoogleCallbackOAuth(ctx *gin.Context) {
+	// Get the code and state from the query
+	code := ctx.Query("code")
+	state := ctx.Query("state")
+
+	if code == "" {
+		utils.ErrorResponse(ctx, 400, "error", "code is required")
+		return
+	}
+
+	appConfig, appExists := config.GoogleAppConfigs[state]
+	if !appExists {
+		utils.ErrorResponse(ctx, 400, "error", "Invalid state")
+		h.Log.Panicf("Invalid state")
+		return
+	}
+
+	token, err := h.GoogleOAuthConfig.Exchange(context.Background(), code)
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", "failed to exchange token")
+		return
+	}
+
+	client := h.GoogleOAuthConfig.Client(context.Background(), token)
+	userInfoResp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", "failed to get user info")
+		return
+	}
+	defer userInfoResp.Body.Close()
+
+	var userInfo struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(userInfoResp.Body).Decode(&userInfo); err != nil {
+		utils.ErrorResponse(ctx, 500, "error", "failed to decode user info")
+		return
+	}
+
+	email := userInfo.Email
+	if email == "" {
+		utils.ErrorResponse(ctx, 400, "error", "email is required")
+		return
+	}
+
+	factory := usecase.FindByEmailUseCaseFactory(h.Log)
+	response, err := factory.Execute(usecase.IFindByEmailUseCaseRequest{
+		Email: email,
+	})
+
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.Log.Panicf("Error when finding user by email: %v", err)
+		return
+	}
+	jwtToken, err := utils.GenerateToken(response.User)
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.Log.Panicf("Error when generating token: %v", err)
+		return
+	}
+
+	redirectURL := fmt.Sprintf("%s?token=%s", appConfig.RedirectURI, jwtToken)
+	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }

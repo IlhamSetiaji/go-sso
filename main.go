@@ -30,7 +30,11 @@ func main() {
 	validate := config.NewValidator(viperConfig)
 	auth, err := config.NewAuth0(viperConfig)
 	if err != nil {
-		log.Printf("Failed to initialize the authenticator: %v", err)
+		log.Printf("Failed to initialize the auth0 authenticator: %v", err)
+	}
+	googleAuth, err := config.NewGoogleAuthenticator(viperConfig)
+	if err != nil {
+		log.Printf("Failed to initialize the google authenticator: %v", err)
 	}
 
 	// setup gin engine
@@ -59,7 +63,7 @@ func main() {
 	})
 
 	//handle handler
-	userHandler := handler.UserHandlerFactory(log, validate, auth)
+	userHandler := handler.UserHandlerFactory(log, validate, auth, googleAuth)
 	dashboardHandler := web.DashboardHandlerFactory(log, validate)
 	authWebHandler := web.AuthHandlerFactory(log, validate)
 	userWebHandler := web.UserHandlerFactory(log, validate)
