@@ -204,6 +204,37 @@ func main() {
 		log.Printf("create user role success")
 	}
 
+	// insert google account
+	googleAccount := entity.User{
+		Username:        "ilham",
+		Email:           "ilham.ahmadz18@gmail.com",
+		Password:        string(hashedPasswordBytes),
+		Name:            "Ilham Setiaji",
+		EmailVerifiedAt: time.Now(),
+		Status:          entity.UserStatus("ACTIVE"),
+		Gender:          entity.UserGender("MALE"),
+	}
+
+	err = db.Create(&googleAccount).Error
+	if err != nil {
+		log.Fatalf("failed to create google account: %v", err)
+	} else {
+		log.Printf("create google account success")
+	}
+
+	googleUserRole := entity.UserRole{
+		UserID: googleAccount.ID,
+		RoleID: superadminRole.ID,
+	}
+
+	err = db.Create(&googleUserRole).Error
+
+	if err != nil {
+		log.Fatalf("failed to create google user role: %v", err)
+	} else {
+		log.Printf("create google user role success")
+	}
+
 	// populate users and roles for web1 and web2 client
 	var web1Client entity.Client
 	err = db.Where("name = ?", "Web1 Client").First(&web1Client).Error
