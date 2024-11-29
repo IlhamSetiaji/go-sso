@@ -8,6 +8,8 @@ import (
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -18,14 +20,16 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/rand"
 	"golang.org/x/oauth2"
 )
 
 type UserHandler struct {
-	Log               *logrus.Logger
-	Validate          *validator.Validate
-	OAuthConfig       *config.Authenticator
-	GoogleOAuthConfig *config.GoogleAuthenticator
+	Log                *logrus.Logger
+	Validate           *validator.Validate
+	OAuthConfig        *config.Authenticator
+	GoogleOAuthConfig  *config.GoogleAuthenticator
+	ZitadelOAuthConfig *config.ZitadelAuthenticator
 }
 
 type UserHandlerInterface interface {
@@ -37,14 +41,17 @@ type UserHandlerInterface interface {
 	CallbackOAuth(ctx *gin.Context)
 	GoogleLoginOAuth(ctx *gin.Context)
 	GoogleCallbackOAuth(ctx *gin.Context)
+	ZitadelLoginOAuth(ctx *gin.Context)
+	ZitadelCallbackOAuth(ctx *gin.Context)
 }
 
-func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator, googleOAuthConfig *config.GoogleAuthenticator) UserHandlerInterface {
+func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator, googleOAuthConfig *config.GoogleAuthenticator, zitadelOAuthConfig *config.ZitadelAuthenticator) UserHandlerInterface {
 	return &UserHandler{
-		Log:               log,
-		Validate:          validator,
-		OAuthConfig:       oAuthConfig,
-		GoogleOAuthConfig: googleOAuthConfig,
+		Log:                log,
+		Validate:           validator,
+		OAuthConfig:        oAuthConfig,
+		GoogleOAuthConfig:  googleOAuthConfig,
+		ZitadelOAuthConfig: zitadelOAuthConfig,
 	}
 }
 
@@ -310,6 +317,115 @@ func (h *UserHandler) GoogleCallbackOAuth(ctx *gin.Context) {
 	if err != nil {
 		utils.ErrorResponse(ctx, 500, "error", err.Error())
 		h.Log.Panicf("Error when generating token: %v", err)
+		return
+	}
+
+	redirectURL := fmt.Sprintf("%s?token=%s", appConfig.RedirectURI, jwtToken)
+	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
+}
+
+var codeVerifierStore = make(map[string]string)
+
+func generateCodeVerifier() string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~"
+	var seededRand = rand.New(rand.NewSource(rand.Uint64()))
+
+	b := make([]byte, 64)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+func generateCodeChallenge(verifier string) string {
+	hash := sha256.Sum256([]byte(verifier))
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash[:])
+}
+
+func (h *UserHandler) ZitadelLoginOAuth(ctx *gin.Context) {
+	state := ctx.Query("state")
+	codeVerifier := generateCodeVerifier()
+	codeChallenge := generateCodeChallenge(codeVerifier)
+
+	codeVerifierStore[state] = codeVerifier
+
+	authURL := h.ZitadelOAuthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline) +
+		"&code_challenge=" + codeChallenge +
+		"&code_challenge_method=S256"
+
+	ctx.Redirect(http.StatusTemporaryRedirect, authURL)
+}
+
+func (h *UserHandler) ZitadelCallbackOAuth(ctx *gin.Context) {
+	code := ctx.Query("code")
+	state := ctx.Query("state")
+
+	if code == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "code is required")
+		return
+	}
+
+	appConfig, appExists := config.ZitadelAppConfigs[state]
+	if !appExists {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "Invalid state")
+		return
+	}
+
+	codeVerifier, ok := codeVerifierStore[state]
+	if !ok {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "Invalid or expired state")
+		return
+	}
+	delete(codeVerifierStore, state)
+
+	token, err := h.ZitadelOAuthConfig.Exchange(
+		context.Background(),
+		code,
+		oauth2.SetAuthURLParam("code_verifier", codeVerifier),
+		oauth2.SetAuthURLParam("grant_type", "authorization_code"),
+	)
+	if err != nil {
+		h.Log.Errorf("Token exchange failed: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", "Failed to exchange token")
+		return
+	}
+
+	client := h.ZitadelOAuthConfig.Client(context.Background(), token)
+	userInfoResp, err := client.Get("https://signals99-kjlnde.us1.zitadel.cloud/oidc/v1/userinfo")
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", "Failed to get user info: "+err.Error())
+		return
+	}
+	defer userInfoResp.Body.Close()
+
+	var userInfo struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(userInfoResp.Body).Decode(&userInfo); err != nil {
+		h.Log.Errorf("Failed to decode user info: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", "Failed to decode user info: "+err.Error())
+		return
+	}
+
+	if userInfo.Email == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "Email is required")
+		return
+	}
+
+	factory := usecase.FindByEmailUseCaseFactory(h.Log)
+	response, err := factory.Execute(usecase.IFindByEmailUseCaseRequest{
+		Email: userInfo.Email,
+	})
+	if err != nil {
+		h.Log.Errorf("Error finding user by email: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+		return
+	}
+
+	jwtToken, err := utils.GenerateToken(response.User)
+	if err != nil {
+		h.Log.Errorf("Error generating token: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", "Failed to generate token")
 		return
 	}
 

@@ -40,6 +40,7 @@ func (c *RouteConfig) SetupApiRoutes() {
 		{
 			oAuthRoute.GET("/callback", c.UserHandler.CallbackOAuth)
 			oAuthRoute.GET("/google/callback", c.UserHandler.GoogleCallbackOAuth)
+			oAuthRoute.GET("/zitadel/callback", c.UserHandler.ZitadelCallbackOAuth)
 		}
 	}
 }
@@ -62,7 +63,8 @@ func (c *RouteConfig) SetupWebRoutes() {
 func (c *RouteConfig) SetupOAuthRoutes() {
 	oAuthRoute := c.App.Group("/oauth")
 	{
-		oAuthRoute.GET("/google/login", c.UserHandler.GoogleLoginOAuth)
 		oAuthRoute.GET("/login", c.UserHandler.LoginOAuth)
+		oAuthRoute.GET("/google/login", c.UserHandler.GoogleLoginOAuth)
+		oAuthRoute.GET("/zitadel/login", c.UserHandler.ZitadelLoginOAuth)
 	}
 }

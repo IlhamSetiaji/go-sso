@@ -36,6 +36,10 @@ func main() {
 	if err != nil {
 		log.Printf("Failed to initialize the google authenticator: %v", err)
 	}
+	zitadelAuth, err := config.NewZitadelAuthenticator(viperConfig)
+	if err != nil {
+		log.Printf("Failed to initialize the zitadel authenticator: %v", err)
+	}
 
 	// setup gin engine
 	app := gin.Default()
@@ -63,7 +67,7 @@ func main() {
 	})
 
 	//handle handler
-	userHandler := handler.UserHandlerFactory(log, validate, auth, googleAuth)
+	userHandler := handler.UserHandlerFactory(log, validate, auth, googleAuth, zitadelAuth)
 	dashboardHandler := web.DashboardHandlerFactory(log, validate)
 	authWebHandler := web.AuthHandlerFactory(log, validate)
 	userWebHandler := web.UserHandlerFactory(log, validate)
