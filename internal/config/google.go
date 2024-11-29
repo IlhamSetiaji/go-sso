@@ -32,14 +32,6 @@ func NewGoogleAuthenticator(config *viper.Viper) (*GoogleAuthenticator, error) {
 		panic(fmt.Errorf("fatal error config file: %w", err))
 	}
 
-	// provider, err := oidc.NewProvider(
-	// 	context.Background(),
-	// 	google.Endpoint.AuthURL,
-	// )
-	if err != nil {
-		return nil, err
-	}
-
 	conf := oauth2.Config{
 		ClientID:     config.GetString("google.client_id"),
 		ClientSecret: config.GetString("google.client_secret"),
