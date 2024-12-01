@@ -16,36 +16,161 @@
     </div>
   </div>
 </div>
-<div class="container">
-  <h2>Users</h2>
-  <table id="usersTable" class="table table-striped">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{range .Users}}
-      <tr>
-        <td>{{.ID}}</td>
-        <td>{{.Name}}</td>
-        <td>{{.Email}}</td>
-        <td>
-          <a href="/users/edit/{{.ID}}" class="btn btn-primary">Edit</a>
-          <a href="/users/delete/{{.ID}}" class="btn btn-danger">Delete</a>
-        </td>
-      </tr>
-      {{end}}
-    </tbody>
-  </table>
-</div>
-{{end}} {{define "custom-script"}}
-<script>
-  $(document).ready(function () {
-    $("#usersTable").DataTable();
-  });
-</script>
-{{end}}
+<section class="section">
+  <div class="card">
+    <div class="card-header d-grid gap-3">
+      <div class="row">
+        <div class="col-md-6">
+          <button
+            type="button"
+            class="btn btn-outline-success"
+            data-bs-toggle="modal"
+            data-bs-target="#xlarge"
+          >
+            Add New User
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <table id="usersTable" class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .Users}}
+          <tr>
+            <td>{{.ID}}</td>
+            <td>{{.Name}}</td>
+            <td>{{.Email}}</td>
+            <td>
+              <a href="/users/edit/{{.ID}}" class="btn btn-primary">Edit</a>
+              <a href="/users/delete/{{.ID}}" class="btn btn-danger">Delete</a>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    <div
+      class="modal fade text-left w-100"
+      id="xlarge"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myModalLabel16"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"
+        role="document"
+      >
+        <div class="modal-content">
+          <div class="modal-header bg-success">
+            <h4 class="modal-title text-white" id="myModalLabel16">
+              Add New User
+            </h4>
+            <button
+              type="button"
+              class="close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              <i data-feather="x"></i>
+            </button>
+          </div>
+          <form action="/users" method="POST">
+            <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
+            <div class="modal-body">
+              <div class="form-group has-icon-left">
+                <label for="name">Name</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="name"
+                    class="form-control"
+                    placeholder="Fill your full name"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="bi bi-person"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="nik">NIK</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="nik"
+                    class="form-control"
+                    placeholder="Fill your valid NIK"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-hashtag"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="email">Email</label>
+                <div class="position-relative">
+                  <input
+                    type="email"
+                    name="email"
+                    class="form-control"
+                    placeholder="Fill your valid E-Mail"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-envelope"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="phone_number">Phone Number</label>
+                <div class="position-relative">
+                  <input
+                    type="tel"
+                    name="phone_number"
+                    class="form-control"
+                    placeholder="Fill your valid phone number"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-phone"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-light-secondary"
+                data-bs-dismiss="modal"
+              >
+                <i class="bx bx-x d-block d-sm-none"></i>
+                <span class="d-none d-sm-block">Close</span>
+              </button>
+              <button type="submit" class="btn btn-primary ms-1">
+                <i class="bx bx-check d-block d-sm-none"></i>
+                <span class="d-none d-sm-block">Submit</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{end}} {{define "custom-script"}}
+  <script>
+    $(document).ready(function () {
+      $("#usersTable").DataTable();
+    });
+  </script>
+  {{end}}
+</section>

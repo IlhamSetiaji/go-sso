@@ -14,6 +14,7 @@ type IUserRepository interface {
 	FindByEmail(email string) (*entity.User, error)
 	FindAllPaginated(page int, pageSize int) (*[]entity.User, int64, error)
 	FindById(id uuid.UUID) (*entity.User, error)
+	CreateUser(user *entity.User, roleId uuid.UUID) (*entity.User, error)
 }
 
 type UserRepository struct {
@@ -74,6 +75,24 @@ func (r *UserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 		}
 	}
 	return &user, nil
+}
+
+func (r *UserRepository) CreateUser(user *entity.User, roleId uuid.UUID) (*entity.User, error) {
+	tx := r.DB.Begin()
+	err := r.DB.Create(user).Error
+	if err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.CreateUser] " + err.Error())
+		return nil, errors.New("[UserRepository.CreateUser] " + err.Error())
+	}
+
+	if err := r.DB.Model(user).Association("Roles").Append(&entity.Role{ID: roleId}); err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.CreateUser] " + err.Error())
+		return nil, errors.New("[UserRepository.CreateUser] " + err.Error())
+	}
+
+	return user, tx.Commit().Error
 }
 
 func UserRepositoryFactory(log *logrus.Logger) IUserRepository {

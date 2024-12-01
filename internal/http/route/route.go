@@ -56,6 +56,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 		userRoutes := c.App.Group("/users")
 		{
 			userRoutes.GET("/", c.UserWebHandler.Index)
+			userRoutes.POST("/", c.UserWebHandler.StoreUser)
 		}
 	}
 }

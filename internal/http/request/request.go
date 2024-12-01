@@ -18,3 +18,16 @@ func UserStatusValidation(fl validator.FieldLevel) bool {
 		return false
 	}
 }
+
+func UserGenderValidation(fl validator.FieldLevel) bool {
+	gender := fl.Field().String()
+	if gender == "" {
+		return true
+	}
+	switch entity.UserGender(gender) {
+	case entity.MALE, entity.FEMALE:
+		return true
+	default:
+		return false
+	}
+}
