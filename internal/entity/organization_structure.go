@@ -16,19 +16,19 @@ type OrganizationStructure struct {
 	Name           string                  `json:"name"`
 	JobLevelID     uuid.UUID               `json:"job_level_id" gorm:"type:char(36)"`
 	ParentID       *uuid.UUID              `json:"parent_id" gorm:"type:char(36)"`
-	Level          int                     `json:"level" gorm:"index"`          // Add level for hierarchy depth
-	Path           string                  `json:"path" gorm:"type:text;index"` // Store full path for easy traversal
+	Level          int                     `json:"level" gorm:"index"`    // Add level for hierarchy depth
+	Path           string                  `json:"path" gorm:"type:text"` // Store full path for easy traversal
 	Organization   Organization            `json:"organization" gorm:"foreignKey:OrganizationID;references:ID;constraint:OnDelete:CASCADE"`
 	JobLevel       JobLevel                `json:"job_level" gorm:"foreignKey:JobLevelID;references:ID;constraint:OnDelete:CASCADE"`
 	Parent         *OrganizationStructure  `json:"parent" gorm:"foreignKey:ParentID;references:ID;constraint:OnDelete:CASCADE"`
 	Children       []OrganizationStructure `json:"children" gorm:"foreignKey:ParentID;references:ID"`
-	EmployeeJobs   []EmployeeJob           `json:"employee_jobs" gorm:"foreignKey:OrganizationStructureID;references:ID"`
 }
 
 func (organizationStructure *OrganizationStructure) BeforeCreate(tx *gorm.DB) (err error) {
 	organizationStructure.ID = uuid.New()
 	organizationStructure.CreatedAt = time.Now().Add(time.Hour * 7)
 	organizationStructure.UpdatedAt = time.Now().Add(time.Hour * 7)
+
 	// Set level and path based on parent
 	if organizationStructure.ParentID != nil {
 		var parent OrganizationStructure

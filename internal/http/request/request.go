@@ -12,7 +12,7 @@ func UserStatusValidation(fl validator.FieldLevel) bool {
 		return true
 	}
 	switch entity.UserStatus(status) {
-	case entity.ACTIVE, entity.INACTIVE, entity.PENDING:
+	case entity.USER_ACTIVE, entity.USER_INACTIVE, entity.USER_PENDING:
 		return true
 	default:
 		return false

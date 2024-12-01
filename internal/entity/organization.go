@@ -14,7 +14,6 @@ type Organization struct {
 	OrganizationLocations  []OrganizationLocation  `json:"organization_locations" gorm:"foreignKey:OrganizationID;references:ID"`
 	OrganizationStructures []OrganizationStructure `json:"organization_structures" gorm:"foreignKey:OrganizationID;references:ID"`
 	Employees              []Employee              `json:"employees" gorm:"foreignKey:OrganizationID;references:ID"`
-	EmployeeJobs           []EmployeeJob           `json:"employee_jobs" gorm:"foreignKey:OrganizationID;references:ID"`
 	AlternateEmployeeJobs  []EmployeeJob           `json:"alternate_employee_jobs" gorm:"foreignKey:EmpOrganizationID;references:ID"`
 }
 

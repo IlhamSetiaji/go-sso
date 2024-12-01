@@ -17,6 +17,8 @@ type Employee struct {
 	Email          string       `json:"email" gorm:"unique"`
 	MobilePhone    string       `json:"mobile_phone" gorm:"unique"`
 	Organization   Organization `json:"organization" gorm:"foreignKey:OrganizationID;references:ID;constraint:OnDelete:CASCADE"`
+	User           *User        `json:"user" gorm:"foreignKey:EmployeeID;references:ID"`
+	EmployeeJob    *EmployeeJob `json:"employee_job" gorm:"foreignKey:EmployeeID;references:ID"`
 }
 
 func (employee *Employee) BeforeCreate(tx *gorm.DB) (err error) {
