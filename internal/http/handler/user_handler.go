@@ -20,11 +20,13 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"golang.org/x/exp/rand"
 	"golang.org/x/oauth2"
 )
 
 type UserHandler struct {
+	Config             *viper.Viper
 	Log                *logrus.Logger
 	Validate           *validator.Validate
 	OAuthConfig        *config.Authenticator
@@ -46,13 +48,41 @@ type UserHandlerInterface interface {
 }
 
 func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate, oAuthConfig *config.Authenticator, googleOAuthConfig *config.GoogleAuthenticator, zitadelOAuthConfig *config.ZitadelAuthenticator) UserHandlerInterface {
+	config := viper.New()
+	config.SetConfigName("config")
+	config.SetConfigType("json")
+	config.AddConfigPath("./")
+	err := config.ReadInConfig()
+
+	if err != nil {
+		panic(fmt.Errorf("Fatal error config file: %w \n", err))
+	}
 	return &UserHandler{
+		Config:             config,
 		Log:                log,
 		Validate:           validator,
 		OAuthConfig:        oAuthConfig,
 		GoogleOAuthConfig:  googleOAuthConfig,
 		ZitadelOAuthConfig: zitadelOAuthConfig,
 	}
+}
+
+var codeVerifierStore = make(map[string]string)
+
+func generateCodeVerifier() string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~"
+	var seededRand = rand.New(rand.NewSource(rand.Uint64()))
+
+	b := make([]byte, 64)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+func generateCodeChallenge(verifier string) string {
+	hash := sha256.Sum256([]byte(verifier))
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash[:])
 }
 
 func (h *UserHandler) Login(ctx *gin.Context) {
@@ -324,24 +354,6 @@ func (h *UserHandler) GoogleCallbackOAuth(ctx *gin.Context) {
 	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 
-var codeVerifierStore = make(map[string]string)
-
-func generateCodeVerifier() string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~"
-	var seededRand = rand.New(rand.NewSource(rand.Uint64()))
-
-	b := make([]byte, 64)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-	return string(b)
-}
-
-func generateCodeChallenge(verifier string) string {
-	hash := sha256.Sum256([]byte(verifier))
-	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash[:])
-}
-
 func (h *UserHandler) ZitadelLoginOAuth(ctx *gin.Context) {
 	state := ctx.Query("state")
 	codeVerifier := generateCodeVerifier()
@@ -398,6 +410,12 @@ func (h *UserHandler) ZitadelCallbackOAuth(ctx *gin.Context) {
 	}
 	defer userInfoResp.Body.Close()
 
+	accessToken := token.AccessToken
+
+	accessTokenCookie := utils.NewDefaultCookieOptions("access_token")
+	accessTokenCookie.Domain = h.Config.GetString("app.domain")
+	utils.SetTokenCookie(ctx, accessToken, accessTokenCookie)
+
 	var userInfo struct {
 		Email string `json:"email"`
 	}
@@ -428,6 +446,10 @@ func (h *UserHandler) ZitadelCallbackOAuth(ctx *gin.Context) {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", "Failed to generate token")
 		return
 	}
+
+	jwtCookie := utils.NewDefaultCookieOptions("jwt_token")
+	jwtCookie.Domain = h.Config.GetString("app.domain")
+	utils.SetTokenCookie(ctx, jwtToken, jwtCookie)
 
 	redirectURL := fmt.Sprintf("%s?token=%s", appConfig.RedirectURI, jwtToken)
 	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
