@@ -1,4 +1,21 @@
 {{define "content"}}
+<div class="page-title">
+  <div class="row">
+    <div class="col-12 col-md-6 order-md-1 order-last">
+      <h3>Users</h3>
+    </div>
+    <div class="col-12 col-md-6 order-md-2 order-first">
+      <nav
+        aria-label="breadcrumb"
+        class="breadcrumb-header float-start float-lg-end"
+      >
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Users</a></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+</div>
 <div class="container">
   <h2>Users</h2>
   <table id="usersTable" class="table table-striped">
@@ -25,11 +42,10 @@
     </tbody>
   </table>
 </div>
-{{end}}
-{{define "custom-script"}}
+{{end}} {{define "custom-script"}}
 <script>
   $(document).ready(function () {
     $("#usersTable").DataTable();
   });
 </script>
-{{end}} 
+{{end}}

@@ -6,14 +6,17 @@ import (
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
 	"app/go-sso/views"
+	"fmt"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type AuthHandler struct {
+	Config   *viper.Viper
 	Log      *logrus.Logger
 	Validate *validator.Validate
 }
@@ -25,7 +28,17 @@ type AuthHandlerInterface interface {
 }
 
 func AuthHandlerFactory(log *logrus.Logger, validator *validator.Validate) AuthHandlerInterface {
+	config := viper.New()
+	config.SetConfigName("config")
+	config.SetConfigType("json")
+	config.AddConfigPath("./")
+	err := config.ReadInConfig()
+
+	if err != nil {
+		panic(fmt.Errorf("Fatal error config file: %w \n", err))
+	}
 	return &AuthHandler{
+		Config:   config,
 		Log:      log,
 		Validate: validator,
 	}
@@ -69,16 +82,17 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		ctx.Redirect(302, ctx.Request.Referer())
 		return
 	}
-	var profile = entity.User{
+	var profile = entity.Profile{
 		ID:       response.User.ID,
-		Email:    response.User.Email,
 		Name:     response.User.Name,
+		Email:    response.User.Email,
 		Username: response.User.Username,
 	}
+
 	session.Set("profile", profile)
 	session.Delete("error")
 	if err := session.Save(); err != nil {
-		h.Log.Printf("Session save error: %v", err)
+		h.Log.Printf("[Auth handler] Session save error: %v", err)
 		ctx.Redirect(302, ctx.Request.Referer())
 		return
 	}

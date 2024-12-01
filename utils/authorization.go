@@ -15,7 +15,7 @@ func GetLoggedInUser(ctx *gin.Context) (*entity.User, error) {
 	if profile == nil {
 		return nil, nil
 	}
-	userProfile, ok := profile.(entity.User)
+	userProfile, ok := profile.(entity.Profile)
 	if !ok {
 		return nil, nil
 	}

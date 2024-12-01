@@ -18,7 +18,7 @@ import (
 )
 
 func init() {
-	gob.Register(entity.User{})
+	gob.Register(entity.Profile{})
 	// gob.Register([]entity.Role{})
 	// gob.Register([]entity.Permission{})
 }
