@@ -3,7 +3,7 @@ package web
 import (
 	"app/go-sso/internal/entity"
 	"app/go-sso/internal/http/middleware"
-	request "app/go-sso/internal/http/request/web/user"
+	userRequest "app/go-sso/internal/http/request/web/user"
 	roleUsecase "app/go-sso/internal/usecase/role"
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/views"
@@ -89,7 +89,7 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 		return
 	}
 	session := sessions.Default(ctx)
-	payload := new(request.CreateUserRequest)
+	payload := new(userRequest.CreateUserRequest)
 	if err := ctx.ShouldBind(payload); err != nil {
 		session.Set("error", err.Error())
 		session.Save()
@@ -143,7 +143,7 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 	middleware.PermissionMiddleware("update-user")(ctx)
 	session := sessions.Default(ctx)
-	payload := new(request.UpdateUserRequest)
+	payload := new(userRequest.UpdateUserRequest)
 	if err := ctx.ShouldBind(payload); err != nil {
 		session.Set("error", err.Error())
 		session.Save()
@@ -200,7 +200,7 @@ func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 func (h *UserHandler) DeleteUser(ctx *gin.Context) {
 	middleware.PermissionMiddleware("delete-user")(ctx)
 	session := sessions.Default(ctx)
-	payload := new(request.DeleteUserRequest)
+	payload := new(userRequest.DeleteUserRequest)
 	if err := ctx.ShouldBind(payload); err != nil {
 		session.Set("error", err.Error())
 		session.Save()
