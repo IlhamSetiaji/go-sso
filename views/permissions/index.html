@@ -2,7 +2,7 @@
 <div class="page-title">
   <div class="row">
     <div class="col-12 col-md-6 order-md-1 order-last">
-      <h3>Roles</h3>
+      <h3>Permissions</h3>
     </div>
     <div class="col-12 col-md-6 order-md-2 order-first">
       <nav
@@ -10,7 +10,7 @@
         class="breadcrumb-header float-start float-lg-end"
       >
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Roles</a></li>
+          <li class="breadcrumb-item"><a href="#">Permissions</a></li>
         </ol>
       </nav>
     </div>
@@ -21,14 +21,14 @@
     <div class="card-header d-grid gap-3">
       <div class="row">
         <div class="col-md-6">
-          {{if call .HasPermission "create-role"}}
+          {{if call .HasPermission "create-permission"}}
           <button
             type="button"
             class="btn btn-outline-success"
             data-bs-toggle="modal"
             data-bs-target="#xlarge"
           >
-            Add New Role
+            Add New Permission
           </button>
           {{end}}
         </div>
@@ -40,32 +40,24 @@
           <tr>
             <th>ID</th>
             <th>Name</th>
+            <th>Label</th>
             <th>Guard Name</th>
             <th>Application</th>
-            <th>Status</th>
-            <th>Total Permissions</th>
-            <th>Total Users</th>
+            <th>Total Roles</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {{range .Roles}}
+          {{range .Permissions}}
           <tr>
             <td>{{.ID}}</td>
             <td>{{.Name}}</td>
+            <td>{{.Label}}</td>
             <td>{{.GuardName}}</td>
             <td>{{.Application.Name}}</td>
+            <td>{{len .Roles}}</td>
             <td>
-              {{if eq .Status "ACTIVE"}}
-              <span class="badge bg-success">Active</span>
-              {{else}}
-              <span class="badge bg-danger">Inactive</span>
-              {{end}}
-            </td>
-            <td>{{len .Permissions}}</td>
-            <td>{{len .Users}}</td>
-            <td>
-              {{if call $.HasPermission "update-role"}}
+              {{if call $.HasPermission "update-permission"}}
               <button
                 type="button"
                 class="btn btn-outline-warning"
@@ -74,13 +66,13 @@
                 data-id="{{.ID}}"
                 data-name="{{.Name}}"
                 data-guard_name="{{.GuardName}}"
-                data-status="{{.Status}}"
                 data-application_id="{{.Application.ID}}"
+                data-label="{{.Label}}"
               >
                 <i class="fas fa-pencil"></i>
               </button>
-              {{end}} {{if call $.HasPermission "delete-role"}}
-              <form action="/roles/delete" method="POST" class="d-inline">
+              {{end}} {{if call $.HasPermission "delete-permission"}}
+              <form action="/permissions/delete" method="POST" class="d-inline">
                 <input type="hidden" name="id" value="{{.ID}}" />
                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
                 <button
@@ -99,7 +91,7 @@
         </tbody>
       </table>
     </div>
-    {{if call .HasPermission "create-role"}}
+    {{if call .HasPermission "create-permission"}}
     <div
       class="modal fade text-left w-100"
       id="xlarge"
@@ -115,7 +107,7 @@
         <div class="modal-content">
           <div class="modal-header bg-success">
             <h4 class="modal-title text-white" id="myModalLabel16">
-              Add New Role
+              Add New Permission
             </h4>
             <button
               type="button"
@@ -126,7 +118,7 @@
               <i data-feather="x"></i>
             </button>
           </div>
-          <form action="/roles" method="POST">
+          <form action="/permissions" method="POST">
             <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
             <div class="modal-body">
               <div class="form-group has-icon-left">
@@ -141,6 +133,21 @@
                   />
                   <div class="form-control-icon">
                     <i class="bi bi-person"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="label">Label</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="label"
+                    class="form-control"
+                    placeholder="Fill your label"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-tag"></i>
                   </div>
                 </div>
               </div>
@@ -181,24 +188,6 @@
                   </div>
                 </div>
               </div>
-              <div class="form-group has-icon-left">
-                <label for="status">Status</label>
-                <div class="position-relative">
-                  <select
-                    name="status"
-                    id="status"
-                    class="form-control"
-                    required
-                  >
-                    <option value="">Select Status</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
-                  </select>
-                  <div class="form-control-icon">
-                    <i class="fas fa-square-check"></i>
-                  </div>
-                </div>
-              </div>
             </div>
             <div class="modal-footer">
               <button
@@ -218,7 +207,7 @@
         </div>
       </div>
     </div>
-    {{end}} {{if call .HasPermission "update-role"}}
+    {{end}} {{if call .HasPermission "update-permission"}}
     <div
       class="modal fade text-left w-100"
       id="edit"
@@ -245,7 +234,7 @@
               <i data-feather="x"></i>
             </button>
           </div>
-          <form action="/roles/update" method="POST">
+          <form action="/permissions/update" method="POST">
             <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
             <div class="modal-body">
               <div class="form-group has-icon-left">
@@ -261,6 +250,21 @@
                   />
                   <div class="form-control-icon">
                     <i class="bi bi-person"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="label">Label</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="label"
+                    class="form-control"
+                    placeholder="Fill your label"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-tag"></i>
                   </div>
                 </div>
               </div>
@@ -298,24 +302,6 @@
                   </select>
                   <div class="form-control-icon">
                     <i class="fas fa-sitemap"></i>
-                  </div>
-                </div>
-              </div>
-              <div class="form-group has-icon-left">
-                <label for="status">Status</label>
-                <div class="position-relative">
-                  <select
-                    name="status"
-                    id="status"
-                    class="form-control"
-                    required
-                  >
-                    <option value="">Select Status</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
-                  </select>
-                  <div class="form-control-icon">
-                    <i class="fas fa-square-check"></i>
                   </div>
                 </div>
               </div>
@@ -368,13 +354,13 @@
       const id = button.data("id");
       const name = button.data("name");
       const guard_name = button.data("guard_name");
-      const status = button.data("status");
+      const label = button.data("label");
       const application_id = button.data("application_id");
       const modal = $(this);
       modal.find('.modal-body input[name="name"]').val(name);
       modal.find('.modal-body select[name="guard_name"]').val(guard_name);
       modal.find('.modal-body select[name="application_id"]').val(application_id);
-      modal.find('.modal-body select[name="status"]').val(status);
+      modal.find('.modal-body input[name="label"]').val(label);
       modal.find('.modal-body input[name="id"]').val(id);
     });
   </script>

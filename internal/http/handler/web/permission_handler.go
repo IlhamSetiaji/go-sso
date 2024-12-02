@@ -60,9 +60,9 @@ func (h *PermissionHandler) Index(ctx *gin.Context) {
 		return
 	}
 
-	index := views.NewView("base", "views/roles/index.html")
+	index := views.NewView("base", "views/permissions/index.html")
 	data := map[string]interface{}{
-		"Title":        "Julong Portal | Roles",
+		"Title":        "Julong Portal | Permissions",
 		"Permissions":  resp.Permissions,
 		"Applications": appResp.Applications,
 	}
@@ -105,7 +105,8 @@ func (h *PermissionHandler) StorePermission(ctx *gin.Context) {
 
 	factory := usecase.StorePermissionUseCaseFactory(h.Log)
 	res, err := factory.Execute(&usecase.IStorePermissionUseCaseRequest{
-		Permission: permission,
+		Permission:    permission,
+		ApplicationID: permission.ApplicationID,
 	})
 
 	if err != nil {

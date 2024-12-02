@@ -37,7 +37,7 @@ func PermissionRepositoryFactory(log *logrus.Logger) IPermissionRepository {
 
 func (r *PermissionRepository) GetAllPermissions() (*[]entity.Permission, error) {
 	var permissions []entity.Permission
-	if err := r.DB.Find(&permissions).Error; err != nil {
+	if err := r.DB.Preload("Application").Preload("Roles").Find(&permissions).Error; err != nil {
 		r.Log.Error(err)
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (r *PermissionRepository) UpdatePermission(permission *entity.Permission) (
 		return nil, errors.New("[PermissionRepository.UpdatePermission] failed to begin transaction: " + tx.Error.Error())
 	}
 
-	if err := tx.Save(permission).Error; err != nil {
+	if err := tx.Model(permission).Where("id = ?", permission.ID).Updates(permission).Error; err != nil {
 		tx.Rollback()
 		r.Log.Error(err)
 		return nil, err

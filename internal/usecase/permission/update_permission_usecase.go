@@ -51,6 +51,7 @@ func (uc *UpdatePermissionUseCase) Execute(request *IUpdatePermissionUseCaseRequ
 		Name:          request.Permission.Name,
 		ApplicationID: request.ApplicationID,
 		GuardName:     request.Permission.GuardName,
+		Label:         request.Permission.Label,
 	})
 	if err != nil {
 		return nil, err
