@@ -64,6 +64,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 		roleRoutes := c.App.Group("/roles")
 		{
 			roleRoutes.GET("/", c.RoleWebHandler.Index)
+			roleRoutes.POST("/", c.RoleWebHandler.StoreRole)
 		}
 	}
 }

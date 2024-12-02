@@ -31,3 +31,16 @@ func UserGenderValidation(fl validator.FieldLevel) bool {
 		return false
 	}
 }
+
+func RoleStatusValidation(fl validator.FieldLevel) bool {
+	status := fl.Field().String()
+	if status == "" {
+		return true
+	}
+	switch entity.RoleStatus(status) {
+	case entity.ROLE_ACTIVE, entity.ROLE_INACTIVE:
+		return true
+	default:
+		return false
+	}
+}
