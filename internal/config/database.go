@@ -30,6 +30,16 @@ func NewDatabase() *gorm.DB {
 	maxConnection := config.GetInt("database.pool.max")
 	maxLifeTimeConnection := config.GetInt("database.pool.lifetime")
 
+	if idleConnection <= 0 {
+		idleConnection = 10 // Default to 10 idle connections
+	}
+	if maxConnection <= 0 {
+		maxConnection = 100 // Default to 100 max connections
+	}
+	if maxLifeTimeConnection <= 0 {
+		maxLifeTimeConnection = 14400 // Default to 4 hours (in seconds)
+	}
+
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", username, password, host, port, database)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})

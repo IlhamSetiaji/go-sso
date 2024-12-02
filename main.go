@@ -73,6 +73,7 @@ func main() {
 	dashboardHandler := web.DashboardHandlerFactory(log, validate)
 	authWebHandler := web.AuthHandlerFactory(log, validate)
 	userWebHandler := web.UserHandlerFactory(log, validate)
+	roleWebHandler := web.RoleHandlerFactory(log, validate)
 
 	// handle middleware
 	authMiddleware := middleware.NewAuth(viperConfig)
@@ -85,6 +86,7 @@ func main() {
 		DashboardHandler:  dashboardHandler,
 		AuthWebHandler:    authWebHandler,
 		UserWebHandler:    userWebHandler,
+		RoleWebHandler:    roleWebHandler,
 		AuthMiddleware:    authMiddleware,
 		WebAuthMiddleware: authWebMiddleware,
 	}

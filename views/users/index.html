@@ -42,6 +42,7 @@
             <th>Name</th>
             <th>Username</th>
             <th>Email</th>
+            <th>Status</th>
             <th>Roles</th>
             <th>Actions</th>
           </tr>
@@ -53,6 +54,13 @@
             <td>{{.Name}}</td>
             <td>{{.Username}}</td>
             <td>{{.Email}}</td>
+            <td>
+              {{if eq .Status "ACTIVE"}}
+              <span class="badge bg-success">Active</span>
+              {{else}}
+              <span class="badge bg-danger">Inactive</span>
+              {{end}}
+            </td>
             <td>
               {{range $i, $role := .Roles}}{{if $i}},
               {{end}}{{$role.Name}}[{{$role.Application.Name}}]{{end}}

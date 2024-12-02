@@ -11,6 +11,7 @@ type RouteConfig struct {
 	App               *gin.Engine
 	UserHandler       handler.UserHandlerInterface
 	UserWebHandler    web.UserHandlerInterface
+	RoleWebHandler    web.RoleHandlerInterface
 	DashboardHandler  web.DashboardHandlerInterface
 	AuthWebHandler    web.AuthHandlerInterface
 	WebAuthMiddleware gin.HandlerFunc
@@ -59,6 +60,10 @@ func (c *RouteConfig) SetupWebRoutes() {
 			userRoutes.POST("/", c.UserWebHandler.StoreUser)
 			userRoutes.POST("/update", c.UserWebHandler.UpdateUser)
 			userRoutes.POST("/delete", c.UserWebHandler.DeleteUser)
+		}
+		roleRoutes := c.App.Group("/roles")
+		{
+			roleRoutes.GET("/", c.RoleWebHandler.Index)
 		}
 	}
 }

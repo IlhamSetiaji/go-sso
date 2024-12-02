@@ -31,7 +31,7 @@ func RoleRepositoryFactory(log *logrus.Logger) *RoleRepository {
 
 func (r *RoleRepository) GetAllRoles() (*[]entity.Role, error) {
 	var roles []entity.Role
-	if err := r.DB.Preload("Application").Find(&roles).Error; err != nil {
+	if err := r.DB.Preload("Application").Preload("Permissions").Preload("Users").Find(&roles).Error; err != nil {
 		r.Log.Error(err)
 		return nil, err
 	}

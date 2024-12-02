@@ -74,7 +74,7 @@ func (h *UserHandler) Index(ctx *gin.Context) {
 
 	index := views.NewView("base", "views/users/index.html")
 	data := map[string]interface{}{
-		"Title": "Go SSO | Users",
+		"Title": "Julong Portal | Users",
 		"Users": resp.Users,
 		"Roles": role.Roles,
 	}
