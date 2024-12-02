@@ -27,6 +27,7 @@ type UserHandlerInterface interface {
 	Index(ctx *gin.Context)
 	StoreUser(ctx *gin.Context)
 	UpdateUser(ctx *gin.Context)
+	DeleteUser(ctx *gin.Context)
 }
 
 func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate) UserHandlerInterface {
@@ -135,8 +136,6 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 }
 
 func (h *UserHandler) UpdateUser(ctx *gin.Context) {
-	// utils.SuccessResponse(ctx, 200, "Success", "Haha")
-	// return
 	session := sessions.Default(ctx)
 	payload := new(request.UpdateUserRequest)
 	if err := ctx.ShouldBind(payload); err != nil {
@@ -188,6 +187,46 @@ func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 
 	h.Log.Printf("user updated: %v", response)
 	session.Set("success", "User updated successfully")
+	session.Save()
+	ctx.Redirect(302, ctx.Request.Referer())
+}
+
+func (h *UserHandler) DeleteUser(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	payload := new(request.DeleteUserRequest)
+	if err := ctx.ShouldBind(payload); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	err := h.Validate.Struct(payload)
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory := usecase.DeleteUserUseCaseFactory(h.Log)
+
+	err = factory.Execute(usecase.IDeleteUserUseCaseRequest{
+		ID: uuid.MustParse(payload.ID),
+	})
+
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	h.Log.Printf("user deleted")
+	session.Set("success", "User deleted successfully")
 	session.Save()
 	ctx.Redirect(302, ctx.Request.Referer())
 }

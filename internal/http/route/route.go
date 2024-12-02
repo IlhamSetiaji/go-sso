@@ -58,6 +58,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 			userRoutes.GET("/", c.UserWebHandler.Index)
 			userRoutes.POST("/", c.UserWebHandler.StoreUser)
 			userRoutes.POST("/update", c.UserWebHandler.UpdateUser)
+			userRoutes.POST("/delete", c.UserWebHandler.DeleteUser)
 		}
 	}
 }

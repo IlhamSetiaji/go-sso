@@ -17,6 +17,7 @@ type IUserRepository interface {
 	GetAllUsers() (*[]entity.User, error)
 	CreateUser(user *entity.User, roleId uuid.UUID) (*entity.User, error)
 	UpdateUser(user *entity.User, roleId *uuid.UUID) (*entity.User, error)
+	DeleteUser(id uuid.UUID) error
 }
 
 type UserRepository struct {
@@ -173,6 +174,34 @@ func (r *UserRepository) UpdateUser(user *entity.User, roleId *uuid.UUID) (*enti
 	}
 
 	return user, nil
+}
+
+func (r *UserRepository) DeleteUser(id uuid.UUID) error {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return errors.New("[UserRepository.DeleteUser] failed to begin transaction: " + tx.Error.Error())
+	}
+
+	var user entity.User
+	if err := tx.First(&user, "id = ?", id).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.DeleteUser] User not found: " + err.Error())
+		return errors.New("[UserRepository.DeleteUser] User not found: " + err.Error())
+	}
+
+	if err := tx.Delete(&user).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.DeleteUser] " + err.Error())
+		return errors.New("[UserRepository.DeleteUser] " + err.Error())
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.DeleteUser] failed to commit transaction: " + err.Error())
+		return errors.New("[UserRepository.DeleteUser] failed to commit transaction: " + err.Error())
+	}
+
+	return nil
 }
 
 func UserRepositoryFactory(log *logrus.Logger) IUserRepository {

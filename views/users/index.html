@@ -71,7 +71,18 @@
               >
                 <i class="fas fa-pencil"></i>
               </button>
-              <a href="/users/delete/{{.ID}}" class="btn btn-danger">Delete</a>
+              <form action="/users/delete" method="POST" class="d-inline">
+                <input type="hidden" name="id" value="{{.ID}}" />
+                <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
+                <button
+                  type="button"
+                  id="hapus"
+                  data-id="{{.ID}}"
+                  class="hapus btn btn-outline-danger"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
             </td>
           </tr>
           {{end}}
@@ -411,6 +422,23 @@
   <script>
     $(document).ready(function () {
       $("#usersTable").DataTable();
+
+      $(".hapus").on("click", function () {
+        const id = $(this).data("id");
+        Swal.fire({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            $(this).parent().submit();
+          }
+        });
+      });
     });
 
     $("#edit").on("show.bs.modal", function (event) {
