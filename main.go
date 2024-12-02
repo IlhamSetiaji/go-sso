@@ -18,7 +18,7 @@ import (
 )
 
 func init() {
-	gob.Register(entity.User{})
+	gob.Register(entity.Profile{})
 	// gob.Register([]entity.Role{})
 	// gob.Register([]entity.Permission{})
 }
@@ -35,6 +35,10 @@ func main() {
 	googleAuth, err := config.NewGoogleAuthenticator(viperConfig)
 	if err != nil {
 		log.Printf("Failed to initialize the google authenticator: %v", err)
+	}
+	zitadelAuth, err := config.NewZitadelAuthenticator(viperConfig)
+	if err != nil {
+		log.Printf("Failed to initialize the zitadel authenticator: %v", err)
 	}
 
 	// setup gin engine
@@ -62,11 +66,14 @@ func main() {
 		c.Next()
 	})
 
+	// app.Use(middleware.FlashMiddleware())
+
 	//handle handler
-	userHandler := handler.UserHandlerFactory(log, validate, auth, googleAuth)
+	userHandler := handler.UserHandlerFactory(log, validate, auth, googleAuth, zitadelAuth)
 	dashboardHandler := web.DashboardHandlerFactory(log, validate)
 	authWebHandler := web.AuthHandlerFactory(log, validate)
 	userWebHandler := web.UserHandlerFactory(log, validate)
+	roleWebHandler := web.RoleHandlerFactory(log, validate)
 
 	// handle middleware
 	authMiddleware := middleware.NewAuth(viperConfig)
@@ -79,6 +86,7 @@ func main() {
 		DashboardHandler:  dashboardHandler,
 		AuthWebHandler:    authWebHandler,
 		UserWebHandler:    userWebHandler,
+		RoleWebHandler:    roleWebHandler,
 		AuthMiddleware:    authMiddleware,
 		WebAuthMiddleware: authWebMiddleware,
 	}

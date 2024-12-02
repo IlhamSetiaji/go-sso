@@ -1,6 +1,7 @@
 package views
 
 import (
+	"app/go-sso/utils"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -55,7 +56,28 @@ func (v *View) Render(c *gin.Context, data interface{}) {
 	dataMap["Warning"] = session.Get("warning")
 	dataMap["Profile"] = session.Get("profile")
 	dataMap["CurrentPath"] = c.Request.URL.Path
+
+	if dataMap["Success"] != nil {
+		session.Delete("success")
+	}
+	if dataMap["Error"] != nil {
+		session.Delete("error")
+	}
+	if dataMap["Status"] != nil {
+		session.Delete("status")
+	}
+	if dataMap["Errors"] != nil {
+		session.Delete("errors")
+	}
+	if dataMap["Warning"] != nil {
+		session.Delete("warning")
+	}
+
 	session.Save()
+
+	templateHelper := utils.NewTemplateHelper(c)
+
+	dataMap["HasPermission"] = templateHelper.HasPermission
 
 	err := v.Template.ExecuteTemplate(c.Writer, v.Layout, dataMap)
 	if err != nil {

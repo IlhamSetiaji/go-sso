@@ -11,6 +11,7 @@ type RouteConfig struct {
 	App               *gin.Engine
 	UserHandler       handler.UserHandlerInterface
 	UserWebHandler    web.UserHandlerInterface
+	RoleWebHandler    web.RoleHandlerInterface
 	DashboardHandler  web.DashboardHandlerInterface
 	AuthWebHandler    web.AuthHandlerInterface
 	WebAuthMiddleware gin.HandlerFunc
@@ -40,6 +41,7 @@ func (c *RouteConfig) SetupApiRoutes() {
 		{
 			oAuthRoute.GET("/callback", c.UserHandler.CallbackOAuth)
 			oAuthRoute.GET("/google/callback", c.UserHandler.GoogleCallbackOAuth)
+			oAuthRoute.GET("/zitadel/callback", c.UserHandler.ZitadelCallbackOAuth)
 		}
 	}
 }
@@ -55,6 +57,16 @@ func (c *RouteConfig) SetupWebRoutes() {
 		userRoutes := c.App.Group("/users")
 		{
 			userRoutes.GET("/", c.UserWebHandler.Index)
+			userRoutes.POST("/", c.UserWebHandler.StoreUser)
+			userRoutes.POST("/update", c.UserWebHandler.UpdateUser)
+			userRoutes.POST("/delete", c.UserWebHandler.DeleteUser)
+		}
+		roleRoutes := c.App.Group("/roles")
+		{
+			roleRoutes.GET("/", c.RoleWebHandler.Index)
+			roleRoutes.POST("/", c.RoleWebHandler.StoreRole)
+			roleRoutes.POST("/update", c.RoleWebHandler.UpdateRole)
+			roleRoutes.POST("/delete", c.RoleWebHandler.DeleteRole)
 		}
 	}
 }
@@ -62,7 +74,8 @@ func (c *RouteConfig) SetupWebRoutes() {
 func (c *RouteConfig) SetupOAuthRoutes() {
 	oAuthRoute := c.App.Group("/oauth")
 	{
-		oAuthRoute.GET("/google/login", c.UserHandler.GoogleLoginOAuth)
 		oAuthRoute.GET("/login", c.UserHandler.LoginOAuth)
+		oAuthRoute.GET("/google/login", c.UserHandler.GoogleLoginOAuth)
+		oAuthRoute.GET("/zitadel/login", c.UserHandler.ZitadelLoginOAuth)
 	}
 }
