@@ -38,7 +38,9 @@
           <tr>
             <th>ID</th>
             <th>Name</th>
+            <th>Username</th>
             <th>Email</th>
+            <th>Roles</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -47,9 +49,28 @@
           <tr>
             <td>{{.ID}}</td>
             <td>{{.Name}}</td>
+            <td>{{.Username}}</td>
             <td>{{.Email}}</td>
             <td>
-              <a href="/users/edit/{{.ID}}" class="btn btn-primary">Edit</a>
+              {{range $i, $role := .Roles}}{{if $i}},
+              {{end}}{{$role.Name}}[{{$role.Application.Name}}]{{end}}
+            </td>
+            <td>
+              <button
+                type="button"
+                class="btn btn-outline-warning"
+                data-bs-toggle="modal"
+                data-bs-target="#edit"
+                data-id="{{.ID}}"
+                data-name="{{.Name}}"
+                data-email="{{.Email}}"
+                data-mobile_phone="{{.MobilePhone}}"
+                data-gender="{{.Gender}}"
+                data-status="{{.Status}}"
+                data-username="{{.Username}}"
+              >
+                <i class="fas fa-pencil"></i>
+              </button>
               <a href="/users/delete/{{.ID}}" class="btn btn-danger">Delete</a>
             </td>
           </tr>
@@ -175,7 +196,171 @@
                   >
                     <option value="">Select Role</option>
                     {{range .Roles}}
-                    <option value="{{.ID}}">{{.Name}} - {{.Application.Name}}</option>
+                    <option value="{{.ID}}">
+                      {{.Name}} - {{.Application.Name}}
+                    </option>
+                    {{end}}
+                  </select>
+                  <div class="form-control-icon">
+                    <i class="fas fa-universal-access"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="status">Status</label>
+                <div class="position-relative">
+                  <select
+                    name="status"
+                    id="status"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Select Status</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+                  <div class="form-control-icon">
+                    <i class="fas fa-square-check"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-light-secondary"
+                data-bs-dismiss="modal"
+              >
+                <i class="bx bx-x d-block d-sm-none"></i>
+                <span class="d-none d-sm-block">Close</span>
+              </button>
+              <button type="submit" class="btn btn-primary ms-1">
+                <i class="bx bx-check d-block d-sm-none"></i>
+                <span class="d-none d-sm-block">Submit</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div
+      class="modal fade text-left w-100"
+      id="edit"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myModalLabel16"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"
+        role="document"
+      >
+        <div class="modal-content">
+          <div class="modal-header bg-info">
+            <h4 class="modal-title text-white" id="myModalLabel16">
+              Update User
+            </h4>
+            <button
+              type="button"
+              class="close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              <i data-feather="x"></i>
+            </button>
+          </div>
+          <form action="/users/update" method="POST">
+            <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
+            <div class="modal-body">
+              <div class="form-group has-icon-left">
+                <label for="name">Name</label>
+                <div class="position-relative">
+                  <input type="hidden" name="id" />
+                  <input
+                    type="text"
+                    name="name"
+                    class="form-control"
+                    placeholder="Fill your full name"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="bi bi-person"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="username">Username</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="username"
+                    class="form-control"
+                    placeholder="Fill your valid Username"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-circle-user"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="email">Email</label>
+                <div class="position-relative">
+                  <input
+                    type="email"
+                    name="email"
+                    class="form-control"
+                    placeholder="Fill your valid E-Mail"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-envelope"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="mobile_phone">Mobile Phone</label>
+                <div class="position-relative">
+                  <input
+                    type="tel"
+                    name="mobile_phone"
+                    class="form-control"
+                    placeholder="Fill your valid mobile phone number"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-phone"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="province">Gender</label>
+                <div class="position-relative">
+                  <select
+                    name="gender"
+                    id="gender"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                  </select>
+                  <div class="form-control-icon">
+                    <i class="fas fa-venus-mars"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="role_id">Roles</label>
+                <div class="position-relative">
+                  <select name="role_id" id="role_id" class="form-control">
+                    <option value="">Select Role</option>
+                    {{range .Roles}}
+                    <option value="{{.ID}}">
+                      {{.Name}} - {{.Application.Name}}
+                    </option>
                     {{end}}
                   </select>
                   <div class="form-control-icon">
@@ -226,6 +411,25 @@
   <script>
     $(document).ready(function () {
       $("#usersTable").DataTable();
+    });
+
+    $("#edit").on("show.bs.modal", function (event) {
+      const button = $(event.relatedTarget);
+      const id = button.data("id");
+      const name = button.data("name");
+      const mobile_phone = button.data("mobile_phone");
+      const email = button.data("email");
+      const username = button.data("username");
+      const gender = button.data("gender");
+      const status = button.data("status");
+      const modal = $(this);
+      modal.find('.modal-body input[name="name"]').val(name);
+      modal.find('.modal-body input[name="mobile_phone"]').val(mobile_phone);
+      modal.find('.modal-body input[name="username"]').val(username);
+      modal.find('.modal-body select[name="gender"]').val(gender);
+      modal.find('.modal-body select[name="status"]').val(status);
+      modal.find('.modal-body input[name="email"]').val(email);
+      modal.find('.modal-body input[name="id"]').val(id);
     });
   </script>
   {{end}}

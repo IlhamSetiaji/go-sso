@@ -9,7 +9,6 @@ import (
 	"app/go-sso/views"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -27,6 +26,7 @@ type UserHandler struct {
 type UserHandlerInterface interface {
 	Index(ctx *gin.Context)
 	StoreUser(ctx *gin.Context)
+	UpdateUser(ctx *gin.Context)
 }
 
 func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate) UserHandlerInterface {
@@ -43,16 +43,20 @@ func (h *UserHandler) Index(ctx *gin.Context) {
 		return
 	}
 
-	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "10"))
+	// page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	// pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "10"))
 
-	factory := usecase.FindAllPaginatedUseCaseFactory(h.Log)
+	// factory := usecase.FindAllPaginatedUseCaseFactory(h.Log)
 
-	req := &usecase.IFindAllPaginatedRequest{
-		Page:     page,
-		PageSize: pageSize,
-	}
-	resp, err := factory.Execute(req)
+	// req := &usecase.IFindAllPaginatedRequest{
+	// 	Page:     page,
+	// 	PageSize: pageSize,
+	// }
+	// resp, err := factory.Execute(req)
+
+	factory := usecase.GetAllUsersUseCaseFactory(h.Log)
+
+	resp, err := factory.Execute()
 	if err != nil {
 		h.Log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -111,7 +115,7 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 		Password:    string(hashedPasswordBytes),
 	}
 	factory := usecase.CreateUserUseCaseFactory(h.Log)
-	response, err := factory.Execute(usecase.ICreateUserRequest{
+	response, err := factory.Execute(usecase.ICreateUserUseCaseRequest{
 		User:   user,
 		RoleID: uuid.MustParse(payload.RoleID),
 	})
@@ -127,5 +131,63 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 	h.Log.Printf("user created: %v", response)
 	session.Set("success", "User created successfully")
 	session.Save()
-	ctx.Redirect(201, ctx.Request.Referer())
+	ctx.Redirect(302, ctx.Request.Referer())
+}
+
+func (h *UserHandler) UpdateUser(ctx *gin.Context) {
+	// utils.SuccessResponse(ctx, 200, "Success", "Haha")
+	// return
+	session := sessions.Default(ctx)
+	payload := new(request.UpdateUserRequest)
+	if err := ctx.ShouldBind(payload); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	err := h.Validate.Struct(payload)
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	var user = &entity.User{
+		ID:          uuid.MustParse(payload.ID),
+		Name:        payload.Name,
+		Username:    payload.Username,
+		Email:       payload.Email,
+		Gender:      payload.Gender,
+		MobilePhone: payload.MobilePhone,
+	}
+	factory := usecase.UpdateUserUseCaseFactory(h.Log)
+	var roleUUID *uuid.UUID
+	if payload.RoleID != "" {
+		parsed := uuid.MustParse(payload.RoleID)
+		roleUUID = &parsed
+	} else {
+		roleUUID = nil
+	}
+
+	response, err := factory.Execute(usecase.IUpdateUserUseCaseRequest{
+		User:   user,
+		RoleID: roleUUID,
+	})
+
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	h.Log.Printf("user updated: %v", response)
+	session.Set("success", "User updated successfully")
+	session.Save()
+	ctx.Redirect(302, ctx.Request.Referer())
 }

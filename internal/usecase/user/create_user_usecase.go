@@ -8,17 +8,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type ICreateUserRequest struct {
+type ICreateUserUseCaseRequest struct {
 	User   *entity.User `json:"user"`
 	RoleID uuid.UUID    `json:"role_id"`
 }
 
-type ICreateUserResponse struct {
+type ICreateUserUseCaseResponse struct {
 	User *entity.User `json:"user"`
 }
 
 type ICreateUserUseCase interface {
-	Execute(request ICreateUserRequest) (ICreateUserResponse, error)
+	Execute(request ICreateUserUseCaseRequest) (ICreateUserUseCaseResponse, error)
 }
 
 type CreateUserUseCase struct {
@@ -33,15 +33,15 @@ func NewCreateUserUseCase(log *logrus.Logger, userRepository repository.IUserRep
 	}
 }
 
-func (uc *CreateUserUseCase) Execute(request ICreateUserRequest) (ICreateUserResponse, error) {
+func (uc *CreateUserUseCase) Execute(request ICreateUserUseCaseRequest) (ICreateUserUseCaseResponse, error) {
 	uc.Log.Info("CreateUserUseCase.Execute")
 
 	user, err := uc.UserRepository.CreateUser(request.User, request.RoleID)
 	if err != nil {
-		return ICreateUserResponse{}, err
+		return ICreateUserUseCaseResponse{}, err
 	}
 
-	return ICreateUserResponse{
+	return ICreateUserUseCaseResponse{
 		User: user,
 	}, nil
 }

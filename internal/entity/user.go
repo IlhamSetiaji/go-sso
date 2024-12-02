@@ -38,19 +38,14 @@ type User struct {
 	Status          UserStatus  `json:"status" gorm:"default:PENDING"`
 	Roles           []Role      `json:"roles" gorm:"many2many:user_roles;"` // many to many relationship
 	AuthTokens      []AuthToken `json:"auth_tokens" gorm:"foreignKey:UserID;references:ID"`
-	// CreatedAt       time.Time  `json:"created_at" gorm:"autoCreateTime"`
-	// UpdatedAt       time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
+	CreatedAt       time.Time   `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt       time.Time   `json:"updated_at" gorm:"autoUpdateTime"`
 	// DeletedAt       time.Time  `json:"deleted_at" gorm:"index"`
 }
 
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 	user.ID = uuid.New()
 	user.CreatedAt = time.Now().Add(time.Hour * 7)
-	user.UpdatedAt = time.Now().Add(time.Hour * 7)
-	return nil
-}
-
-func (user *User) BeforeUpdate(tx *gorm.DB) (err error) {
 	user.UpdatedAt = time.Now().Add(time.Hour * 7)
 	return nil
 }
