@@ -66,6 +66,8 @@ func main() {
 		c.Next()
 	})
 
+	app.Use(middleware.FlashMiddleware())
+
 	//handle handler
 	userHandler := handler.UserHandlerFactory(log, validate, auth, googleAuth, zitadelAuth)
 	dashboardHandler := web.DashboardHandlerFactory(log, validate)

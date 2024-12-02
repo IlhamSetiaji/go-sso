@@ -79,20 +79,41 @@ func (r *UserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 
 func (r *UserRepository) CreateUser(user *entity.User, roleId uuid.UUID) (*entity.User, error) {
 	tx := r.DB.Begin()
-	err := r.DB.Create(user).Error
-	if err != nil {
+	if tx.Error != nil {
+		return nil, errors.New("[UserRepository.CreateUser] failed to begin transaction: " + tx.Error.Error())
+	}
+
+	var role entity.Role
+	if err := tx.First(&role, "id = ?", roleId).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.CreateUser] Role not found: " + err.Error())
+		return nil, errors.New("[UserRepository.CreateUser] Role not found: " + err.Error())
+	}
+
+	if err := tx.Create(user).Error; err != nil {
 		tx.Rollback()
 		r.Log.Error("[UserRepository.CreateUser] " + err.Error())
 		return nil, errors.New("[UserRepository.CreateUser] " + err.Error())
 	}
 
-	if err := r.DB.Model(user).Association("Roles").Append(&entity.Role{ID: roleId}); err != nil {
+	if err := tx.Model(user).Association("Roles").Append(&role); err != nil {
 		tx.Rollback()
-		r.Log.Error("[UserRepository.CreateUser] " + err.Error())
-		return nil, errors.New("[UserRepository.CreateUser] " + err.Error())
+		r.Log.Error("[UserRepository.AppendUser] " + err.Error())
+		return nil, errors.New("[UserRepository.AppendUser] " + err.Error())
 	}
 
-	return user, tx.Commit().Error
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.CreateUser] failed to commit transaction: " + err.Error())
+		return nil, errors.New("[UserRepository.CreateUser] failed to commit transaction: " + err.Error())
+	}
+
+	if err := r.DB.Preload("Roles").First(user, user.ID).Error; err != nil {
+		r.Log.Error("[UserRepository.CreateUser] Failed to reload user: " + err.Error())
+		return nil, errors.New("[UserRepository.CreateUser] Failed to reload user: " + err.Error())
+	}
+
+	return user, nil
 }
 
 func UserRepositoryFactory(log *logrus.Logger) IUserRepository {

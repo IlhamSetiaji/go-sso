@@ -4,6 +4,7 @@ import (
 	"app/go-sso/internal/entity"
 	"app/go-sso/internal/http/middleware"
 	request "app/go-sso/internal/http/request/web/user"
+	roleUsecase "app/go-sso/internal/usecase/role"
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/views"
 	"log"
@@ -57,10 +58,20 @@ func (h *UserHandler) Index(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	roleFactory := roleUsecase.GetAllRolesUseCaseFactory(h.Log)
+	role, err := roleFactory.Execute()
+	if err != nil {
+		h.Log.Println(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	index := views.NewView("base", "views/users/index.html")
 	data := map[string]interface{}{
 		"Title": "Go SSO | Users",
 		"Users": resp.Users,
+		"Roles": role.Roles,
 	}
 
 	index.Render(ctx, data)
@@ -116,5 +127,5 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 	h.Log.Printf("user created: %v", response)
 	session.Set("success", "User created successfully")
 	session.Save()
-	ctx.Redirect(201, "/users")
+	ctx.Redirect(201, ctx.Request.Referer())
 }

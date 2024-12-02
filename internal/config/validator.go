@@ -10,5 +10,6 @@ import (
 func NewValidator(viper *viper.Viper) *validator.Validate {
 	validate := validator.New()
 	validate.RegisterValidation("userStatus", request.UserStatusValidation)
+	validate.RegisterValidation("userGender", request.UserGenderValidation)
 	return validate
 }
