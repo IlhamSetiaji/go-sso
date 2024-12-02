@@ -83,6 +83,11 @@ func (h *UserHandler) Index(ctx *gin.Context) {
 }
 
 func (h *UserHandler) StoreUser(ctx *gin.Context) {
+	middleware.PermissionMiddleware("create-user")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
 	session := sessions.Default(ctx)
 	payload := new(request.CreateUserRequest)
 	if err := ctx.ShouldBind(payload); err != nil {
@@ -136,6 +141,7 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 }
 
 func (h *UserHandler) UpdateUser(ctx *gin.Context) {
+	middleware.PermissionMiddleware("update-user")(ctx)
 	session := sessions.Default(ctx)
 	payload := new(request.UpdateUserRequest)
 	if err := ctx.ShouldBind(payload); err != nil {
@@ -192,6 +198,7 @@ func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 }
 
 func (h *UserHandler) DeleteUser(ctx *gin.Context) {
+	middleware.PermissionMiddleware("delete-user")(ctx)
 	session := sessions.Default(ctx)
 	payload := new(request.DeleteUserRequest)
 	if err := ctx.ShouldBind(payload); err != nil {

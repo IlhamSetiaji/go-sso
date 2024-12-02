@@ -21,6 +21,7 @@
     <div class="card-header d-grid gap-3">
       <div class="row">
         <div class="col-md-6">
+          {{if call .HasPermission "create-user"}}
           <button
             type="button"
             class="btn btn-outline-success"
@@ -29,6 +30,7 @@
           >
             Add New User
           </button>
+          {{end}}
         </div>
       </div>
     </div>
@@ -56,6 +58,7 @@
               {{end}}{{$role.Name}}[{{$role.Application.Name}}]{{end}}
             </td>
             <td>
+              {{if call $.HasPermission "update-user"}}
               <button
                 type="button"
                 class="btn btn-outline-warning"
@@ -71,6 +74,7 @@
               >
                 <i class="fas fa-pencil"></i>
               </button>
+              {{end}} {{if call $.HasPermission "delete-user"}}
               <form action="/users/delete" method="POST" class="d-inline">
                 <input type="hidden" name="id" value="{{.ID}}" />
                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
@@ -83,12 +87,14 @@
                   <i class="fas fa-trash"></i>
                 </button>
               </form>
+              {{end}}
             </td>
           </tr>
           {{end}}
         </tbody>
       </table>
     </div>
+    {{if call .HasPermission "create-user"}}
     <div
       class="modal fade text-left w-100"
       id="xlarge"
@@ -255,6 +261,7 @@
         </div>
       </div>
     </div>
+    {{end}} {{if call .HasPermission "update-user"}}
     <div
       class="modal fade text-left w-100"
       id="edit"
@@ -417,6 +424,7 @@
         </div>
       </div>
     </div>
+    {{end}}
   </div>
   {{end}} {{define "custom-script"}}
   <script>
