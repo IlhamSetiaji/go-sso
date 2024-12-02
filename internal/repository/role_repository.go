@@ -94,9 +94,18 @@ func (r *RoleRepository) UpdateRole(role *entity.Role) (*entity.Role, error) {
 }
 
 func (r *RoleRepository) DeleteRole(id uuid.UUID) error {
-	if err := r.DB.Where("id = ?", id).Delete(&entity.Role{}).Error; err != nil {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return errors.New("[UserRepository.DeleteUser] failed to begin transaction: " + tx.Error.Error())
+	}
+	if err := tx.Where("id = ?", id).Delete(&entity.Role{}).Error; err != nil {
 		r.Log.Error(err)
 		return err
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[RoleRepository.DeleteRole] failed to commit transaction: " + err.Error())
+		return errors.New("[RoleRepository.DeleteRole] failed to commit transaction: " + err.Error())
 	}
 	return nil
 }

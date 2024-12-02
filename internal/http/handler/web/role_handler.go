@@ -25,6 +25,7 @@ type RoleHandlerInterface interface {
 	Index(ctx *gin.Context)
 	StoreRole(ctx *gin.Context)
 	UpdateRole(ctx *gin.Context)
+	DeleteRole(ctx *gin.Context)
 }
 
 func RoleHandlerFactory(log *logrus.Logger, validator *validator.Validate) RoleHandlerInterface {
@@ -164,6 +165,51 @@ func (h *RoleHandler) UpdateRole(ctx *gin.Context) {
 
 	h.Log.Printf("role updated: %v", res)
 	session.Set("success", "Role updated successfully")
+	session.Save()
+	ctx.Redirect(302, ctx.Request.Referer())
+}
+
+func (h *RoleHandler) DeleteRole(ctx *gin.Context) {
+	middleware.PermissionMiddleware("delete-role")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
+	session := sessions.Default(ctx)
+	payload := new(request.DeleteRoleRequest)
+	if err := ctx.ShouldBind(payload); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	err := h.Validate.Struct(payload)
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory := usecase.DeleteRoleUseCaseFactory(h.Log)
+	err = factory.Execute(&usecase.IDeleteRoleUseCaseRequest{
+		ID: uuid.MustParse(payload.ID),
+	})
+
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	h.Log.Printf("role deleted: %v", payload.ID)
+	session.Set("success", "Role deleted successfully")
 	session.Save()
 	ctx.Redirect(302, ctx.Request.Referer())
 }
