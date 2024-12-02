@@ -75,9 +75,20 @@ func (r *RoleRepository) StoreRole(role *entity.Role) (*entity.Role, error) {
 }
 
 func (r *RoleRepository) UpdateRole(role *entity.Role) (*entity.Role, error) {
-	if err := r.DB.Save(role).Error; err != nil {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return nil, errors.New("[UserRepository.CreateUser] failed to begin transaction: " + tx.Error.Error())
+	}
+
+	if err := tx.Model(&role).Where("id = ?", role.ID).Updates(role).Error; err != nil {
 		r.Log.Error(err)
 		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[RoleRepository.UpdateRole] failed to commit transaction: " + err.Error())
+		return nil, errors.New("[RoleRepository.UpdateRole] failed to commit transaction: " + err.Error())
 	}
 	return role, nil
 }

@@ -65,6 +65,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 		{
 			roleRoutes.GET("/", c.RoleWebHandler.Index)
 			roleRoutes.POST("/", c.RoleWebHandler.StoreRole)
+			roleRoutes.POST("/update", c.RoleWebHandler.UpdateRole)
 		}
 	}
 }

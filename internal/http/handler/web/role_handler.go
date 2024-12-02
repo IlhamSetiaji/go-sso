@@ -24,6 +24,7 @@ type RoleHandler struct {
 type RoleHandlerInterface interface {
 	Index(ctx *gin.Context)
 	StoreRole(ctx *gin.Context)
+	UpdateRole(ctx *gin.Context)
 }
 
 func RoleHandlerFactory(log *logrus.Logger, validator *validator.Validate) RoleHandlerInterface {
@@ -116,6 +117,53 @@ func (h *RoleHandler) StoreRole(ctx *gin.Context) {
 
 	h.Log.Printf("role created: %v", res)
 	session.Set("success", "Role created successfully")
+	session.Save()
+	ctx.Redirect(302, ctx.Request.Referer())
+}
+
+func (h *RoleHandler) UpdateRole(ctx *gin.Context) {
+	middleware.PermissionMiddleware("update-role")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
+	session := sessions.Default(ctx)
+	payload := new(request.UpdateRoleRequest)
+	if err := ctx.ShouldBind(payload); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	err := h.Validate.Struct(payload)
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory := usecase.UpdateRoleUseCaseFactory(h.Log)
+	res, err := factory.Execute(&usecase.IUpdateRoleUseCaseRequest{
+		ID:            uuid.MustParse(payload.ID),
+		Role:          &entity.Role{Name: payload.Name, GuardName: payload.GuardName, Status: payload.Status},
+		ApplicationID: uuid.MustParse(payload.ApplicationID),
+	})
+
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	h.Log.Printf("role updated: %v", res)
+	session.Set("success", "Role updated successfully")
 	session.Save()
 	ctx.Redirect(302, ctx.Request.Referer())
 }
