@@ -69,11 +69,16 @@
                 class="btn btn-outline-warning"
                 data-bs-toggle="modal"
                 data-bs-target="#edit"
+                data-id="{{.ID}}"
+                data-name="{{.Name}}"
+                data-guard_name="{{.GuardName}}"
+                data-status="{{.Status}}"
+                data-application_id="{{.Application.ID}}"
               >
                 <i class="fas fa-pencil"></i>
               </button>
               {{end}} {{if call $.HasPermission "delete-role"}}
-              <form action="/users/delete" method="POST" class="d-inline">
+              <form action="/roles/delete" method="POST" class="d-inline">
                 <input type="hidden" name="id" value="{{.ID}}" />
                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
                 <button
@@ -147,8 +152,128 @@
                     required
                   >
                     <option value="">Select Guard</option>
-                    <option value="api">API</option>
-                    <option value="web">WEB</option>
+                    <option value="api">api</option>
+                    <option value="web">web</option>
+                  </select>
+                  <div class="form-control-icon">
+                    <i class="fas fa-shield-halved"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="role_id">Application</label>
+                <div class="position-relative">
+                  <select
+                    name="application_id"
+                    id="application_id"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Select Application</option>
+                    {{range .Applications}}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                  </select>
+                  <div class="form-control-icon">
+                    <i class="fas fa-sitemap"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="status">Status</label>
+                <div class="position-relative">
+                  <select
+                    name="status"
+                    id="status"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Select Status</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+                  <div class="form-control-icon">
+                    <i class="fas fa-square-check"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-light-secondary"
+                data-bs-dismiss="modal"
+              >
+                <i class="bx bx-x d-block d-sm-none"></i>
+                <span class="d-none d-sm-block">Close</span>
+              </button>
+              <button type="submit" class="btn btn-primary ms-1">
+                <i class="bx bx-check d-block d-sm-none"></i>
+                <span class="d-none d-sm-block">Submit</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {{end}} {{if call .HasPermission "update-role"}}
+    <div
+      class="modal fade text-left w-100"
+      id="edit"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myModalLabel16"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"
+        role="document"
+      >
+        <div class="modal-content">
+          <div class="modal-header bg-info">
+            <h4 class="modal-title text-white" id="myModalLabel16">
+              Update Role
+            </h4>
+            <button
+              type="button"
+              class="close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              <i data-feather="x"></i>
+            </button>
+          </div>
+          <form action="/roles/update" method="POST">
+            <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
+            <div class="modal-body">
+              <div class="form-group has-icon-left">
+                <label for="name">Name</label>
+                <div class="position-relative">
+                  <input type="hidden" name="id" />
+                  <input
+                    type="text"
+                    name="name"
+                    class="form-control"
+                    placeholder="Fill your full name"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="bi bi-person"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="guard_name">Guard Name</label>
+                <div class="position-relative">
+                  <select
+                    name="guard_name"
+                    id="guard_name"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Select Guard</option>
+                    <option value="api">api</option>
+                    <option value="web">web</option>
                   </select>
                   <div class="form-control-icon">
                     <i class="fas fa-shield-halved"></i>
@@ -240,18 +365,16 @@
       const button = $(event.relatedTarget);
       const id = button.data("id");
       const name = button.data("name");
-      const mobile_phone = button.data("mobile_phone");
-      const email = button.data("email");
-      const username = button.data("username");
-      const gender = button.data("gender");
+      const guard_name = button.data("guard_name");
       const status = button.data("status");
+      const application_id = button.data("application_id");
       const modal = $(this);
       modal.find('.modal-body input[name="name"]').val(name);
-      modal.find('.modal-body input[name="mobile_phone"]').val(mobile_phone);
-      modal.find('.modal-body input[name="username"]').val(username);
-      modal.find('.modal-body select[name="gender"]').val(gender);
+      modal.find('.modal-body select[name="guard_name"]').val(guard_name);
+      modal
+        .find('.modal-body select[name="application_id"]')
+        .val(application_id);
       modal.find('.modal-body select[name="status"]').val(status);
-      modal.find('.modal-body input[name="email"]').val(email);
       modal.find('.modal-body input[name="id"]').val(id);
     });
   </script>
