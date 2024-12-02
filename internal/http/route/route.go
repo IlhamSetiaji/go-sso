@@ -8,14 +8,15 @@ import (
 )
 
 type RouteConfig struct {
-	App               *gin.Engine
-	UserHandler       handler.UserHandlerInterface
-	UserWebHandler    web.UserHandlerInterface
-	RoleWebHandler    web.RoleHandlerInterface
-	DashboardHandler  web.DashboardHandlerInterface
-	AuthWebHandler    web.AuthHandlerInterface
-	WebAuthMiddleware gin.HandlerFunc
-	AuthMiddleware    gin.HandlerFunc
+	App                  *gin.Engine
+	UserHandler          handler.UserHandlerInterface
+	UserWebHandler       web.UserHandlerInterface
+	RoleWebHandler       web.RoleHandlerInterface
+	PermissionWebHandler web.PermissionHandlerInterface
+	DashboardHandler     web.DashboardHandlerInterface
+	AuthWebHandler       web.AuthHandlerInterface
+	WebAuthMiddleware    gin.HandlerFunc
+	AuthMiddleware       gin.HandlerFunc
 }
 
 func (c *RouteConfig) SetupRoutes() {
@@ -67,6 +68,13 @@ func (c *RouteConfig) SetupWebRoutes() {
 			roleRoutes.POST("/", c.RoleWebHandler.StoreRole)
 			roleRoutes.POST("/update", c.RoleWebHandler.UpdateRole)
 			roleRoutes.POST("/delete", c.RoleWebHandler.DeleteRole)
+		}
+		permissionRoutes := c.App.Group("/permissions")
+		{
+			permissionRoutes.GET("/", c.PermissionWebHandler.Index)
+			permissionRoutes.POST("/", c.PermissionWebHandler.StorePermission)
+			permissionRoutes.POST("/update", c.PermissionWebHandler.UpdatePermission)
+			permissionRoutes.POST("/delete", c.PermissionWebHandler.DeletePermission)
 		}
 	}
 }

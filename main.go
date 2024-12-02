@@ -74,6 +74,7 @@ func main() {
 	authWebHandler := web.AuthHandlerFactory(log, validate)
 	userWebHandler := web.UserHandlerFactory(log, validate)
 	roleWebHandler := web.RoleHandlerFactory(log, validate)
+	permissionWebHandler := web.PermissionHandlerFactory(log, validate)
 
 	// handle middleware
 	authMiddleware := middleware.NewAuth(viperConfig)
@@ -81,14 +82,15 @@ func main() {
 
 	// setup route config
 	routeConfig := route.RouteConfig{
-		App:               app,
-		UserHandler:       userHandler,
-		DashboardHandler:  dashboardHandler,
-		AuthWebHandler:    authWebHandler,
-		UserWebHandler:    userWebHandler,
-		RoleWebHandler:    roleWebHandler,
-		AuthMiddleware:    authMiddleware,
-		WebAuthMiddleware: authWebMiddleware,
+		App:                  app,
+		UserHandler:          userHandler,
+		DashboardHandler:     dashboardHandler,
+		AuthWebHandler:       authWebHandler,
+		UserWebHandler:       userWebHandler,
+		RoleWebHandler:       roleWebHandler,
+		PermissionWebHandler: permissionWebHandler,
+		AuthMiddleware:       authMiddleware,
+		WebAuthMiddleware:    authWebMiddleware,
 	}
 	routeConfig.SetupRoutes()
 
