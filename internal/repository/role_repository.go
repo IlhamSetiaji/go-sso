@@ -23,14 +23,14 @@ type RoleRepository struct {
 	DB  *gorm.DB
 }
 
-func NewRoleRepository(log *logrus.Logger, db *gorm.DB) *RoleRepository {
+func NewRoleRepository(log *logrus.Logger, db *gorm.DB) IRoleRepository {
 	return &RoleRepository{
 		Log: log,
 		DB:  db,
 	}
 }
 
-func RoleRepositoryFactory(log *logrus.Logger) *RoleRepository {
+func RoleRepositoryFactory(log *logrus.Logger) IRoleRepository {
 	db := config.NewDatabase()
 	return NewRoleRepository(log, db)
 }
