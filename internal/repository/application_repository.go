@@ -10,6 +10,7 @@ import (
 
 type IApplicationRepository interface {
 	GetAllApplications() (*[]entity.Application, error)
+	FindApplicationByName(name string) (*entity.Application, error)
 }
 
 type ApplicationRepository struct {
@@ -36,4 +37,13 @@ func (r *ApplicationRepository) GetAllApplications() (*[]entity.Application, err
 		return nil, err
 	}
 	return &applications, nil
+}
+
+func (r *ApplicationRepository) FindApplicationByName(name string) (*entity.Application, error) {
+	var application entity.Application
+	if err := r.DB.Where("name = ?", name).First(&application).Error; err != nil {
+		r.Log.Error(err)
+		return nil, err
+	}
+	return &application, nil
 }

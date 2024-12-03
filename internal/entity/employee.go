@@ -12,8 +12,8 @@ type Employee struct {
 	ID             uuid.UUID    `json:"id" gorm:"type:char(36);primaryKey"`
 	OrganizationID uuid.UUID    `json:"organization_id" gorm:"type:char(36)"`
 	Name           string       `json:"name"`
-	EndDate        *time.Time   `json:"end_date" gorm:"type:date"`
-	RetirementDate *time.Time   `json:"retirement_date" gorm:"type:date"`
+	EndDate        time.Time    `json:"end_date" gorm:"type:date"`
+	RetirementDate time.Time    `json:"retirement_date" gorm:"type:date"`
 	Email          string       `json:"email" gorm:"unique"`
 	MobilePhone    string       `json:"mobile_phone" gorm:"unique"`
 	Organization   Organization `json:"organization" gorm:"foreignKey:OrganizationID;references:ID;constraint:OnDelete:CASCADE"`

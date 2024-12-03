@@ -150,22 +150,72 @@ func main() {
 		}
 	}
 
+	// create jobs
+	jobs := []entity.Job{
+		{
+			Name:                    "Kage",
+			OrganizationStructureID: createdStructures["Kage Department"].ID,
+		},
+		{
+			Name:                    "Jounin",
+			OrganizationStructureID: createdStructures["Jounin Department"].ID,
+		},
+		{
+			Name:                    "Chunin",
+			OrganizationStructureID: createdStructures["Chunin Department"].ID,
+		},
+		{
+			Name:                    "Genin",
+			OrganizationStructureID: createdStructures["Genin Department"].ID,
+		},
+		{
+			Name:                    "Academy",
+			OrganizationStructureID: createdStructures["Academy Department"].ID,
+		},
+	}
+
+	createdJobs := make(map[string]*entity.Job)
+
+	for i, job := range jobs {
+		currentJob := job
+
+		if i == 0 {
+			// Create root level
+			if err := db.Create(&currentJob).Error; err != nil {
+				log.Fatalf("failed to create root job: %v", err)
+			}
+			createdJobs[currentJob.Name] = &currentJob
+			log.Printf("created root job: %s", currentJob.Name)
+		} else {
+			// Set parent ID to previous level
+			parentJob := createdJobs[jobs[i-1].Name]
+			currentJob.ParentID = &parentJob.ID
+
+			if err := db.Create(&currentJob).Error; err != nil {
+				log.Fatalf("failed to create job: %v", err)
+			}
+			createdJobs[currentJob.Name] = &currentJob
+			log.Printf("created job: %s with parent: %s",
+				currentJob.Name, parentJob.Name)
+		}
+	}
+
 	// create multiple applications
 	applications := []entity.Application{
 		{
-			Name:        "Authenticator",
+			Name:        "authenticator",
 			Secret:      "secret for authenticator",
-			RedirectURI: "http://localhost:8080/auth/callback",
+			RedirectURI: "http://localhost:3000/portal",
 		},
 		{
-			Name:        "Web1 Application",
+			Name:        "manpower",
 			Secret:      "secret for web1",
-			RedirectURI: "http://localhost:8080/auth/callback",
+			RedirectURI: "https://www.google.com",
 		},
 		{
-			Name:        "Web2 Application",
+			Name:        "recruitment",
 			Secret:      "secret for web2",
-			RedirectURI: "http://localhost:8080/auth/callback",
+			RedirectURI: "https://www.github.com",
 		},
 	}
 
@@ -180,7 +230,7 @@ func main() {
 
 	// create default roles and permissions
 	var authApplication entity.Application
-	err = db.Where("name = ?", "Authenticator").First(&authApplication).Error
+	err = db.Where("name = ?", "authenticator").First(&authApplication).Error
 	if err != nil {
 		log.Fatalf("failed to find Application: %v", err)
 	}
@@ -319,6 +369,15 @@ func main() {
 		log.Fatalf("failed to find role: %v", err)
 	}
 
+	employeeAdmin := entity.Employee{
+		OrganizationID: organizations[0].ID,
+		Name:           "Employee Admin",
+		Email:          "admin@test.test",
+		MobilePhone:    "081234567890",
+		EndDate:        time.Now().AddDate(5, 0, 0),
+		RetirementDate: time.Now().AddDate(10, 0, 0),
+	}
+
 	user := entity.User{
 		Username:        "admin",
 		Email:           "admin@test.test",
@@ -327,6 +386,8 @@ func main() {
 		EmailVerifiedAt: time.Now(),
 		Status:          entity.UserStatus("ACTIVE"),
 		Gender:          entity.UserGender("MALE"),
+		MobilePhone:     "081234567890",
+		Employee:        &employeeAdmin,
 		// Roles:           []entity.Role{role},
 	}
 
@@ -335,6 +396,21 @@ func main() {
 		log.Fatalf("failed to create user: %v", err)
 	} else {
 		log.Printf("create user success")
+	}
+
+	employeeJob := &entity.EmployeeJob{
+		Name:                   "Employee Admin Job",
+		EmpOrganizationID:      organizations[0].ID,
+		OrganizationLocationID: organizations[0].OrganizationLocations[0].ID,
+		EmployeeID:             &user.Employee.ID,
+		JobID:                  createdJobs["Kage"].ID,
+	}
+
+	err = db.Create(&employeeJob).Error
+	if err != nil {
+		log.Fatalf("failed to create employee job: %v", err)
+	} else {
+		log.Printf("create employee job success")
 	}
 
 	userRole := entity.UserRole{
@@ -350,6 +426,15 @@ func main() {
 		log.Printf("create user role success")
 	}
 
+	employeeGoogle := entity.Employee{
+		OrganizationID: organizations[0].ID,
+		Name:           "Ilham Setiaji",
+		Email:          "ilham.ahmadz18@gmail.com",
+		MobilePhone:    "081234567891",
+		EndDate:        time.Now().AddDate(5, 0, 0),
+		RetirementDate: time.Now().AddDate(10, 0, 0),
+	}
+
 	// insert google account
 	googleAccount := entity.User{
 		Username:        "ilham",
@@ -359,6 +444,8 @@ func main() {
 		EmailVerifiedAt: time.Now(),
 		Status:          entity.UserStatus("ACTIVE"),
 		Gender:          entity.UserGender("MALE"),
+		MobilePhone:     "081234567891",
+		Employee:        &employeeGoogle,
 	}
 
 	err = db.Create(&googleAccount).Error
@@ -366,6 +453,21 @@ func main() {
 		log.Fatalf("failed to create google account: %v", err)
 	} else {
 		log.Printf("create google account success")
+	}
+
+	employeeGoogleJob := &entity.EmployeeJob{
+		Name:                   "Ilham Setiaji Job",
+		EmpOrganizationID:      organizations[0].ID,
+		OrganizationLocationID: organizations[0].OrganizationLocations[0].ID,
+		EmployeeID:             &googleAccount.Employee.ID,
+		JobID:                  createdJobs["Kage"].ID,
+	}
+
+	err = db.Create(&employeeGoogleJob).Error
+	if err != nil {
+		log.Fatalf("failed to create employee google job: %v", err)
+	} else {
+		log.Printf("create employee google job success")
 	}
 
 	googleUserRole := entity.UserRole{
@@ -383,13 +485,13 @@ func main() {
 
 	// populate users and roles for web1 and web2 client
 	var web1Application entity.Application
-	err = db.Where("name = ?", "Web1 Application").First(&web1Application).Error
+	err = db.Where("name = ?", "manpower").First(&web1Application).Error
 	if err != nil {
 		log.Fatalf("failed to find Application: %v", err)
 	}
 
 	var web2Application entity.Application
-	err = db.Where("name = ?", "Web2 Application").First(&web2Application).Error
+	err = db.Where("name = ?", "recruitment").First(&web2Application).Error
 	if err != nil {
 		log.Fatalf("failed to find Application: %v", err)
 	}
