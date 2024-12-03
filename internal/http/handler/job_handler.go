@@ -3,6 +3,7 @@ package handler
 import (
 	"app/go-sso/internal/http/middleware"
 	usecase "app/go-sso/internal/usecase/job"
+	jobLevelUsecase "app/go-sso/internal/usecase/job_level"
 	"app/go-sso/utils"
 	"net/http"
 	"strconv"
@@ -21,6 +22,8 @@ type JobHandler struct {
 type IJobHandler interface {
 	FindAllPaginated(ctx *gin.Context)
 	FindById(ctx *gin.Context)
+	FindAllJobLevelsPaginated(ctx *gin.Context)
+	FindJobLevelById(ctx *gin.Context)
 }
 
 func NewJobHandler(log *logrus.Logger, validate *validator.Validate) IJobHandler {
@@ -91,6 +94,69 @@ func (h *JobHandler) FindById(ctx *gin.Context) {
 
 	if err != nil {
 		h.Log.Errorf("Error FindById: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "success", response.Job)
+}
+
+func (h *JobHandler) FindAllJobLevelsPaginated(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-job")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(ctx.DefaultQuery("page_size", "10"))
+	if err != nil || pageSize < 1 {
+		pageSize = 10
+	}
+
+	search := ctx.Query("search")
+	if search == "" {
+		search = ""
+	}
+
+	factory := jobLevelUsecase.FindAllPaginatedUseCaseFactory(h.Log)
+	response, err := factory.Execute(&jobLevelUsecase.IFindAllPaginatedUseCaseRequest{
+		Page:     page,
+		PageSize: pageSize,
+		Search:   search,
+	})
+
+	if err != nil {
+		h.Log.Errorf("Error FindAllJobLevelsPaginated: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "success", response)
+}
+
+func (h *JobHandler) FindJobLevelById(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-job")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
+	id := ctx.Param("id")
+	if id == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "id is required")
+		return
+	}
+
+	factory := jobLevelUsecase.FindByIdUseCaseFactory(h.Log)
+	response, err := factory.Execute(&jobLevelUsecase.IFindByIdUseCaseRequest{
+		ID: uuid.MustParse(id),
+	})
+
+	if err != nil {
+		h.Log.Errorf("Error FindJobLevelById: %v", err)
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
 	}
 

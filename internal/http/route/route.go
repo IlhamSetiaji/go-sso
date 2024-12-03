@@ -66,6 +66,11 @@ func (c *RouteConfig) SetupApiRoutes() {
 				jobRoute.GET("/", c.JobHandler.FindAllPaginated)
 				jobRoute.GET("/:id", c.JobHandler.FindById)
 			}
+			jobLevelRoute := apiRoute.Group("/job-levels")
+			{
+				jobLevelRoute.GET("/", c.JobHandler.FindAllJobLevelsPaginated)
+				jobLevelRoute.GET("/:id", c.JobHandler.FindJobLevelById)
+			}
 		}
 	}
 }
