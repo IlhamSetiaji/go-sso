@@ -1,24 +1,41 @@
 package web
 
 import (
+	usecase "app/go-sso/internal/usecase/application"
 	"app/go-sso/views"
+	"fmt"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type DashboardHandler struct {
+	Config   *viper.Viper
 	Log      *logrus.Logger
 	validate *validator.Validate
 }
 
 type DashboardHandlerInterface interface {
 	Index(ctx *gin.Context)
+	Portal(ctx *gin.Context)
 }
 
 func DashboardHandlerFactory(log *logrus.Logger, validate *validator.Validate) DashboardHandlerInterface {
+	config := viper.New()
+	config.SetConfigName("config")
+	config.SetConfigType("json")
+	config.AddConfigPath("./")
+	err := config.ReadInConfig()
+
+	if err != nil {
+		panic(fmt.Errorf("Fatal error config file: %w \n", err))
+	}
 	return &DashboardHandler{
+		Config:   config,
 		Log:      log,
 		validate: validate,
 	}
@@ -30,4 +47,66 @@ func (h *DashboardHandler) Index(ctx *gin.Context) {
 		"Title": "Go SSO | Dashboard",
 	}
 	index.Render(ctx, data)
+}
+
+func (h *DashboardHandler) Portal(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	token := ctx.Query("token")
+
+	if token == "" {
+		session.Set("error", "There are no token")
+		session.Save()
+		ctx.Redirect(302, "/login")
+		return
+	}
+
+	isJWT, err := h.checkIfTokenIsJWT(token)
+	if err != nil {
+		h.Log.Error(err)
+		session.Set("error", err.Error())
+		session.Save()
+		ctx.Redirect(302, "/login")
+		return
+	}
+
+	if !isJWT {
+		session.Set("error", "Invalid token")
+		session.Save()
+		ctx.Redirect(302, "/login")
+		return
+	}
+
+	factory := usecase.GetAllApplicationsUseCaseFactory(h.Log)
+
+	resp, err := factory.Execute()
+	if err != nil {
+		h.Log.Error(err)
+	}
+
+	index := views.NewView("base", "views/portal.html")
+	data := map[string]interface{}{
+		"Title":        "Go SSO | Portal",
+		"Applications": resp.Applications,
+	}
+	index.Render(ctx, data)
+}
+
+func (h *DashboardHandler) checkIfTokenIsJWT(stateToken string) (bool, error) {
+	jwtToken, err := jwt.Parse(stateToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(viper.GetString("jwt.secret")), nil
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	if _, ok := jwtToken.Claims.(jwt.MapClaims); ok && jwtToken.Valid {
+		return true, nil
+	} else {
+		return false, nil
+	}
+
 }

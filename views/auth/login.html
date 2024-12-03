@@ -16,7 +16,6 @@
           <form action="/login" method="POST">
             <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
             {{ if .State }}
-            <p>{{ .State }}</p>
             <input type="hidden" name="state" value="{{.State}}" />
             {{ end }}
             <div class="form-group position-relative has-icon-left mb-4">

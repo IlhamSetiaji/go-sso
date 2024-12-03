@@ -8,7 +8,7 @@ import (
 	"app/go-sso/utils"
 	"app/go-sso/views"
 	"fmt"
-	"net/http"
+	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -92,30 +92,6 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	if payload.State != "" {
-		data, err := h.loginAsApplication(payload.State, response)
-		if err != nil {
-			session.Set("error", err.Error())
-			session.Save()
-			h.Log.Printf(err.Error())
-			ctx.Redirect(302, ctx.Request.Referer())
-			return
-		}
-
-		application := data["application"].(*entity.Application)
-
-		redirectURL := fmt.Sprintf("%s?token=%s", application.RedirectURI, data["token"])
-		ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
-		return
-	}
-
-	if !h.checkUserRole(&response.User, "superadmin") {
-		session.Set("error", "You are not allowed to access this page")
-		session.Save()
-		ctx.Redirect(302, ctx.Request.Referer())
-		return
-	}
-
 	var profile = entity.Profile{
 		ID:       response.User.ID,
 		Name:     response.User.Name,
@@ -130,6 +106,37 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		ctx.Redirect(302, ctx.Request.Referer())
 		return
 	}
+
+	if payload.State != "" {
+		data, err := h.loginAsApplication(payload.State, response)
+		if err != nil {
+			session.Set("error", err.Error())
+			session.Save()
+			h.Log.Printf(err.Error())
+			ctx.Redirect(302, ctx.Request.Referer())
+			return
+		}
+
+		application := data["application"].(*entity.Application)
+
+		redirectURL := fmt.Sprintf("%s?token=%s", application.RedirectURI, data["token"])
+		h.Log.Printf("Redirecting to URL: %s", redirectURL)
+
+		if !strings.HasPrefix(redirectURL, "http") {
+			redirectURL = "http://" + redirectURL
+		}
+
+		ctx.Redirect(302, redirectURL)
+		return
+	}
+
+	if !h.checkUserRole(&response.User, "superadmin") {
+		session.Set("error", "You are not allowed to access this page")
+		session.Save()
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
 	ctx.Redirect(302, "/")
 }
 

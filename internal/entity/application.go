@@ -10,6 +10,7 @@ import (
 type Application struct {
 	ID          uuid.UUID `json:"id" gorm:"type:char(36);primaryKey"`
 	Name        string    `json:"name" gorm:"unique;not null"`
+	Label       string    `json:"label" gorm:"not null"`
 	Secret      string    `json:"secret" gorm:"unique;not null"`
 	RedirectURI string    `json:"redirect_uri" gorm:"not null"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
