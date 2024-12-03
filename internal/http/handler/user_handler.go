@@ -487,6 +487,12 @@ func (h *UserHandler) ZitadelCallbackOAuth(ctx *gin.Context) {
 }
 
 func (h *UserHandler) FindById(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-user")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
 	id := ctx.Param("id")
 	if id == "" {
 		utils.ErrorResponse(ctx, 400, "error", "ID is required")
@@ -506,6 +512,12 @@ func (h *UserHandler) FindById(ctx *gin.Context) {
 }
 
 func (h *UserHandler) FindAllPaginated(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-user")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
 	page, err := strconv.Atoi(ctx.Query("page"))
 	if err != nil || page < 1 {
 		page = 1

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/IlhamSetiaji/go-rabbitmq-utils/rabbitmq"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,12 @@ func main() {
 		log.Printf("Failed to initialize the zitadel authenticator: %v", err)
 	}
 
+	err = rabbitmq.InitializeConnection(viperConfig.GetString("rabbitmq.url"))
+	if err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	}
+	defer rabbitmq.CloseConnection()
+
 	// setup gin engine
 	app := gin.Default()
 	app.Static("/assets", "./public")
@@ -70,6 +77,11 @@ func main() {
 
 	//handle handler
 	userHandler := handler.UserHandlerFactory(log, validate, auth, googleAuth, zitadelAuth)
+	organizationHandler := handler.OrganizationHandlerFactory(log, validate)
+	jobHandler := handler.JobHandlerFactory(log, validate)
+	employeeHandler := handler.EmployeeHandlerFactory(log, validate)
+
+	// handle web handler
 	dashboardHandler := web.DashboardHandlerFactory(log, validate)
 	authWebHandler := web.AuthHandlerFactory(log, validate)
 	userWebHandler := web.UserHandlerFactory(log, validate)
@@ -86,11 +98,14 @@ func main() {
 		UserHandler:          userHandler,
 		DashboardHandler:     dashboardHandler,
 		AuthWebHandler:       authWebHandler,
+		OrganizationHandler:  organizationHandler,
+		JobHandler:           jobHandler,
 		UserWebHandler:       userWebHandler,
 		RoleWebHandler:       roleWebHandler,
 		PermissionWebHandler: permissionWebHandler,
 		AuthMiddleware:       authMiddleware,
 		WebAuthMiddleware:    authWebMiddleware,
+		EmployeeHandler:      employeeHandler,
 	}
 	routeConfig.SetupRoutes()
 

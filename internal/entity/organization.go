@@ -8,7 +8,7 @@ import (
 )
 
 type Organization struct {
-	gorm.Model
+	gorm.Model             `json:"-"`
 	ID                     uuid.UUID               `json:"id" gorm:"type:char(36);primaryKey"`
 	Name                   string                  `json:"name"`
 	OrganizationLocations  []OrganizationLocation  `json:"organization_locations" gorm:"foreignKey:OrganizationID;references:ID"`

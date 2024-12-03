@@ -12,11 +12,14 @@ type RouteConfig struct {
 	UserHandler          handler.UserHandlerInterface
 	UserWebHandler       web.UserHandlerInterface
 	RoleWebHandler       web.RoleHandlerInterface
+	OrganizationHandler  handler.IOrganizationHandler
 	PermissionWebHandler web.PermissionHandlerInterface
 	DashboardHandler     web.DashboardHandlerInterface
 	AuthWebHandler       web.AuthHandlerInterface
 	WebAuthMiddleware    gin.HandlerFunc
 	AuthMiddleware       gin.HandlerFunc
+	JobHandler           handler.IJobHandler
+	EmployeeHandler      handler.IEmployeeHandler
 }
 
 func (c *RouteConfig) SetupRoutes() {
@@ -48,6 +51,36 @@ func (c *RouteConfig) SetupApiRoutes() {
 				userRoute.GET("/", c.UserHandler.FindAllPaginated)
 				userRoute.GET("/:id", c.UserHandler.FindById)
 				userRoute.GET("/check-cookie", c.UserHandler.CheckStoredCookie)
+			}
+			organizationRoute := apiRoute.Group("/organizations")
+			{
+				organizationRoute.GET("/", c.OrganizationHandler.FindAllPaginated)
+				organizationRoute.GET("/:id", c.OrganizationHandler.FindById)
+			}
+			organizationStructureRoute := apiRoute.Group("/organization-structures")
+			{
+				organizationStructureRoute.GET("/", c.OrganizationHandler.FindOrganizationStructurePaginated)
+				organizationStructureRoute.GET("/:id", c.OrganizationHandler.FindOrganizationStructureById)
+			}
+			organizationLocationRoute := apiRoute.Group("/organization-locations")
+			{
+				organizationLocationRoute.GET("/", c.OrganizationHandler.FindOrganizationLocationsPaginated)
+				organizationLocationRoute.GET("/:id", c.OrganizationHandler.FindOrganizationLocationById)
+			}
+			jobRoute := apiRoute.Group("/jobs")
+			{
+				jobRoute.GET("/", c.JobHandler.FindAllPaginated)
+				jobRoute.GET("/:id", c.JobHandler.FindById)
+			}
+			jobLevelRoute := apiRoute.Group("/job-levels")
+			{
+				jobLevelRoute.GET("/", c.JobHandler.FindAllJobLevelsPaginated)
+				jobLevelRoute.GET("/:id", c.JobHandler.FindJobLevelById)
+			}
+			employeeRoute := apiRoute.Group("/employees")
+			{
+				employeeRoute.GET("/", c.EmployeeHandler.FindAllPaginated)
+				employeeRoute.GET("/:id", c.EmployeeHandler.FindById)
 			}
 		}
 	}

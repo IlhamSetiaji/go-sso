@@ -37,7 +37,7 @@ func GenerateToken(user *entity.User) (string, error) {
 
 	// prepare token claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId":   user.ID,
+		"id":       user.ID,
 		"name":     user.Name,
 		"username": user.Username,
 		"email":    user.Email,

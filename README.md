@@ -24,6 +24,12 @@ to run this project
 go run main.go
 ```
 
+to run consumer
+
+```bash
+go run ./cmd/worker/consumer.go
+```
+
 To run, watch, and build this project
 
 ```bash
