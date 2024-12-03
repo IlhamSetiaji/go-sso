@@ -72,6 +72,7 @@ func main() {
 	userHandler := handler.UserHandlerFactory(log, validate, auth, googleAuth, zitadelAuth)
 	organizationHandler := handler.OrganizationHandlerFactory(log, validate)
 	jobHandler := handler.JobHandlerFactory(log, validate)
+	employeeHandler := handler.EmployeeHandlerFactory(log, validate)
 
 	// handle web handler
 	dashboardHandler := web.DashboardHandlerFactory(log, validate)
@@ -97,6 +98,7 @@ func main() {
 		PermissionWebHandler: permissionWebHandler,
 		AuthMiddleware:       authMiddleware,
 		WebAuthMiddleware:    authWebMiddleware,
+		EmployeeHandler:      employeeHandler,
 	}
 	routeConfig.SetupRoutes()
 

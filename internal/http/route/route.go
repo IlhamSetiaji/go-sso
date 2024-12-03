@@ -19,6 +19,7 @@ type RouteConfig struct {
 	WebAuthMiddleware    gin.HandlerFunc
 	AuthMiddleware       gin.HandlerFunc
 	JobHandler           handler.IJobHandler
+	EmployeeHandler      handler.IEmployeeHandler
 }
 
 func (c *RouteConfig) SetupRoutes() {
@@ -75,6 +76,11 @@ func (c *RouteConfig) SetupApiRoutes() {
 			{
 				jobLevelRoute.GET("/", c.JobHandler.FindAllJobLevelsPaginated)
 				jobLevelRoute.GET("/:id", c.JobHandler.FindJobLevelById)
+			}
+			employeeRoute := apiRoute.Group("/employees")
+			{
+				employeeRoute.GET("/", c.EmployeeHandler.FindAllPaginated)
+				employeeRoute.GET("/:id", c.EmployeeHandler.FindById)
 			}
 		}
 	}
