@@ -10,7 +10,7 @@ import (
 )
 
 type OrganizationStructure struct {
-	gorm.Model
+	gorm.Model     `json:"-"`
 	ID             uuid.UUID               `json:"id" gorm:"type:char(36);primaryKey"`
 	OrganizationID uuid.UUID               `json:"organization_id" gorm:"type:char(36)"`
 	Name           string                  `json:"name"`

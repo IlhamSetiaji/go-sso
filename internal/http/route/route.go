@@ -55,6 +55,11 @@ func (c *RouteConfig) SetupApiRoutes() {
 				organizationRoute.GET("/", c.OrganizationHandler.FindAllPaginated)
 				organizationRoute.GET("/:id", c.OrganizationHandler.FindById)
 			}
+			organizationStructureRoute := apiRoute.Group("/organization-structures")
+			{
+				organizationStructureRoute.GET("/", c.OrganizationHandler.FindOrganizationStructurePaginated)
+				organizationStructureRoute.GET("/:id", c.OrganizationHandler.FindOrganizationStructureById)
+			}
 		}
 	}
 }

@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"app/go-sso/internal/http/middleware"
 	usecase "app/go-sso/internal/usecase/organization"
+	structureUsecase "app/go-sso/internal/usecase/organization_structure"
 	"app/go-sso/utils"
 	"fmt"
 	"net/http"
@@ -23,6 +25,8 @@ type OrganizationHandler struct {
 type IOrganizationHandler interface {
 	FindAllPaginated(ctx *gin.Context)
 	FindById(ctx *gin.Context)
+	FindOrganizationStructurePaginated(ctx *gin.Context)
+	FindOrganizationStructureById(ctx *gin.Context)
 }
 
 func NewOrganizationHandler(log *logrus.Logger, validate *validator.Validate) IOrganizationHandler {
@@ -48,6 +52,12 @@ func OrganizationHandlerFactory(log *logrus.Logger, validate *validator.Validate
 }
 
 func (h *OrganizationHandler) FindAllPaginated(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-organization")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
 	page, err := strconv.Atoi(ctx.Query("page"))
 	if err != nil || page < 1 {
 		page = 1
@@ -79,6 +89,12 @@ func (h *OrganizationHandler) FindAllPaginated(ctx *gin.Context) {
 }
 
 func (h *OrganizationHandler) FindById(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-organization")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
 	id := ctx.Param("id")
 	if id == "" {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "id is required")
@@ -96,4 +112,67 @@ func (h *OrganizationHandler) FindById(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "success", res.Organization)
+}
+
+func (h *OrganizationHandler) FindOrganizationStructurePaginated(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-organization-structure")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
+	page, err := strconv.Atoi(ctx.Query("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(ctx.Query("pageSize"))
+	if err != nil || pageSize < 1 {
+		pageSize = 10
+	}
+
+	search := ctx.Query("search")
+	if search == "" {
+		search = ""
+	}
+
+	factory := structureUsecase.FindAllPaginatedUseCaseFactory(h.log)
+	res, err := factory.Execute(&structureUsecase.IFindAllPaginatedUseCaseRequest{
+		Page:     page,
+		PageSize: pageSize,
+		Search:   search,
+	})
+	if err != nil {
+		h.log.Errorf("Error: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "success", res)
+}
+
+func (h *OrganizationHandler) FindOrganizationStructureById(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-organization-structure")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
+	id := ctx.Param("id")
+	if id == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "id is required")
+		return
+	}
+
+	factory := structureUsecase.FindByIdUseCaseFactory(h.log)
+	res, err := factory.Execute(&structureUsecase.IFindByIdUseCaseRequest{
+		ID: uuid.MustParse(id),
+	})
+	if err != nil {
+		h.log.Errorf("Error: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "success", res.OrganizationStructure)
 }

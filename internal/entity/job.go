@@ -10,7 +10,7 @@ import (
 )
 
 type Job struct {
-	gorm.Model
+	gorm.Model              `json:"-"`
 	ID                      uuid.UUID             `json:"id" gorm:"type:char(36);primaryKey"`
 	Name                    string                `json:"name"`
 	OrganizationStructureID uuid.UUID             `json:"organization_structure_id" gorm:"type:char(36)"`

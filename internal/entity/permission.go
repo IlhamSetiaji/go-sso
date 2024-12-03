@@ -8,7 +8,7 @@ import (
 )
 
 type Permission struct {
-	gorm.Model
+	gorm.Model    `json:"-"`
 	ID            uuid.UUID   `json:"id" gorm:"type:char(36);primary_key"`
 	ApplicationID uuid.UUID   `json:"application_id" gorm:"type:char(36);not null"`
 	Application   Application `json:"application" gorm:"foreignKey:ApplicationID;references:ID;constraint:OnDelete:CASCADE"`
