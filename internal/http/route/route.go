@@ -34,8 +34,11 @@ func (c *RouteConfig) SetupApiRoutes() {
 			userRoute.Use(c.AuthMiddleware)
 			{
 				userRoute.GET("/me", c.UserHandler.Me)
-				userRoute.GET("/logout", c.UserHandler.Logout)
+				userRoute.GET("/logout/token", c.UserHandler.Logout)
+				userRoute.GET("/logout", c.UserHandler.LogoutCookie)
 				userRoute.POST("/check-token", c.UserHandler.CheckAuthToken)
+				userRoute.GET("/", c.UserHandler.FindAllPaginated)
+				userRoute.GET("/:id", c.UserHandler.FindById)
 			}
 		}
 		oAuthRoute := apiRoute.Group("/oauth")
@@ -53,6 +56,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 	c.App.POST("/login", c.AuthWebHandler.Login)
 	c.App.Use(c.WebAuthMiddleware)
 	{
+		c.App.GET("/test", c.AuthWebHandler.CheckCookieTest)
 		c.App.GET("/", c.DashboardHandler.Index)
 		c.App.GET("/portal", c.DashboardHandler.Portal)
 		c.App.GET("/logout", c.AuthWebHandler.Logout)

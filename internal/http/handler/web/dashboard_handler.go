@@ -97,7 +97,7 @@ func (h *DashboardHandler) checkIfTokenIsJWT(stateToken string) (bool, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(viper.GetString("jwt.secret")), nil
+		return []byte(h.Config.GetString("jwt.secret")), nil
 	})
 
 	if err != nil {

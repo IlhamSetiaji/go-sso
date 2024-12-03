@@ -27,6 +27,7 @@ type AuthHandlerInterface interface {
 	LoginView(ctx *gin.Context)
 	Login(ctx *gin.Context)
 	Logout(ctx *gin.Context)
+	CheckCookieTest(ctx *gin.Context)
 }
 
 func AuthHandlerFactory(log *logrus.Logger, validator *validator.Validate) AuthHandlerInterface {
@@ -138,6 +139,20 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	}
 
 	ctx.Redirect(302, "/")
+}
+
+func (h *AuthHandler) CheckCookieTest(ctx *gin.Context) {
+	cookie, err := utils.GetTokenFromCookie(ctx, "test_haha")
+	if err != nil {
+		ctx.JSON(200, gin.H{
+			"message": "Cookie not found",
+		})
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"message": cookie,
+	})
 }
 
 func (h *AuthHandler) checkUserRole(user *entity.User, role string) bool {

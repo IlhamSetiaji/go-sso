@@ -12,7 +12,7 @@ import (
 
 type IUserRepository interface {
 	FindByEmail(email string) (*entity.User, error)
-	FindAllPaginated(page int, pageSize int) (*[]entity.User, int64, error)
+	FindAllPaginated(page int, pageSize int, search string) (*[]entity.User, int64, error)
 	FindById(id uuid.UUID) (*entity.User, error)
 	GetAllUsers() (*[]entity.User, error)
 	CreateUser(user *entity.User, roleId uuid.UUID) (*entity.User, error)
@@ -47,22 +47,27 @@ func (r *UserRepository) FindByEmail(email string) (*entity.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) FindAllPaginated(page int, pageSize int) (*[]entity.User, int64, error) {
+func (r *UserRepository) FindAllPaginated(page int, pageSize int, search string) (*[]entity.User, int64, error) {
 	var users []entity.User
-	var totalCount int64
-	offset := (page - 1) * pageSize
+	var total int64
 
-	if err := r.DB.Model(&entity.User{}).Count(&totalCount).Error; err != nil {
+	query := r.DB.Preload("Roles.Application").Preload("Roles.Permissions")
+
+	if search != "" {
+		query = query.Where("email LIKE ?", "%"+search+"%").Or("name LIKE ?", "%"+search+"%").Or("username LIKE ?", "%"+search+"%")
+	}
+
+	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&users).Error; err != nil {
 		r.Log.Error("[UserRepository.FindAllPaginated] " + err.Error())
 		return nil, 0, errors.New("[UserRepository.FindAllPaginated] " + err.Error())
 	}
 
-	if err := r.DB.Preload("Roles.Permissions").Offset(offset).Limit(pageSize).Find(&users).Error; err != nil {
+	if err := query.Model(&entity.User{}).Count(&total).Error; err != nil {
 		r.Log.Error("[UserRepository.FindAllPaginated] " + err.Error())
 		return nil, 0, errors.New("[UserRepository.FindAllPaginated] " + err.Error())
 	}
 
-	return &users, totalCount, nil
+	return &users, total, nil
 }
 
 func (r *UserRepository) GetAllUsers() (*[]entity.User, error) {

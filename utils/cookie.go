@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"encoding/base64"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,9 +30,10 @@ func NewDefaultCookieOptions(name string) CookieOptions {
 }
 
 func SetTokenCookie(ctx *gin.Context, token string, opts CookieOptions) {
+	encodedValue := base64.StdEncoding.EncodeToString([]byte(token))
 	ctx.SetCookie(
 		opts.Name,
-		token,
+		encodedValue,
 		opts.MaxAge,
 		opts.Path,
 		opts.Domain,
@@ -44,7 +47,11 @@ func GetTokenFromCookie(ctx *gin.Context, cookieName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return token, nil
+	decodedValue, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		// Handle error
+	}
+	return string(decodedValue), nil
 }
 
 func ClearTokenCookie(ctx *gin.Context, cookieName, domain string) {
