@@ -70,6 +70,9 @@ func main() {
 
 	//handle handler
 	userHandler := handler.UserHandlerFactory(log, validate, auth, googleAuth, zitadelAuth)
+	organizationHandler := handler.OrganizationHandlerFactory(log, validate)
+
+	// handle web handler
 	dashboardHandler := web.DashboardHandlerFactory(log, validate)
 	authWebHandler := web.AuthHandlerFactory(log, validate)
 	userWebHandler := web.UserHandlerFactory(log, validate)
@@ -86,6 +89,7 @@ func main() {
 		UserHandler:          userHandler,
 		DashboardHandler:     dashboardHandler,
 		AuthWebHandler:       authWebHandler,
+		OrganizationHandler:  organizationHandler,
 		UserWebHandler:       userWebHandler,
 		RoleWebHandler:       roleWebHandler,
 		PermissionWebHandler: permissionWebHandler,

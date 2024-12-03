@@ -12,6 +12,7 @@ type RouteConfig struct {
 	UserHandler          handler.UserHandlerInterface
 	UserWebHandler       web.UserHandlerInterface
 	RoleWebHandler       web.RoleHandlerInterface
+	OrganizationHandler  handler.IOrganizationHandler
 	PermissionWebHandler web.PermissionHandlerInterface
 	DashboardHandler     web.DashboardHandlerInterface
 	AuthWebHandler       web.AuthHandlerInterface
@@ -48,6 +49,11 @@ func (c *RouteConfig) SetupApiRoutes() {
 				userRoute.GET("/", c.UserHandler.FindAllPaginated)
 				userRoute.GET("/:id", c.UserHandler.FindById)
 				userRoute.GET("/check-cookie", c.UserHandler.CheckStoredCookie)
+			}
+			organizationRoute := apiRoute.Group("/organizations")
+			{
+				organizationRoute.GET("/", c.OrganizationHandler.FindAllPaginated)
+				organizationRoute.GET("/:id", c.OrganizationHandler.FindById)
 			}
 		}
 	}
