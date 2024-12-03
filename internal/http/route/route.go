@@ -28,10 +28,18 @@ func (c *RouteConfig) SetupRoutes() {
 func (c *RouteConfig) SetupApiRoutes() {
 	apiRoute := c.App.Group("/api")
 	{
-		userRoute := apiRoute.Group("/users")
+		apiRoute.POST("/login", c.UserHandler.Login)
+
+		oAuthRoute := apiRoute.Group("/oauth")
 		{
-			userRoute.POST("/login", c.UserHandler.Login)
-			userRoute.Use(c.AuthMiddleware)
+			oAuthRoute.GET("/callback", c.UserHandler.CallbackOAuth)
+			oAuthRoute.GET("/google/callback", c.UserHandler.GoogleCallbackOAuth)
+			oAuthRoute.GET("/zitadel/callback", c.UserHandler.ZitadelCallbackOAuth)
+		}
+
+		apiRoute.Use(c.AuthMiddleware)
+		{
+			userRoute := apiRoute.Group("/users")
 			{
 				userRoute.GET("/me", c.UserHandler.Me)
 				userRoute.GET("/logout/token", c.UserHandler.Logout)
@@ -39,13 +47,8 @@ func (c *RouteConfig) SetupApiRoutes() {
 				userRoute.POST("/check-token", c.UserHandler.CheckAuthToken)
 				userRoute.GET("/", c.UserHandler.FindAllPaginated)
 				userRoute.GET("/:id", c.UserHandler.FindById)
+				userRoute.GET("/check-cookie", c.UserHandler.CheckStoredCookie)
 			}
-		}
-		oAuthRoute := apiRoute.Group("/oauth")
-		{
-			oAuthRoute.GET("/callback", c.UserHandler.CallbackOAuth)
-			oAuthRoute.GET("/google/callback", c.UserHandler.GoogleCallbackOAuth)
-			oAuthRoute.GET("/zitadel/callback", c.UserHandler.ZitadelCallbackOAuth)
 		}
 	}
 }
@@ -56,8 +59,8 @@ func (c *RouteConfig) SetupWebRoutes() {
 	c.App.POST("/login", c.AuthWebHandler.Login)
 	c.App.Use(c.WebAuthMiddleware)
 	{
-		c.App.GET("/test", c.AuthWebHandler.CheckCookieTest)
 		c.App.GET("/", c.DashboardHandler.Index)
+		c.App.GET("/test", c.AuthWebHandler.CheckCookieTest)
 		c.App.GET("/portal", c.DashboardHandler.Portal)
 		c.App.GET("/logout", c.AuthWebHandler.Logout)
 		userRoutes := c.App.Group("/users")

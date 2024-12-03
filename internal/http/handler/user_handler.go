@@ -39,6 +39,7 @@ type UserHandlerInterface interface {
 	Logout(ctx *gin.Context)
 	LogoutCookie(ctx *gin.Context)
 	CheckAuthToken(ctx *gin.Context)
+	CheckStoredCookie(ctx *gin.Context)
 	Me(ctx *gin.Context)
 	LoginOAuth(ctx *gin.Context)
 	CallbackOAuth(ctx *gin.Context)
@@ -154,6 +155,16 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	utils.SetTokenCookie(ctx, token, jwtCookie)
 
 	utils.SuccessResponse(ctx, 200, "success", data)
+}
+
+func (h *UserHandler) CheckStoredCookie(ctx *gin.Context) {
+	token, err := ctx.Cookie("jwt_token")
+	if err != nil {
+		utils.ErrorResponse(ctx, 400, "error", "Cookie not found")
+		return
+	}
+
+	utils.SuccessResponse(ctx, 200, "success", token)
 }
 
 func (h *UserHandler) Logout(ctx *gin.Context) {
