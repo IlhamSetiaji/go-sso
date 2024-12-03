@@ -18,6 +18,7 @@ type RouteConfig struct {
 	AuthWebHandler       web.AuthHandlerInterface
 	WebAuthMiddleware    gin.HandlerFunc
 	AuthMiddleware       gin.HandlerFunc
+	JobHandler           handler.IJobHandler
 }
 
 func (c *RouteConfig) SetupRoutes() {
@@ -59,6 +60,11 @@ func (c *RouteConfig) SetupApiRoutes() {
 			{
 				organizationStructureRoute.GET("/", c.OrganizationHandler.FindOrganizationStructurePaginated)
 				organizationStructureRoute.GET("/:id", c.OrganizationHandler.FindOrganizationStructureById)
+			}
+			jobRoute := apiRoute.Group("/jobs")
+			{
+				jobRoute.GET("/", c.JobHandler.FindAllPaginated)
+				jobRoute.GET("/:id", c.JobHandler.FindById)
 			}
 		}
 	}
