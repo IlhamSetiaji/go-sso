@@ -502,7 +502,7 @@ func (h *UserHandler) FindById(ctx *gin.Context) {
 		h.Log.Errorf("Error when finding user by ID: %v", err)
 		return
 	}
-	utils.SuccessResponse(ctx, 200, "success", response)
+	utils.SuccessResponse(ctx, 200, "success", response.User)
 }
 
 func (h *UserHandler) FindAllPaginated(ctx *gin.Context) {
