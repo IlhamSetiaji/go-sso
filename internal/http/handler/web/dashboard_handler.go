@@ -87,6 +87,7 @@ func (h *DashboardHandler) Portal(ctx *gin.Context) {
 	data := map[string]interface{}{
 		"Title":        "Go SSO | Portal",
 		"Applications": resp.Applications,
+		"Token":        token,
 	}
 	index.Render(ctx, data)
 }

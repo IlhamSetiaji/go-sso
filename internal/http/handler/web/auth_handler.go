@@ -152,7 +152,7 @@ func (h *AuthHandler) checkUserRole(user *entity.User, role string) bool {
 func (h *AuthHandler) loginAsApplication(state string, response *usecase.ILoginUseCaseResponse) (map[string]interface{}, error) {
 	token, err := utils.GenerateToken(&response.User)
 	if err != nil {
-		h.Log.Panicf("Error when generating token: %v", err)
+		h.Log.Errorf("Error when generating token: %v", err)
 		return nil, err
 	}
 
@@ -162,7 +162,7 @@ func (h *AuthHandler) loginAsApplication(state string, response *usecase.ILoginU
 	})
 
 	if err != nil {
-		h.Log.Panicf("Error when finding application: %v", err)
+		h.Log.Errorf("Error when finding application: %v", err)
 		return nil, err
 	}
 
