@@ -61,6 +61,11 @@ func (c *RouteConfig) SetupApiRoutes() {
 				organizationStructureRoute.GET("/", c.OrganizationHandler.FindOrganizationStructurePaginated)
 				organizationStructureRoute.GET("/:id", c.OrganizationHandler.FindOrganizationStructureById)
 			}
+			organizationLocationRoute := apiRoute.Group("/organization-locations")
+			{
+				organizationLocationRoute.GET("/", c.OrganizationHandler.FindOrganizationLocationsPaginated)
+				organizationLocationRoute.GET("/:id", c.OrganizationHandler.FindOrganizationLocationById)
+			}
 			jobRoute := apiRoute.Group("/jobs")
 			{
 				jobRoute.GET("/", c.JobHandler.FindAllPaginated)
