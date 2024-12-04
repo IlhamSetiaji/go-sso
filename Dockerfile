@@ -1,5 +1,5 @@
-# Use the official Golang image as the build stage
-FROM golang:1.23 AS builder
+# Stage 1: Build the Go application
+FROM golang:1.20 AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy the go.mod and go.sum files
 COPY go.mod go.sum ./
 
-# Download the Go module dependencies
+# Download Go module dependencies
 RUN go mod download
 
 # Copy the rest of the application code
@@ -16,11 +16,26 @@ COPY . .
 # Build the Go application
 RUN go build -o main .
 
-# Use the official Ubuntu image as the base image for the final stage
+# Stage 2: Prepare runtime environment
 FROM ubuntu:20.04
 
-# Install necessary dependencies
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+# Install dependencies (GLIBC and envsubst)
+RUN apt-get update && \
+    apt-get install -y ca-certificates gettext wget && \
+    rm -rf /var/lib/apt/lists/*
+
+# Upgrade GLIBC to version 2.32 if needed
+RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.32.tar.gz && \
+    tar -xvzf glibc-2.32.tar.gz && \
+    cd glibc-2.32 && \
+    mkdir build && cd build && \
+    ../configure --prefix=/opt/glibc-2.32 && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf /glibc-2.32*
+
+# Set environment for GLIBC
+ENV LD_LIBRARY_PATH=/opt/glibc-2.32/lib:$LD_LIBRARY_PATH
 
 # Set the working directory inside the container
 WORKDIR /app
