@@ -1,11 +1,16 @@
 {
-  "app": {
-    "name": "golang-taaruf"
+  app": {
+    "name": "go-sso",
+    "version": "1.0.0",
+    "env": "development",
+    "url": "https://4291-36-68-222-24.ngrok-free.app",
+    "domain": "",
+    "secret": "$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK"
   },
   "web": {
     "prefork": false,
     "port": 3000,
-     "cookie": {
+    "cookie": {
       "name": "go-sso",
       "secure": false,
       "http_only": true,
@@ -15,7 +20,8 @@
     },
     "session": {
       "name": "abogoboga"
-    }
+    },
+    "csrf_secret": "$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK"
   },
   "log": {
     "level": 6,
@@ -52,6 +58,19 @@
     "domain": "blablabla.us.auth0.com",
     "client_id": "your_client_id",
     "client_secret": "your_client_secret",
-    "redirect_url": "http://localhost:8080/api/oauth/callback"
+    "redirect_url": "http://localhost:3000/api/oauth/callback"
+  },
+   "google": {
+    "client_id": "mwehehe",
+    "client_secret": "mwehehe",
+    "redirect_url": "http://localhost:3000/api/oauth/google/callback"
+  },
+  "zitadel": {
+    "auth_url": "mwehehe",
+    "token_url": "mwehehe",
+    "userinfo_url": "mwehehe",
+    "key": "abogoboga",
+    "client_id": "1782792871",
+    "redirect_url": "http://localhost:3000/api/oauth/zitadel/callback"
   }
 }
