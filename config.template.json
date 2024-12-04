@@ -1,0 +1,76 @@
+{
+  "app": {
+    "name": "golang-taaruf",
+    "version": "1.0.0",
+    "env": "${APP_ENV}",
+    "url": "${APP_URL}",
+    "domain": "${APP_DOMAIN}",
+    "secret": "${APP_SECRET}"
+  },
+  "web": {
+    "prefork": false,
+    "port": 3000,
+    "cookie": {
+      "name": "go-sso",
+      "secure": false,
+      "http_only": true,
+      "max_age": 86400,
+      "same_site": "Lax",
+      "secret": "${COOKIE_SECRET}"
+    },
+    "session": {
+      "name": "${SESSION_NAME}"
+    },
+    "csrf_secret": "${CSRF_SECRET}"
+  },
+  "log": {
+    "level": 6,
+    "output": "stdout"
+  },
+  "database": {
+    "driver": "postgres",
+    "host": "${DB_HOST}",
+    "port": "${DB_PORT}",
+    "username": "${DB_USER}",
+    "password": "${DB_PASSWORD}",
+    "name": "${DB_NAME}",
+    "pool": {
+      "idle": 10,
+      "max": 100,
+      "lifetime": 300
+    }
+  },
+  "rabbitmq": {
+    "url": "${RABBITMQ_URL}",
+    "queue": "${RABBITMQ_QUEUE}"
+  },
+  "jwt": {
+    "secret": "${JWT_SECRET}"
+  },
+  "mail": {
+    "host": "${MAIL_HOST}",
+    "port": "${MAIL_PORT}",
+    "username": "${MAIL_USERNAME}",
+    "password": "${MAIL_PASSWORD}",
+    "from": "${MAIL_FROM}"
+  },
+  "auth0": {
+    "domain": "${AUTH0_DOMAIN}",
+    "client_id": "${AUTH0_CLIENT_ID}",
+    "client_secret": "${AUTH0_CLIENT_SECRET}",
+    "redirect_url": "${AUTH0_REDIRECT_URL}"
+  },
+  "google": {
+    "client_id": "${GOOGLE_CLIENT_ID}",
+    "client_secret": "${GOOGLE_CLIENT_SECRET}",
+    "redirect_url": "${GOOGLE_REDIRECT_URL}"
+  },
+  "zitadel": {
+    "auth_url": "${ZITADEL_AUTH_URL}",
+    "token_url": "${ZITADEL_TOKEN_URL}",
+    "userinfo_url": "${ZITADEL_USERINFO_URL}",
+    "key": "${ZITADEL_KEY}",
+    "client_id": "${ZITADEL_CLIENT_ID}",
+    "redirect_url": "${ZITADEL_REDIRECT_URL}"
+  }
+}
