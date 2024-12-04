@@ -1,4 +1,4 @@
-# Stage 1: Build the Go application
+# Use the official Golang image as the build stage
 FROM golang:1.23 AS builder
 
 # Set the working directory inside the container
@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy the go.mod and go.sum files
 COPY go.mod go.sum ./
 
-# Download Go module dependencies
+# Download the Go module dependencies
 RUN go mod download
 
 # Copy the rest of the application code
@@ -16,15 +16,28 @@ COPY . .
 # Build the Go application
 RUN go build -o main .
 
-# Stage 2: Prepare runtime environment
+# Use the official Ubuntu image as the base image for the final stage
 FROM ubuntu:20.04
 
-# Install dependencies (GLIBC and envsubst)
+# Set timezone ke non-interactive dan install dependencies
 RUN apt-get update && \
-    apt-get install -y ca-certificates gettext wget && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    ca-certificates \
+    wget \
+    gcc \
+    make \
+    gawk \
+    bison \
+    python3 \
+    gettext \
+    build-essential \
+    tzdata && \
+    ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    echo "Etc/UTC" > /etc/timezone && \
+    dpkg-reconfigure -f noninteractive tzdata && \
     rm -rf /var/lib/apt/lists/*
 
-# Upgrade GLIBC to version 2.32 if needed
+# Install GLIBC 2.32
 RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.32.tar.gz && \
     tar -xvzf glibc-2.32.tar.gz && \
     cd glibc-2.32 && \
@@ -41,11 +54,11 @@ ENV LD_LIBRARY_PATH=/opt/glibc-2.32/lib:$LD_LIBRARY_PATH
 WORKDIR /app
 
 # Copy the built Go application from the builder stage
+# Copy the built Go application from the builder stage
 COPY --from=builder /app/main .
 COPY config.template.json /app/config.template.json
 COPY init-config.sh /app/init-config.sh
-
-# Make the initialization script executable
+# Convert init-config.sh to LF format and make it executable
 RUN chmod +x /app/init-config.sh
 
 # Expose the port on which the application will run
