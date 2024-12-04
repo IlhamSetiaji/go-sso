@@ -2,4 +2,3 @@ config.json
 docker-compose.yml
 go-sso.exe
 go-sso
-go.sum
