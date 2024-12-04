@@ -47,8 +47,8 @@ RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.32.tar.gz && \
     make install && \
     rm -rf /glibc-2.32*
 
-# Set environment for GLIBC
-ENV LD_LIBRARY_PATH=/opt/glibc-2.32/lib:$LD_LIBRARY_PATH
+
+
 
 # Set the working directory inside the container
 WORKDIR /app
