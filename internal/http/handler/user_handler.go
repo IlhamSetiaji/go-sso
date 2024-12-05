@@ -488,8 +488,8 @@ func (h *UserHandler) ZitadelCallbackOAuth(ctx *gin.Context) {
 
 func (h *UserHandler) FindById(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-user")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
 		return
 	}
 
@@ -513,8 +513,8 @@ func (h *UserHandler) FindById(ctx *gin.Context) {
 
 func (h *UserHandler) FindAllPaginated(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-user")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
 		return
 	}
 

@@ -53,12 +53,31 @@ func getApiUserPermissions(ctx *gin.Context) ([]entity.Permission, error) {
 	return permissions, nil
 }
 
+// func PermissionApiMiddleware(requiredPermission string) gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		permissions, err := getApiUserPermissions(c)
+// 		if err != nil || permissions == nil {
+// 			c.String(http.StatusForbidden, "You don't have permission to access this resource")
+// 			c.Abort()
+// 			return
+// 		}
+// 		for _, permission := range permissions {
+// 			if permission.Name == requiredPermission {
+// 				c.Next()
+// 				return
+// 			}
+// 		}
+// 		c.String(http.StatusForbidden, "You don't have permission to access this resource")
+// 		c.Abort()
+// 	}
+// }
+
 func PermissionApiMiddleware(requiredPermission string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		permissions, err := getApiUserPermissions(c)
 		if err != nil || permissions == nil {
-			c.String(http.StatusForbidden, "You don't have permission to access this resource")
-			c.Abort()
+			c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to access this resource"})
+			c.Set("permission_denied", true)
 			return
 		}
 		for _, permission := range permissions {
@@ -67,7 +86,7 @@ func PermissionApiMiddleware(requiredPermission string) gin.HandlerFunc {
 				return
 			}
 		}
-		c.String(http.StatusForbidden, "You don't have permission to access this resource")
-		c.Abort()
+		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to access this resource"})
+		c.Set("permission_denied", true)
 	}
 }

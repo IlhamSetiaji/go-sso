@@ -4,11 +4,14 @@ import (
 	"app/go-sso/internal/http/handler"
 	"app/go-sso/internal/http/handler/web"
 
+	"github.com/spf13/viper"
+
 	"github.com/gin-gonic/gin"
 )
 
 type RouteConfig struct {
 	App                  *gin.Engine
+	Viper                *viper.Viper
 	UserHandler          handler.UserHandlerInterface
 	UserWebHandler       web.UserHandlerInterface
 	RoleWebHandler       web.RoleHandlerInterface
@@ -23,6 +26,7 @@ type RouteConfig struct {
 }
 
 func (c *RouteConfig) SetupRoutes() {
+	// Setup API, OAuth, and Web routes
 	c.SetupApiRoutes()
 	c.SetupOAuthRoutes()
 	c.SetupWebRoutes()
@@ -42,52 +46,37 @@ func (c *RouteConfig) SetupApiRoutes() {
 
 		apiRoute.Use(c.AuthMiddleware)
 		{
-			userRoute := apiRoute.Group("/users")
-			{
-				userRoute.GET("/me", c.UserHandler.Me)
-				userRoute.GET("/logout/token", c.UserHandler.Logout)
-				userRoute.GET("/logout", c.UserHandler.LogoutCookie)
-				userRoute.POST("/check-token", c.UserHandler.CheckAuthToken)
-				userRoute.GET("/", c.UserHandler.FindAllPaginated)
-				userRoute.GET("/:id", c.UserHandler.FindById)
-				userRoute.GET("/check-cookie", c.UserHandler.CheckStoredCookie)
-			}
-			organizationRoute := apiRoute.Group("/organizations")
-			{
-				organizationRoute.GET("/", c.OrganizationHandler.FindAllPaginated)
-				organizationRoute.GET("/:id", c.OrganizationHandler.FindById)
-			}
-			organizationStructureRoute := apiRoute.Group("/organization-structures")
-			{
-				organizationStructureRoute.GET("/", c.OrganizationHandler.FindOrganizationStructurePaginated)
-				organizationStructureRoute.GET("/:id", c.OrganizationHandler.FindOrganizationStructureById)
-			}
-			organizationLocationRoute := apiRoute.Group("/organization-locations")
-			{
-				organizationLocationRoute.GET("/", c.OrganizationHandler.FindOrganizationLocationsPaginated)
-				organizationLocationRoute.GET("/:id", c.OrganizationHandler.FindOrganizationLocationById)
-			}
-			jobRoute := apiRoute.Group("/jobs")
-			{
-				jobRoute.GET("/", c.JobHandler.FindAllPaginated)
-				jobRoute.GET("/:id", c.JobHandler.FindById)
-			}
-			jobLevelRoute := apiRoute.Group("/job-levels")
-			{
-				jobLevelRoute.GET("/", c.JobHandler.FindAllJobLevelsPaginated)
-				jobLevelRoute.GET("/:id", c.JobHandler.FindJobLevelById)
-			}
-			employeeRoute := apiRoute.Group("/employees")
-			{
-				employeeRoute.GET("/", c.EmployeeHandler.FindAllPaginated)
-				employeeRoute.GET("/:id", c.EmployeeHandler.FindById)
-			}
+			// User routes
+			apiRoute.GET("/users", c.UserHandler.FindAllPaginated)
+			apiRoute.GET("/users/me", c.UserHandler.Me)
+			apiRoute.GET("/users/logout/token", c.UserHandler.Logout)
+			apiRoute.GET("/users/logout", c.UserHandler.LogoutCookie)
+			apiRoute.GET("/users/:id", c.UserHandler.FindById)
+			apiRoute.POST("/check-token", c.UserHandler.CheckAuthToken)
+			apiRoute.GET("/check-cookie", c.UserHandler.CheckStoredCookie)
+
+			// Organization routes
+			apiRoute.GET("/organizations", c.OrganizationHandler.FindAllPaginated)
+			apiRoute.GET("/organizations/:id", c.OrganizationHandler.FindById)
+			apiRoute.GET("/organization-structures", c.OrganizationHandler.FindOrganizationStructurePaginated)
+			apiRoute.GET("/organization-structures/:id", c.OrganizationHandler.FindOrganizationStructureById)
+			apiRoute.GET("/organization-locations", c.OrganizationHandler.FindOrganizationLocationsPaginated)
+			apiRoute.GET("/organization-locations/:id", c.OrganizationHandler.FindOrganizationLocationById)
+
+			// Job routes
+			apiRoute.GET("/jobs", c.JobHandler.FindAllPaginated)
+			apiRoute.GET("/jobs/:id", c.JobHandler.FindById)
+			apiRoute.GET("/job-levels", c.JobHandler.FindAllJobLevelsPaginated)
+			apiRoute.GET("/job-levels/:id", c.JobHandler.FindJobLevelById)
+
+			// Employee routes
+			apiRoute.GET("/employees", c.EmployeeHandler.FindAllPaginated)
+			apiRoute.GET("/employees/:id", c.EmployeeHandler.FindById)
 		}
 	}
 }
 
 func (c *RouteConfig) SetupWebRoutes() {
-
 	c.App.GET("/login", c.AuthWebHandler.LoginView)
 	c.App.POST("/login", c.AuthWebHandler.Login)
 	c.App.Use(c.WebAuthMiddleware)

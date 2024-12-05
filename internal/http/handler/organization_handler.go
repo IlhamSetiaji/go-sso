@@ -55,9 +55,14 @@ func OrganizationHandlerFactory(log *logrus.Logger, validate *validator.Validate
 }
 
 func (h *OrganizationHandler) FindAllPaginated(ctx *gin.Context) {
+	// middleware.PermissionApiMiddleware("read-organization")(ctx)
+	// if ctx.IsAborted() {
+	// 	ctx.Abort()
+	// 	return
+	// }
 	middleware.PermissionApiMiddleware("read-organization")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.log.Errorf("Permission denied")
 		return
 	}
 
@@ -93,8 +98,8 @@ func (h *OrganizationHandler) FindAllPaginated(ctx *gin.Context) {
 
 func (h *OrganizationHandler) FindById(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-organization")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.log.Errorf("Permission denied")
 		return
 	}
 
@@ -119,8 +124,8 @@ func (h *OrganizationHandler) FindById(ctx *gin.Context) {
 
 func (h *OrganizationHandler) FindOrganizationStructurePaginated(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-organization-structure")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.log.Errorf("Permission denied")
 		return
 	}
 
@@ -156,8 +161,8 @@ func (h *OrganizationHandler) FindOrganizationStructurePaginated(ctx *gin.Contex
 
 func (h *OrganizationHandler) FindOrganizationStructureById(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-organization-structure")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.log.Errorf("Permission denied")
 		return
 	}
 
@@ -182,8 +187,8 @@ func (h *OrganizationHandler) FindOrganizationStructureById(ctx *gin.Context) {
 
 func (h *OrganizationHandler) FindOrganizationLocationsPaginated(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-organization-location")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.log.Errorf("Permission denied")
 		return
 	}
 
@@ -219,8 +224,8 @@ func (h *OrganizationHandler) FindOrganizationLocationsPaginated(ctx *gin.Contex
 
 func (h *OrganizationHandler) FindOrganizationLocationById(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-organization-location")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.log.Errorf("Permission denied")
 		return
 	}
 

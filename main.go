@@ -65,11 +65,11 @@ func main() {
 	store := cookie.NewStore([]byte(viperConfig.GetString("web.cookie.secret")))
 	app.Use(sessions.Sessions(viperConfig.GetString("web.session.name"), store))
 
-	// setup CORS middleware
+	// Setup CORS middleware
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     strings.Split(viperConfig.GetString("frontend.urls"), ","), // Frontend URL
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -111,6 +111,7 @@ func main() {
 	// setup route config
 	routeConfig := route.RouteConfig{
 		App:                  app,
+		Viper:                viperConfig,
 		UserHandler:          userHandler,
 		DashboardHandler:     dashboardHandler,
 		AuthWebHandler:       authWebHandler,

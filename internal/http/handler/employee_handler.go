@@ -50,8 +50,8 @@ func EmployeeHandlerFactory(log *logrus.Logger, validate *validator.Validate) IE
 
 func (h *EmployeeHandler) FindAllPaginated(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-employee")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
 		return
 	}
 
@@ -86,8 +86,8 @@ func (h *EmployeeHandler) FindAllPaginated(ctx *gin.Context) {
 
 func (h *EmployeeHandler) FindById(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-employee")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
 		return
 	}
 

@@ -39,8 +39,8 @@ func JobHandlerFactory(log *logrus.Logger, validate *validator.Validate) IJobHan
 
 func (h *JobHandler) FindAllPaginated(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-job")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
 		return
 	}
 
@@ -76,8 +76,8 @@ func (h *JobHandler) FindAllPaginated(ctx *gin.Context) {
 
 func (h *JobHandler) FindById(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-job")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
 		return
 	}
 
@@ -102,8 +102,8 @@ func (h *JobHandler) FindById(ctx *gin.Context) {
 
 func (h *JobHandler) FindAllJobLevelsPaginated(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-job")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
 		return
 	}
 
@@ -139,8 +139,8 @@ func (h *JobHandler) FindAllJobLevelsPaginated(ctx *gin.Context) {
 
 func (h *JobHandler) FindJobLevelById(ctx *gin.Context) {
 	middleware.PermissionApiMiddleware("read-job")(ctx)
-	if ctx.IsAborted() {
-		ctx.Abort()
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
 		return
 	}
 
