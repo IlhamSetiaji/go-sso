@@ -4,7 +4,10 @@ import (
 	"app/go-sso/internal/http/request"
 	"app/go-sso/internal/http/response"
 	messaging "app/go-sso/internal/messaging/job"
+	orgMessaging "app/go-sso/internal/messaging/organization"
+	userMessaging "app/go-sso/internal/messaging/user"
 	"encoding/json"
+	"errors"
 	"os"
 
 	"github.com/google/uuid"
@@ -87,11 +90,16 @@ func InitConsumer(viper *viper.Viper, log *logrus.Logger) {
 func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 	// switch case
 	var msgData map[string]interface{}
+
 	switch docMsg.MessageType {
 	case "check_job_exist":
 		jobID, ok := docMsg.MessageData["job_id"].(string)
 		if !ok {
 			log.Printf("Invalid request format: missing 'job_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'job_id'").Error(),
+			}
+			break
 		}
 
 		messageFactory := messaging.CheckJobExistMessageFactory(log)
@@ -101,11 +109,150 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 
 		if err != nil {
 			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
 		}
 
 		msgData = map[string]interface{}{
 			"job_id": jobID,
 			"exists": message.Exists,
+		}
+	case "find_organization_by_id":
+		organizationID, ok := docMsg.MessageData["organization_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'organization_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'organization_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := orgMessaging.FindOrganizationByIDMessageFactory(log)
+		message, err := messageFactory.Execute(orgMessaging.IFindOrganizationByIDMessageRequest{
+			OrganizationID: uuid.MustParse(organizationID),
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"organization_id": organizationID,
+			"name":            message.Name,
+		}
+	case "find_job_by_id":
+		jobID, ok := docMsg.MessageData["job_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'job_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'job_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := messaging.FindJobByIDMessageFactory(log)
+		message, err := messageFactory.Execute(messaging.IFindJobByIDMessageRequest{
+			JobID: uuid.MustParse(jobID),
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"job_id": jobID,
+			"name":   message.Name,
+		}
+	case "find_user_by_id":
+		userID, ok := docMsg.MessageData["user_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'user_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'job_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := userMessaging.FindUserByIDMessageFactory(log)
+		message, err := messageFactory.Execute(userMessaging.IFindUserByIDMessageRequest{
+			UserID: uuid.MustParse(userID),
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"user_id": userID,
+			"name":    message.Name,
+		}
+	case "find_organization_location_by_id":
+		organizationLocationID, ok := docMsg.MessageData["organization_location_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'organization_location_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'job_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := orgMessaging.FindOrganizationLocationByIDMessageFactory(log)
+		message, err := messageFactory.Execute(orgMessaging.IFindOrganizationLocationByIDMessageRequest{
+			OrganizationLocationID: uuid.MustParse(organizationLocationID),
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"organization_location_id": organizationLocationID,
+			"name":                     message.Name,
+		}
+	case "find_job_level_by_id":
+		jobLevelID, ok := docMsg.MessageData["job_level_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'job_level_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'job_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := messaging.FindJobLevelByIDMessageFactory(log)
+		message, err := messageFactory.Execute(messaging.IFindJobLevelByIDMessageRequest{
+			JobLevelID: uuid.MustParse(jobLevelID),
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"job_level_id": jobLevelID,
+			"name":         message.Name,
 		}
 	default:
 		log.Printf("Unknown message type: %s", docMsg.MessageType)

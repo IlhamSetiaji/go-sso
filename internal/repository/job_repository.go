@@ -12,6 +12,7 @@ import (
 type IJobRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Job, int64, error)
 	FindById(id uuid.UUID) (*entity.Job, error)
+	GetJobsByOrganizationStructureIDs(organizationStructureIDs []uuid.UUID) (*[]entity.Job, error)
 }
 
 type JobRepository struct {
@@ -54,6 +55,15 @@ func (r *JobRepository) FindById(id uuid.UUID) (*entity.Job, error) {
 		return nil, err
 	}
 	return &job, nil
+}
+
+func (r *JobRepository) GetJobsByOrganizationStructureIDs(organizationStructureIDs []uuid.UUID) (*[]entity.Job, error) {
+	var jobs []entity.Job
+	err := r.DB.Where("organization_structure_id IN ?", organizationStructureIDs).Find(&jobs).Error
+	if err != nil {
+		return nil, err
+	}
+	return &jobs, nil
 }
 
 func JobRepositoryFactory(log *logrus.Logger) IJobRepository {

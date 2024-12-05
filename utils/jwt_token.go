@@ -43,6 +43,7 @@ func GenerateToken(user *entity.User) (string, error) {
 		"email":    user.Email,
 		"roles":    roles,
 		"exp":      time.Now().Add(time.Hour * 72).Unix(),
+		"employee": user.Employee,
 	})
 
 	// Sign and get the complete encoded token as a string using the secret

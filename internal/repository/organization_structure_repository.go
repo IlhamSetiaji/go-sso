@@ -12,6 +12,7 @@ import (
 type IOrganizationStructureRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error)
 	FindById(id uuid.UUID) (*entity.OrganizationStructure, error)
+	GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error)
 }
 
 type OrganizationStructureRepository struct {
@@ -54,6 +55,15 @@ func (r *OrganizationStructureRepository) FindById(id uuid.UUID) (*entity.Organi
 		return nil, err
 	}
 	return &organizationStructure, nil
+}
+
+func (r *OrganizationStructureRepository) GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error) {
+	var organizationStructures []entity.OrganizationStructure
+	err := r.DB.Preload("Organization").Preload("JobLevel").Where("job_level_id = ?", jobLevelID).Find(&organizationStructures).Error
+	if err != nil {
+		return nil, err
+	}
+	return &organizationStructures, nil
 }
 
 func OrganizationStructureRepositoryFactory(log *logrus.Logger) IOrganizationStructureRepository {

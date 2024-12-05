@@ -24,6 +24,7 @@ type IJobHandler interface {
 	FindById(ctx *gin.Context)
 	FindAllJobLevelsPaginated(ctx *gin.Context)
 	FindJobLevelById(ctx *gin.Context)
+	GetJobsByJobLevelId(ctx *gin.Context)
 }
 
 func NewJobHandler(log *logrus.Logger, validate *validator.Validate) IJobHandler {
@@ -161,4 +162,31 @@ func (h *JobHandler) FindJobLevelById(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "success", response.Job)
+}
+
+func (h *JobHandler) GetJobsByJobLevelId(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-job")(ctx)
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
+		return
+	}
+
+	jobLevelId := ctx.Param("job_level_id")
+	if jobLevelId == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "job_level_id is required")
+		return
+	}
+
+	factory := usecase.GetJobsByJobLevelIDUseCaseFactory(h.Log)
+	response, err := factory.Execute(&usecase.IGetJobsByJobLevelIDUseCaseRequest{
+		JobLevelID: jobLevelId,
+	})
+
+	if err != nil {
+		h.Log.Errorf("Error GetJobsByJobLevelId: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "success", response.Jobs)
 }
