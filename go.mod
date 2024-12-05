@@ -3,7 +3,7 @@ module app/go-sso
 go 1.23.3
 
 require (
-	github.com/IlhamSetiaji/go-rabbitmq-utils v0.0.0-20241204144104-77fb7801722e
+	github.com/IlhamSetiaji/go-rabbitmq-utils v0.0.0-20241203175151-656b29c4592c
 	github.com/coreos/go-oidc/v3 v3.11.0
 	github.com/gin-contrib/sessions v1.0.1
 	github.com/gin-gonic/gin v1.10.0
