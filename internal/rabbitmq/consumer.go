@@ -92,7 +92,6 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 		jobID, ok := docMsg.MessageData["job_id"].(string)
 		if !ok {
 			log.Printf("Invalid request format: missing 'job_id'")
-			return
 		}
 
 		messageFactory := messaging.CheckJobExistMessageFactory(log)
@@ -102,7 +101,6 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 
 		if err != nil {
 			log.Printf("Failed to execute message: %v", err)
-			return
 		}
 
 		msgData = map[string]interface{}{
