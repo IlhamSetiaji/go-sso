@@ -44,3 +44,10 @@ func RoleStatusValidation(fl validator.FieldLevel) bool {
 		return false
 	}
 }
+
+type RabbitMQRequest struct {
+	ID          string                 `json:"id"`
+	MessageType string                 `json:"message_type"`
+	MessageData map[string]interface{} `json:"message_data"`
+	ReplyTo     string                 `json:"reply_to"`
+}

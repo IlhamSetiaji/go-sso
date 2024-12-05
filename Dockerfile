@@ -1,5 +1,8 @@
 # Use the official Golang image as the build stage
-FROM golang:1.23 AS builder
+FROM golang:1.23-alpine AS builder
+
+# Install necessary build dependencies
+RUN apk add --no-cache gcc musl-dev
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -16,11 +19,11 @@ COPY . .
 # Build the Go application
 RUN go build -o main .
 
-# Use the official Ubuntu image as the base image for the final stage
-FROM ubuntu:20.04
+# Use the official Alpine image as the base image for the final stage
+FROM alpine:3.18
 
-# Install necessary dependencies
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+# Install necessary runtime dependencies
+# RUN apk add --no-cache ca-certificates bash gettext
 
 # Set the working directory inside the container
 WORKDIR /app

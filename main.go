@@ -7,11 +7,12 @@ import (
 	"app/go-sso/internal/http/handler/web"
 	"app/go-sso/internal/http/middleware"
 	"app/go-sso/internal/http/route"
+	"app/go-sso/internal/rabbitmq"
 	"encoding/gob"
 	"net/http"
 	"strconv"
 
-	"github.com/IlhamSetiaji/go-rabbitmq-utils/rabbitmq"
+	// "github.com/IlhamSetiaji/go-rabbitmq-utils/rabbitmq"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -42,11 +43,14 @@ func main() {
 		log.Printf("Failed to initialize the zitadel authenticator: %v", err)
 	}
 
-	err = rabbitmq.InitializeConnection(viperConfig.GetString("rabbitmq.url"))
-	if err != nil {
-		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
-	}
-	defer rabbitmq.CloseConnection()
+	// err = rabbitmq.InitializeConnection(viperConfig.GetString("rabbitmq.url"))
+	// if err != nil {
+	// 	log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	// }
+	// defer rabbitmq.CloseConnection()
+
+	go rabbitmq.InitProducer(viperConfig, log)
+	go rabbitmq.InitConsumer(viperConfig, log)
 
 	// setup gin engine
 	app := gin.Default()
