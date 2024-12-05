@@ -2,6 +2,7 @@ cloud.google.com/go/compute/metadata v0.3.0 h1:Tz+eQXMEqDIKRsmY3cHTL6FVaynIjX2Qx
 cloud.google.com/go/compute/metadata v0.3.0/go.mod h1:zFmK7XCadkQkj6TtorcaGlCW1hT1fIilQDwofLpJ20k=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
+github.com/IlhamSetiaji/go-rabbitmq-utils v0.0.0-20241203175151-656b29c4592c/go.mod h1:EZr6+RoH/OK/xUg34Se+gzeZ/J2cStoDtrrOm0FzuVs=
 github.com/IlhamSetiaji/go-rabbitmq-utils v0.0.0-20241204141349-09eb572dfe2c h1:Ykkenu4e2ZhvZ9EK/m8+bc+JCRQdNBsFIQ9HB7ZtSsU=
 github.com/IlhamSetiaji/go-rabbitmq-utils v0.0.0-20241204141349-09eb572dfe2c/go.mod h1:EZr6+RoH/OK/xUg34Se+gzeZ/J2cStoDtrrOm0FzuVs=
 github.com/IlhamSetiaji/go-rabbitmq-utils v0.0.0-20241204142354-fc7c3cdcc1db h1:ZrR49sb24sPekdGY6+g3y+IB0Lfv3gZV9uovQutS4G4=
@@ -35,6 +36,8 @@ github.com/fsnotify/fsnotify v1.7.0/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyT
 github.com/gabriel-vasile/mimetype v1.4.6 h1:3+PzJTKLkvgjeTbts6msPJt4DixhT4YtFNf1gtGe3zc=
 github.com/gabriel-vasile/mimetype v1.4.6/go.mod h1:JX1qVKqZd40hUPpAfiNTe0Sne7hdfKSbOqqmkq8GCXc=
 github.com/garyburd/redigo v1.6.0/go.mod h1:NR3MbYisc3/PwhQ00EMzDiPmrwpPxAn5GI05/YaO1SY=
+github.com/gin-contrib/cors v1.7.2 h1:oLDHxdg8W/XDoN/8zamqk/Drgt4oVZDvaV0YmvVICQw=
+github.com/gin-contrib/cors v1.7.2/go.mod h1:SUJVARKgQ40dmrzgXEVxj2m7Ig1v1qIboQkPDTQ9t2E=
 github.com/gin-contrib/sessions v0.0.0-20190101140330-dc5246754963/go.mod h1:4lkInX8nHSR62NSmhXM3xtPeMSyfiR58NaEz+om1lHM=
 github.com/gin-contrib/sessions v1.0.1 h1:3hsJyNs7v7N8OtelFmYXFrulAf6zSR7nW/putcPEHxI=
 github.com/gin-contrib/sessions v1.0.1/go.mod h1:ouxSFM24/OgIud5MJYQJLpy6AwxQ5EYO9yLhbtObGkM=

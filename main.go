@@ -11,7 +11,9 @@ import (
 	"encoding/gob"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -61,6 +63,16 @@ func main() {
 	// setup session and cookie
 	store := cookie.NewStore([]byte(viperConfig.GetString("web.cookie.secret")))
 	app.Use(sessions.Sessions(viperConfig.GetString("web.session.name"), store))
+
+	// setup CORS middleware
+	app.Use(cors.New(cors.Config{
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// setup custom csrf middleware
 	app.Use(func(c *gin.Context) {
