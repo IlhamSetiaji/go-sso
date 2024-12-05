@@ -1,7 +1,9 @@
 package web
 
 import (
+	"app/go-sso/internal/http/middleware"
 	usecase "app/go-sso/internal/usecase/application"
+	"app/go-sso/utils"
 	"app/go-sso/views"
 	"fmt"
 
@@ -42,6 +44,11 @@ func DashboardHandlerFactory(log *logrus.Logger, validate *validator.Validate) D
 }
 
 func (h *DashboardHandler) Index(ctx *gin.Context) {
+	middleware.RoleMiddleware("superadmin")(ctx)
+	if ctx.IsAborted() {
+		ctx.Redirect(302, "/logout")
+		return
+	}
 	index := views.NewView("base", "views/index.html")
 	data := map[string]interface{}{
 		"Title": "Go SSO | Dashboard",
@@ -51,12 +58,19 @@ func (h *DashboardHandler) Index(ctx *gin.Context) {
 
 func (h *DashboardHandler) Portal(ctx *gin.Context) {
 	session := sessions.Default(ctx)
-	token := ctx.Query("token")
+	// token := ctx.Query("token")
+	token, err := utils.GetTokenFromCookie(ctx, "jwt_token")
+	if err != nil {
+		ctx.JSON(200, gin.H{
+			"message": "Cookie not found",
+		})
+		return
+	}
 
 	if token == "" {
 		session.Set("error", "There are no token")
 		session.Save()
-		ctx.Redirect(302, "/login")
+		ctx.Redirect(302, "/logout")
 		return
 	}
 
@@ -72,7 +86,7 @@ func (h *DashboardHandler) Portal(ctx *gin.Context) {
 	if !isJWT {
 		session.Set("error", "Invalid token")
 		session.Save()
-		ctx.Redirect(302, "/login")
+		ctx.Redirect(302, "/logout")
 		return
 	}
 

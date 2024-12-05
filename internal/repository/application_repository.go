@@ -11,6 +11,7 @@ import (
 type IApplicationRepository interface {
 	GetAllApplications() (*[]entity.Application, error)
 	FindApplicationByName(name string) (*entity.Application, error)
+	GetAllApplicationDomains() ([]string, error)
 }
 
 type ApplicationRepository struct {
@@ -46,4 +47,19 @@ func (r *ApplicationRepository) FindApplicationByName(name string) (*entity.Appl
 		return nil, err
 	}
 	return &application, nil
+}
+
+func (r *ApplicationRepository) GetAllApplicationDomains() ([]string, error) {
+	var applications []entity.Application
+	if err := r.DB.Find(&applications).Error; err != nil {
+		r.Log.Error(err)
+		return nil, err
+	}
+
+	var domains []string
+	for _, app := range applications {
+		domains = append(domains, app.Domain)
+	}
+
+	return domains, nil
 }

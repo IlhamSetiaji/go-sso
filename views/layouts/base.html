@@ -4,7 +4,9 @@
   <body>
     <script src="{{.AssetBase}}/mazer/assets/static/js/initTheme.js"></script>
     <div id="app">
+      {{ if call .HasRole "superadmin" }}
       {{template "sidebar" .}}
+      {{ end }}
       <div id="main" class="layout-navbar navbar-fixed">
         <header>
           <nav class="navbar navbar-expand navbar-light navbar-top">

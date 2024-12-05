@@ -13,6 +13,7 @@ type Application struct {
 	Label       string    `json:"label" gorm:"not null"`
 	Secret      string    `json:"secret" gorm:"unique;not null"`
 	RedirectURI string    `json:"redirect_uri" gorm:"not null"`
+	Domain      string    `json:"domain" gorm:"not null"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 	DeletedAt   gorm.DeletedAt

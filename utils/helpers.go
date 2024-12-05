@@ -32,6 +32,20 @@ func (h *TemplateHelper) HasPermission(requiredPermission string) bool {
 	return false
 }
 
+func (h *TemplateHelper) HasRole(requiredRole string) bool {
+	roles, err := GetUserRoles(h.Ctx)
+	if err != nil || roles == nil {
+		return false
+	}
+
+	for _, role := range roles {
+		if role.Name == requiredRole {
+			return true
+		}
+	}
+	return false
+}
+
 var Rchans = make(map[string](chan interface{}))
 
 func WaitReply(uid string, rchan chan mqResponse.RabbitMQResponse, ctx *gin.Context) {

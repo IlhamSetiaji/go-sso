@@ -11,6 +11,7 @@ import (
 	"encoding/gob"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -66,9 +67,9 @@ func main() {
 
 	// setup CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true,
+		AllowOrigins:     strings.Split(viperConfig.GetString("frontend.urls"), ","), // Frontend URL
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,

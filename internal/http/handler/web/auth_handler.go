@@ -108,8 +108,17 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
+	token, err := utils.GenerateToken(&response.User)
+	if err != nil {
+		h.Log.Errorf("Error when generating token: %v", err)
+		session.Set("error", err.Error())
+		session.Save()
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
 	if payload.State != "" {
-		data, err := h.loginAsApplication(payload.State, response)
+		data, err := h.loginAsApplication(token, payload.State, response)
 		if err != nil {
 			session.Set("error", err.Error())
 			session.Save()
@@ -131,14 +140,18 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	if !h.checkUserRole(&response.User, "superadmin") {
-		session.Set("error", "You are not allowed to access this page")
-		session.Save()
-		ctx.Redirect(302, ctx.Request.Referer())
-		return
-	}
+	// if !h.checkUserRole(&response.User, "superadmin") {
+	// 	session.Set("error", "You are not allowed to access this page")
+	// 	session.Save()
+	// 	ctx.Redirect(302, ctx.Request.Referer())
+	// 	return
+	// }
 
-	ctx.Redirect(302, "/")
+	jwtCookie := utils.NewDefaultCookieOptions("jwt_token")
+	jwtCookie.Domain = h.Config.GetString("app.domain")
+	utils.SetTokenCookie(ctx, token, jwtCookie)
+
+	ctx.Redirect(302, "/portal")
 }
 
 func (h *AuthHandler) CheckCookieTest(ctx *gin.Context) {
@@ -164,13 +177,7 @@ func (h *AuthHandler) checkUserRole(user *entity.User, role string) bool {
 	return false
 }
 
-func (h *AuthHandler) loginAsApplication(state string, response *usecase.ILoginUseCaseResponse) (map[string]interface{}, error) {
-	token, err := utils.GenerateToken(&response.User)
-	if err != nil {
-		h.Log.Errorf("Error when generating token: %v", err)
-		return nil, err
-	}
-
+func (h *AuthHandler) loginAsApplication(token string, state string, response *usecase.ILoginUseCaseResponse) (map[string]interface{}, error) {
 	factory := appUsecase.FindApplicationByNameUsecaseFactory(h.Log)
 	application, err := factory.Execute(&appUsecase.IFindApplicationByNameUsecaseRequest{
 		Name: state,

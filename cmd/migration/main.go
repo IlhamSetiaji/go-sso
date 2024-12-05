@@ -206,19 +206,22 @@ func main() {
 			Name:        "authenticator",
 			Label:       "Authenticator",
 			Secret:      "secret for authenticator",
-			RedirectURI: "http://localhost:3000/portal",
+			RedirectURI: "http://localhost:3000",
+			Domain:      "localhost",
 		},
 		{
 			Name:        "manpower",
 			Label:       "Julong Manpower Planning & Request",
 			Secret:      "secret for web1",
 			RedirectURI: "https://www.google.com",
+			Domain:      "localhost",
 		},
 		{
 			Name:        "recruitment",
 			Label:       "Julong Recruitment",
 			Secret:      "secret for web2",
 			RedirectURI: "https://www.github.com",
+			Domain:      "localhost",
 		},
 	}
 

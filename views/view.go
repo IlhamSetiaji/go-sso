@@ -78,6 +78,7 @@ func (v *View) Render(c *gin.Context, data interface{}) {
 	templateHelper := utils.NewTemplateHelper(c)
 
 	dataMap["HasPermission"] = templateHelper.HasPermission
+	dataMap["HasRole"] = templateHelper.HasRole
 
 	err := v.Template.ExecuteTemplate(c.Writer, v.Layout, dataMap)
 	if err != nil {
