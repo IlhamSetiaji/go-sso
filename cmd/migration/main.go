@@ -23,10 +23,28 @@ func main() {
 		log.Printf("migrate schema success")
 	}
 
+	// create organization types
+	organizationTypes := []entity.OrganizationType{
+		{
+			Name: "Type 1",
+		},
+		{
+			Name: "Type 2",
+		},
+	}
+
+	err = db.Create(&organizationTypes).Error
+	if err != nil {
+		log.Fatalf("failed to create organization type: %v", err)
+	} else {
+		log.Printf("create organization type success")
+	}
+
 	// create organization
 	organizations := []entity.Organization{
 		{
-			Name: "Organization 1",
+			Name:               "Organization 1",
+			OrganizationTypeID: organizationTypes[0].ID,
 			OrganizationLocations: []entity.OrganizationLocation{
 				{
 					Name: "Location A1",
@@ -40,7 +58,8 @@ func main() {
 			},
 		},
 		{
-			Name: "Organization 2",
+			Name:               "Organization 2",
+			OrganizationTypeID: organizationTypes[1].ID,
 			OrganizationLocations: []entity.OrganizationLocation{
 				{
 					Name: "Location B1",

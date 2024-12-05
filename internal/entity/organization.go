@@ -8,9 +8,12 @@ import (
 )
 
 type Organization struct {
-	gorm.Model             `json:"-"`
-	ID                     uuid.UUID               `json:"id" gorm:"type:char(36);primaryKey"`
-	Name                   string                  `json:"name"`
+	gorm.Model         `json:"-"`
+	ID                 uuid.UUID `json:"id" gorm:"type:char(36);primaryKey"`
+	OrganizationTypeID uuid.UUID `json:"organization_type_id" gorm:"type:char(36)"`
+	Name               string    `json:"name"`
+
+	OrganizationType       OrganizationType        `json:"organization_type" gorm:"foreignKey:OrganizationTypeID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"` // Foreign key
 	OrganizationLocations  []OrganizationLocation  `json:"organization_locations" gorm:"foreignKey:OrganizationID;references:ID"`
 	OrganizationStructures []OrganizationStructure `json:"organization_structures" gorm:"foreignKey:OrganizationID;references:ID"`
 	Employees              []Employee              `json:"employees" gorm:"foreignKey:OrganizationID;references:ID"`

@@ -30,7 +30,7 @@ func (r *OrganizationRepository) FindAllPaginated(page int, pageSize int, search
 	var organizations []entity.Organization
 	var total int64
 
-	query := r.DB.Preload("OrganizationLocations").Preload("OrganizationStructures")
+	query := r.DB.Preload("OrganizationLocations").Preload("OrganizationStructures").Preload("OrganizationType")
 
 	if search != "" {
 		query = query.Where("name LIKE ?", "%"+search+"%")
@@ -49,7 +49,7 @@ func (r *OrganizationRepository) FindAllPaginated(page int, pageSize int, search
 
 func (r *OrganizationRepository) FindById(id uuid.UUID) (*entity.Organization, error) {
 	var organization entity.Organization
-	err := r.DB.Preload("OrganizationLocations").Preload("OrganizationStructures").Where("id = ?", id).First(&organization).Error
+	err := r.DB.Preload("OrganizationLocations").Preload("OrganizationStructures").Preload("OrganizationType").Where("id = ?", id).First(&organization).Error
 	if err != nil {
 		return nil, err
 	}
