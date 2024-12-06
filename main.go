@@ -7,7 +7,6 @@ import (
 	"app/go-sso/internal/http/handler/web"
 	"app/go-sso/internal/http/middleware"
 	"app/go-sso/internal/http/route"
-	"app/go-sso/internal/rabbitmq"
 	"encoding/gob"
 	"net/http"
 	"strconv"
@@ -51,8 +50,8 @@ func main() {
 	// }
 	// defer rabbitmq.CloseConnection()
 
-	go rabbitmq.InitProducer(viperConfig, log)
-	go rabbitmq.InitConsumer(viperConfig, log)
+	// go rabbitmq.InitProducer(viperConfig, log)
+	// go rabbitmq.InitConsumer(viperConfig, log)
 
 	// setup gin engine
 	app := gin.Default()
