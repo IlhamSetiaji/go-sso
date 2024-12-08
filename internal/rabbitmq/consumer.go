@@ -254,8 +254,50 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			"job_level_id": jobLevelID,
 			"name":         message.Name,
 		}
+	case "check_job_by_job_level":
+		jobID, ok := docMsg.MessageData["job_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'job_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'job_id'").Error(),
+			}
+			break
+		}
+
+		jobLevelID, ok := docMsg.MessageData["job_level_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'job_level_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'job_level_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := messaging.CheckJobByJobLevelMessageFactory(log)
+		message, err := messageFactory.Execute(messaging.ICheckJobByJobLevelMessageRequest{
+			JobID:      uuid.MustParse(jobID),
+			JobLevelID: uuid.MustParse(jobLevelID),
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"job_id":       jobID,
+			"job_level_id": jobLevelID,
+			"exists":       message.Exists,
+		}
 	default:
 		log.Printf("Unknown message type: %s", docMsg.MessageType)
+
+		msgData = map[string]interface{}{
+			"error": errors.New("unknown message type").Error(),
+		}
 	}
 	// reply
 	reply := response.RabbitMQResponse{

@@ -59,7 +59,7 @@ func (r *OrganizationStructureRepository) FindById(id uuid.UUID) (*entity.Organi
 
 func (r *OrganizationStructureRepository) GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error) {
 	var organizationStructures []entity.OrganizationStructure
-	err := r.DB.Preload("Organization").Preload("JobLevel").Where("job_level_id = ?", jobLevelID).Find(&organizationStructures).Error
+	err := r.DB.Preload("Organization").Preload("JobLevel").Preload("Jobs").Where("job_level_id = ?", jobLevelID).Find(&organizationStructures).Error
 	if err != nil {
 		return nil, err
 	}
