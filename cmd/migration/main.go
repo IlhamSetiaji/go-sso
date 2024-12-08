@@ -26,10 +26,10 @@ func main() {
 	// create organization types
 	organizationTypes := []entity.OrganizationType{
 		{
-			Name: "Type 1",
+			Name: "Office",
 		},
 		{
-			Name: "Type 2",
+			Name: "Gatau Ntar Isi Sendiri",
 		},
 	}
 
@@ -717,7 +717,7 @@ func main() {
 			},
 		},
 		{
-			Name:          "admin",
+			Name:          "Tim Rekrutmen",
 			GuardName:     "web",
 			ApplicationID: web2Application.ID,
 			Permissions: []entity.Permission{
@@ -730,7 +730,7 @@ func main() {
 			},
 		},
 		{
-			Name:          "user",
+			Name:          "HRD Site",
 			GuardName:     "web",
 			ApplicationID: web2Application.ID,
 			Permissions: []entity.Permission{
@@ -745,10 +745,10 @@ func main() {
 	}
 
 	user1 := entity.User{
-		Username:        "user1",
-		Email:           "user1@test.test",
+		Username:        "timrekrutmen",
+		Email:           "tr@test.test",
 		Password:        string(hashedPasswordBytes),
-		Name:            "User 1",
+		Name:            "Tim Rekrutmen",
 		EmailVerifiedAt: time.Now(),
 		Status:          entity.UserStatus("ACTIVE"),
 		Gender:          entity.UserGender("MALE"),
@@ -762,10 +762,10 @@ func main() {
 	}
 
 	user2 := entity.User{
-		Username:        "user2",
-		Email:           "user2@test.test",
+		Username:        "hrdsite",
+		Email:           "hrd@test.test",
 		Password:        string(hashedPasswordBytes),
-		Name:            "User 2",
+		Name:            "HRD Site",
 		EmailVerifiedAt: time.Now(),
 		Status:          entity.UserStatus("ACTIVE"),
 		Gender:          entity.UserGender("FEMALE"),
@@ -776,23 +776,6 @@ func main() {
 		log.Fatalf("failed to create user 2: %v", err)
 	} else {
 		log.Printf("create user 2 success")
-	}
-
-	user3 := entity.User{
-		Username:        "user3",
-		Email:           "user3@test.test",
-		Password:        string(hashedPasswordBytes),
-		Name:            "User 3",
-		EmailVerifiedAt: time.Now(),
-		Status:          entity.UserStatus("ACTIVE"),
-		Gender:          entity.UserGender("FEMALE"),
-	}
-
-	err = db.Create(&user3).Error
-	if err != nil {
-		log.Fatalf("failed to create user 3: %v", err)
-	} else {
-		log.Printf("create user 3 success")
 	}
 
 	for _, role := range roles {
@@ -814,7 +797,9 @@ func main() {
 			} else {
 				log.Printf("create user role success")
 			}
-		} else {
+		}
+
+		if role.Name == "user" {
 			err = db.Create(&entity.UserRole{
 				UserID: user1.ID,
 				RoleID: role.ID,
@@ -836,9 +821,24 @@ func main() {
 			} else {
 				log.Printf("create user role success")
 			}
+		}
 
+		if role.Name == "Tim Rekrutmen" {
 			err = db.Create(&entity.UserRole{
-				UserID: user3.ID,
+				UserID: user1.ID,
+				RoleID: role.ID,
+			}).Error
+
+			if err != nil {
+				log.Fatalf("failed to create user role: %v", err)
+			} else {
+				log.Printf("create user role success")
+			}
+		}
+
+		if role.Name == "HRD Site" {
+			err = db.Create(&entity.UserRole{
+				UserID: user2.ID,
 				RoleID: role.ID,
 			}).Error
 
@@ -849,5 +849,4 @@ func main() {
 			}
 		}
 	}
-
 }
