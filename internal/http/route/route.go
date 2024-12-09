@@ -65,6 +65,7 @@ func (c *RouteConfig) SetupApiRoutes() {
 
 			// Organization location routes
 			apiRoute.GET("/organization-locations", c.OrganizationHandler.FindOrganizationLocationsPaginated)
+			apiRoute.GET("/organization-locations/organization/:organization_id", c.OrganizationHandler.FindOrganizationLocationByOrganizationId)
 			apiRoute.GET("/organization-locations/:id", c.OrganizationHandler.FindOrganizationLocationById)
 
 			// Organization type routes
