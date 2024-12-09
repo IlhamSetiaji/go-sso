@@ -135,3 +135,21 @@ func (o *OrganizationStructure) MoveTo(db *gorm.DB, newParentID *uuid.UUID) erro
 
 	return tx.Commit().Error
 }
+
+// func (o *OrganizationStructure) LoadParentAndChildren(db *gorm.DB) error {
+// 	if o.ParentID != nil {
+// 		var parent OrganizationStructure
+// 		if err := db.Preload("Organization").Preload("JobLevel").First(&parent, "id = ?", o.ParentID).Error; err != nil {
+// 			return err
+// 		}
+// 		o.Parent = &parent
+// 	}
+
+// 	var children []OrganizationStructure
+// 	if err := db.Preload("Organization").Preload("JobLevel").Where("parent_id = ?", o.ID).Find(&children).Error; err != nil {
+// 		return err
+// 	}
+// 	o.Children = children
+
+// 	return nil
+// }

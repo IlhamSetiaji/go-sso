@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"app/go-sso/internal/entity"
+	"app/go-sso/internal/http/dto"
+	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
 	"github.com/sirupsen/logrus"
@@ -14,7 +15,7 @@ type IFindAllPaginatedUseCaseRequest struct {
 }
 
 type IFindAllPaginatedResponse struct {
-	OrganizationStructures *[]entity.OrganizationStructure
+	OrganizationStructures *[]response.OrganizationStructureResponse
 	Total                  int64
 }
 
@@ -40,8 +41,16 @@ func (uc *FindAllPaginatedUseCase) Execute(request *IFindAllPaginatedUseCaseRequ
 		return nil, err
 	}
 
+	for i, orgStructure := range *organizationStructures {
+		children, err := uc.Repository.FindAllChildren(orgStructure.ID)
+		if err != nil {
+			return nil, err
+		}
+		(*organizationStructures)[i].Children = children
+	}
+
 	return &IFindAllPaginatedResponse{
-		OrganizationStructures: organizationStructures,
+		OrganizationStructures: dto.ConvertToOrganizationStructureResponse(organizationStructures),
 		Total:                  total,
 	}, nil
 }

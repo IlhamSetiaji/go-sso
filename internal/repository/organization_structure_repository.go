@@ -13,6 +13,8 @@ type IOrganizationStructureRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error)
 	FindById(id uuid.UUID) (*entity.OrganizationStructure, error)
 	GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error)
+	FindAllChildren(parentID uuid.UUID) ([]entity.OrganizationStructure, error)
+	// GetDB() *gorm.DB
 }
 
 type OrganizationStructureRepository struct {
@@ -31,7 +33,7 @@ func (r *OrganizationStructureRepository) FindAllPaginated(page int, pageSize in
 	var organizationStructures []entity.OrganizationStructure
 	var total int64
 
-	query := r.DB.Preload("Organization").Preload("JobLevel")
+	query := r.DB.Preload("Organization.OrganizationType").Preload("JobLevel")
 
 	if search != "" {
 		query = query.Where("name LIKE ?", "%"+search+"%")
@@ -48,9 +50,26 @@ func (r *OrganizationStructureRepository) FindAllPaginated(page int, pageSize in
 	return &organizationStructures, total, nil
 }
 
+func (r *OrganizationStructureRepository) FindAllChildren(parentID uuid.UUID) ([]entity.OrganizationStructure, error) {
+	var children []entity.OrganizationStructure
+	if err := r.DB.Preload("Organization.OrganizationType").Preload("JobLevel").Where("parent_id = ?", parentID).Find(&children).Error; err != nil {
+		return nil, err
+	}
+
+	for i := range children {
+		subChildren, err := r.FindAllChildren(children[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		children[i].Children = subChildren
+	}
+
+	return children, nil
+}
+
 func (r *OrganizationStructureRepository) FindById(id uuid.UUID) (*entity.OrganizationStructure, error) {
 	var organizationStructure entity.OrganizationStructure
-	err := r.DB.Preload("Organization").Preload("JobLevel").Where("id = ?", id).First(&organizationStructure).Error
+	err := r.DB.Preload("Organization.OrganizationType").Preload("JobLevel").Where("id = ?", id).First(&organizationStructure).Error
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +84,10 @@ func (r *OrganizationStructureRepository) GetOrganizationSructuresByJobLevelID(j
 	}
 	return &organizationStructures, nil
 }
+
+// func (r *OrganizationStructureRepository) GetDB() *gorm.DB {
+// 	return r.DB
+// }
 
 func OrganizationStructureRepositoryFactory(log *logrus.Logger) IOrganizationStructureRepository {
 	db := config.NewDatabase()

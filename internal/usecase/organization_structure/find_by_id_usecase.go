@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"app/go-sso/internal/entity"
+	"app/go-sso/internal/http/dto"
+	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
 	"github.com/google/uuid"
@@ -13,11 +14,11 @@ type IFindByIdUseCaseRequest struct {
 }
 
 type IFindByIdUseCase interface {
-	Execute(request *IFindByIdUseCaseRequest) (IFindByIdUseCaseResponse, error)
+	Execute(request *IFindByIdUseCaseRequest) (*IFindByIdUseCaseResponse, error)
 }
 
 type IFindByIdUseCaseResponse struct {
-	OrganizationStructure *entity.OrganizationStructure `json:"organization_structure"`
+	OrganizationStructure *response.OrganizationStructureResponse
 }
 
 type FindByIdUseCase struct {
@@ -32,14 +33,20 @@ func NewFindByIdUseCase(log *logrus.Logger, organizationStructureRepository repo
 	}
 }
 
-func (u *FindByIdUseCase) Execute(request *IFindByIdUseCaseRequest) (IFindByIdUseCaseResponse, error) {
+func (u *FindByIdUseCase) Execute(request *IFindByIdUseCaseRequest) (*IFindByIdUseCaseResponse, error) {
 	organizationStructure, err := u.OrganizationStructureRepository.FindById(request.ID)
 	if err != nil {
-		return IFindByIdUseCaseResponse{}, err
+		return nil, err
 	}
 
-	return IFindByIdUseCaseResponse{
-		OrganizationStructure: organizationStructure,
+	children, err := u.OrganizationStructureRepository.FindAllChildren(organizationStructure.ID)
+	if err != nil {
+		return nil, err
+	}
+	(*organizationStructure).Children = children
+
+	return &IFindByIdUseCaseResponse{
+		OrganizationStructure: dto.ConvertToSingleOrganizationStructureResponse(organizationStructure),
 	}, nil
 }
 
