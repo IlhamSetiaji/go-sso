@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_ENV=production
+      - APP_URL=http://localhost:3000
+      - APP_DOMAIN=localhost
+      - APP_SECRET=$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK
+      - FRONTEND_URL=http://localhost:3000,http://something.com,https://www.google.com
+      - COOKIE_SECRET=$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK
+      - SESSION_NAME=julong-portal
+      - CSRF_SECRET=$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=julong-portal
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - RABBITMQ_QUEUE=julong_queue
+      - JWT_SECRET=$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK
+      - MAIL_HOST=smtp.mailtrap.io
+      - MAIL_PORT=2525
+      - MAIL_USERNAME=5b3b7b7b7b7b7b
+      - MAIL_PASSWORD=5b3b7b7b7b7b7b
+      - MAIL_FROM=some@someone.com
+      - AUTH0_DOMAIN=dev-haha
+      - AUTH0_CLIENT_ID=5b3b7b7b7b7b7b
+      - AUTH0_CLIENT_SECRET=5b3b7b7b7b7b7b
+      - AUTH0_REDIRECT_URL=http://localhost:3000/callback
+      - GOOGLE_CLIENT_ID=5b3b7b7b7b7b7b
+      - GOOGLE_CLIENT_SECRET=5b3b7b7b7b7b7b
+      - GOOGLE_REDIRECT_URL=http://localhost:3000/auth/google/callback
+      - ZITADEL_AUTH_URL=http://localhost:3000/auth/zitadel
+      - ZITADEL_TOKEN_URL=http://localhost:3000/auth/zitadel/token
+      - ZITADEL_USERINFO_URL=http://localhost:3000/auth/zitadel/userinfo
+      - ZITADEL_KEY=5b3b7b7b7b7b7b
+      - ZITADEL_CLIENT_ID=5b3b7b7b7b7b7b
+      - ZITADEL_REDIRECT_URL=http://localhost:3000/auth/zitadel/callback
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+        
+volumes:
+  postgres_data:
