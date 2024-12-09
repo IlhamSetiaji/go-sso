@@ -11,11 +11,11 @@ services:
       - APP_ENV=production
       - APP_URL=http://localhost:3000
       - APP_DOMAIN=localhost
-      - APP_SECRET=$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK
+      - APP_SECRET=jancok
       - FRONTEND_URL=http://localhost:3000,http://something.com,https://www.google.com
-      - COOKIE_SECRET=$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK
+      - COOKIE_SECRET=jancok
       - SESSION_NAME=julong-portal
-      - CSRF_SECRET=$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK
+      - CSRF_SECRET=jancok
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=postgres
@@ -23,7 +23,7 @@ services:
       - DB_NAME=julong-portal
       - RABBITMQ_URL=amqp://julong:HR9hWL5jxSD09XeLIIccOyt1863WvIsy@prasi.avolut.com:5672/
       - RABBITMQ_QUEUE=julong_queue
-      - JWT_SECRET=$2y$10$glTfhpK4kDZC6u9o.hQ0Ped.FsRvkW/DuCxetOozu.4gORDipkKdK
+      - JWT_SECRET=jancok
       - MAIL_HOST=smtp.mailtrap.io
       - MAIL_PORT=2525
       - MAIL_USERNAME=5b3b7b7b7b7b7b
