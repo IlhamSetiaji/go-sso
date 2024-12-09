@@ -18,9 +18,11 @@ import (
 
 func InitConsumer(viper *viper.Viper, log *logrus.Logger) {
 	// conn
+	log.Printf("CHECKING: url on rabbitmq: ", viper.GetString("rabbitmq.url"))
 	conn, err := amqp091.Dial(viper.GetString("rabbitmq.url"))
 	if err != nil {
 		log.Printf("ERROR: fail init consumer: %s", err.Error())
+		log.Printf("ERROR: fail init consumer conn: ", viper.GetString("rabbitmq.url"))
 		os.Exit(1)
 	}
 

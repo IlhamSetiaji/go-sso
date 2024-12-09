@@ -28,7 +28,6 @@ WORKDIR /app
 # Copy the built Go application from the builder stage
 COPY --from=builder /app/main .
 COPY config.template.json /app/config.template.json
-COPY config.json /app/config.json
 COPY init-config.sh /app/init-config.sh
 
 # Make the initialization script executable

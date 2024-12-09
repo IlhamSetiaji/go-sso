@@ -31,6 +31,7 @@ func main() {
 	// setup config
 	viperConfig := config.NewViper()
 	log := config.NewLogrus(viperConfig)
+	log.Printf("Starting server at port %s", viperConfig.GetString("database.host"))
 	validate := config.NewValidator(viperConfig)
 	auth, err := config.NewAuth0(viperConfig)
 	if err != nil {
