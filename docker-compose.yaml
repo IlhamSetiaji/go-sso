@@ -42,11 +42,4 @@ services:
       - ZITADEL_KEY=5b3b7b7b7b7b7b
       - ZITADEL_CLIENT_ID=5b3b7b7b7b7b7b
       - ZITADEL_REDIRECT_URL=http://localhost:3000/auth/zitadel/callback
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-        
-volumes:
-  postgres_data:
+
