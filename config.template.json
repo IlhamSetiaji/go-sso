@@ -33,10 +33,10 @@
   "database": {
     "driver": "postgres",
     "host": "${DB_HOST}",
-    "port": 5432,
-    "username": "postgres",
+    "port": "${DB_PORT}",
+    "username": "${DB_USERNAME}",
     "password": "${DB_PASSWORD}",
-    "name": "sso-db",
+    "name": "${DB_NAME}",
     "pool": {
       "idle": 10,
       "max": 100,
