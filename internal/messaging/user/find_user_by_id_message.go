@@ -2,6 +2,7 @@ package messaging
 
 import (
 	"app/go-sso/internal/repository"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -36,6 +37,10 @@ func (m *FindUserByIDMessage) Execute(request IFindUserByIDMessageRequest) (*IFi
 	user, err := m.Repository.FindById(request.UserID)
 	if err != nil {
 		return nil, err
+	}
+
+	if user == nil {
+		return nil, errors.New("user not found")
 	}
 
 	return &IFindUserByIDMessageResponse{

@@ -18,6 +18,7 @@ import (
 type IEmployeeHandler interface {
 	FindAllPaginated(ctx *gin.Context)
 	FindById(ctx *gin.Context)
+	CountEmployeeRetiredEndByDateRange(ctx *gin.Context)
 }
 
 type EmployeeHandler struct {
@@ -106,4 +107,35 @@ func (h *EmployeeHandler) FindById(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "success", res.Employee)
+}
+
+func (h *EmployeeHandler) CountEmployeeRetiredEndByDateRange(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-employee")(ctx)
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
+		return
+	}
+
+	startDate := ctx.Query("start_date")
+	endDate := ctx.Query("end_date")
+
+	if startDate == "" || endDate == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "start_date and end_date is required")
+		return
+	}
+
+	req := &usecase.ICountEmployeeRetiredEndByDateRangeUseCaseRequest{
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
+
+	uc := usecase.CountEmployeeRetiredEndByDateRangeUseCaseFactory(h.Log)
+	res, err := uc.Execute(req)
+	if err != nil {
+		h.Log.Errorf("Error CountEmployeeRetiredEndByDateRangeUseCaseFactory: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "success", res)
 }

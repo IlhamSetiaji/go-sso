@@ -12,6 +12,7 @@ import (
 type IEmployeeRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Employee, int64, error)
 	FindById(id uuid.UUID) (*entity.Employee, error)
+	CountEmployeeRetiredEndByDateRange(startDate string, endDate string) (int64, error)
 }
 
 type EmployeeRepository struct {
@@ -54,6 +55,17 @@ func (r *EmployeeRepository) FindById(id uuid.UUID) (*entity.Employee, error) {
 		return nil, err
 	}
 	return &employee, nil
+}
+
+func (r *EmployeeRepository) CountEmployeeRetiredEndByDateRange(startDate string, endDate string) (int64, error) {
+	var total int64
+	err := r.DB.Model(&entity.Employee{}).
+		Where("retirement_date BETWEEN ? AND ?", startDate, endDate).Or("end_date BETWEEN ? AND ?", startDate, endDate).
+		Count(&total).Error
+	if err != nil {
+		return 0, err
+	}
+	return total, nil
 }
 
 func EmployeeRepositoryFactory(log *logrus.Logger) IEmployeeRepository {
