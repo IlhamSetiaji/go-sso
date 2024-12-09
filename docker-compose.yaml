@@ -9,7 +9,7 @@ services:
       - "5501:3000"
     environment:
       - APP_ENV=production
-      - APP_URL=http://localhost:3000
+      - APP_URL=https://julong-portal.avolut.com
       - APP_DOMAIN=localhost
       - APP_SECRET=jancok
       - FRONTEND_URL=http://localhost:3000,https://julong-mpp.avolut.com
@@ -32,14 +32,14 @@ services:
       - AUTH0_DOMAIN=dev-haha
       - AUTH0_CLIENT_ID=5b3b7b7b7b7b7b
       - AUTH0_CLIENT_SECRET=5b3b7b7b7b7b7b
-      - AUTH0_REDIRECT_URL=http://localhost:3000/callback
+      - AUTH0_REDIRECT_URL=https://julong-portal.avolut.com/callback
       - GOOGLE_CLIENT_ID=5b3b7b7b7b7b7b
       - GOOGLE_CLIENT_SECRET=5b3b7b7b7b7b7b
-      - GOOGLE_REDIRECT_URL=http://localhost:3000/auth/google/callback
-      - ZITADEL_AUTH_URL=http://localhost:3000/auth/zitadel
-      - ZITADEL_TOKEN_URL=http://localhost:3000/auth/zitadel/token
-      - ZITADEL_USERINFO_URL=http://localhost:3000/auth/zitadel/userinfo
+      - GOOGLE_REDIRECT_URL=https://julong-portal.avolut.com/auth/google/callback
+      - ZITADEL_AUTH_URL=https://julong-portal.avolut.com/auth/zitadel
+      - ZITADEL_TOKEN_URL=https://julong-portal.avolut.com/auth/zitadel/token
+      - ZITADEL_USERINFO_URL=https://julong-portal.avolut.com/auth/zitadel/userinfo
       - ZITADEL_KEY=5b3b7b7b7b7b7b
       - ZITADEL_CLIENT_ID=5b3b7b7b7b7b7b
-      - ZITADEL_REDIRECT_URL=http://localhost:3000/auth/zitadel/callback
+      - ZITADEL_REDIRECT_URL=https://julong-portal.avolut.com/auth/zitadel/callback
 
