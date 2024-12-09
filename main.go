@@ -128,8 +128,8 @@ func main() {
 	routeConfig.SetupRoutes()
 
 	// run server
-	log.Printf("Port configured: " + viperConfig.GetInt("web.port"))
 	webPort := strconv.Itoa(viperConfig.GetInt("web.port"))
+	log.Printf("Port configured: " + webPort)
 	err = app.Run(":" + webPort)
 	if err != nil {
 		log.Panicf("Failed to start server: %v", err)
