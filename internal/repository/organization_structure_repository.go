@@ -13,6 +13,7 @@ type IOrganizationStructureRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error)
 	FindById(id uuid.UUID) (*entity.OrganizationStructure, error)
 	GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error)
+	FindByOrganizationId(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindAllChildren(parentID uuid.UUID) ([]entity.OrganizationStructure, error)
 	// GetDB() *gorm.DB
 }
@@ -79,6 +80,15 @@ func (r *OrganizationStructureRepository) FindById(id uuid.UUID) (*entity.Organi
 func (r *OrganizationStructureRepository) GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error) {
 	var organizationStructures []entity.OrganizationStructure
 	err := r.DB.Preload("Organization").Preload("JobLevel").Preload("Jobs").Where("job_level_id = ?", jobLevelID).Find(&organizationStructures).Error
+	if err != nil {
+		return nil, err
+	}
+	return &organizationStructures, nil
+}
+
+func (r *OrganizationStructureRepository) FindByOrganizationId(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error) {
+	var organizationStructures []entity.OrganizationStructure
+	err := r.DB.Preload("Organization.OrganizationType").Preload("JobLevel").Where("organization_id = ?", organizationID).Find(&organizationStructures).Error
 	if err != nil {
 		return nil, err
 	}
