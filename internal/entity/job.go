@@ -17,6 +17,7 @@ type Job struct {
 	ParentID                *uuid.UUID            `json:"parent_id" gorm:"type:char(36)"`
 	Level                   int                   `json:"level" gorm:"index"`    // Add level for hierarchy depth
 	Path                    string                `json:"path" gorm:"type:text"` // Store full path for easy traversal
+	Existing                int                   `json:"existing" gorm:"default:0"`
 	OrganizationStructure   OrganizationStructure `json:"organization_structure" gorm:"foreignKey:OrganizationStructureID;references:ID;constraint:OnDelete:CASCADE"`
 	Parent                  *Job                  `json:"parent" gorm:"foreignKey:ParentID;references:ID;constraint:OnDelete:CASCADE"`
 	Children                []Job                 `json:"children" gorm:"foreignKey:ParentID;references:ID"`

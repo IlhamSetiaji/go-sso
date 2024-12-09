@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"app/go-sso/internal/entity"
+	"app/go-sso/internal/http/dto"
+	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
 	"github.com/google/uuid"
@@ -13,7 +14,7 @@ type IFindByIdUseCaseRequest struct {
 }
 
 type IFindByIdUseCaseResponse struct {
-	Job *entity.Job `json:"job"`
+	Job *response.JobLevelResponse `json:"job"`
 }
 
 type IFindByIdUseCase interface {
@@ -22,12 +23,12 @@ type IFindByIdUseCase interface {
 
 type FindByIdUseCase struct {
 	Log           *logrus.Logger
-	JobRepository repository.IJobRepository
+	JobRepository repository.IJobLevelRepository
 }
 
 func NewFindByIdUseCase(
 	log *logrus.Logger,
-	jobRepository repository.IJobRepository,
+	jobRepository repository.IJobLevelRepository,
 ) IFindByIdUseCase {
 	return &FindByIdUseCase{
 		Log:           log,
@@ -42,11 +43,11 @@ func (uc *FindByIdUseCase) Execute(req *IFindByIdUseCaseRequest) (*IFindByIdUseC
 	}
 
 	return &IFindByIdUseCaseResponse{
-		Job: job,
+		Job: dto.ConvertToSingleJobLevelResponse(job),
 	}, nil
 }
 
 func FindByIdUseCaseFactory(log *logrus.Logger) IFindByIdUseCase {
-	jobRepository := repository.JobRepositoryFactory(log)
+	jobRepository := repository.JobLevelRepositoryFactory(log)
 	return NewFindByIdUseCase(log, jobRepository)
 }

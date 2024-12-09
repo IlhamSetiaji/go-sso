@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"app/go-sso/internal/entity"
+	"app/go-sso/internal/http/dto"
+	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
 	"github.com/google/uuid"
@@ -13,7 +14,7 @@ type IGetJobsByJobLevelIDUseCaseRequest struct {
 }
 
 type IGetJobsByJobLevelIDUseCaseResponse struct {
-	Jobs *[]entity.Job `json:"jobs"`
+	Jobs *[]response.JobResponse `json:"jobs"`
 }
 
 type IGetJobsByJobLevelIDUseCase interface {
@@ -56,8 +57,16 @@ func (uc *GetJobsByJobLevelIDUseCase) Execute(request *IGetJobsByJobLevelIDUseCa
 		return nil, err
 	}
 
+	for i, job := range *jobs {
+		children, err := uc.JobRepository.FindAllChildren(job.ID)
+		if err != nil {
+			return nil, err
+		}
+		(*jobs)[i].Children = children
+	}
+
 	return &IGetJobsByJobLevelIDUseCaseResponse{
-		Jobs: jobs,
+		Jobs: dto.ConvertToJobResponse(jobs),
 	}, nil
 }
 

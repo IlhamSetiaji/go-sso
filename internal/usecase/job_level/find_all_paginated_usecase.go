@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"app/go-sso/internal/entity"
+	"app/go-sso/internal/http/dto"
+	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
 	"github.com/sirupsen/logrus"
@@ -14,8 +15,8 @@ type IFindAllPaginatedUseCaseRequest struct {
 }
 
 type IFindAllPaginatedUseCaseResponse struct {
-	Jobs  *[]entity.Job `json:"jobs"`
-	Total int64         `json:"total"`
+	JobLevels *[]response.JobLevelResponse `json:"job_levels"`
+	Total     int64                        `json:"total"`
 }
 
 type IFindAllPaginatedUseCase interface {
@@ -23,33 +24,33 @@ type IFindAllPaginatedUseCase interface {
 }
 
 type FindAllPaginatedUseCase struct {
-	Log           *logrus.Logger
-	JobRepository repository.IJobRepository
+	Log                *logrus.Logger
+	JobLevelRepository repository.IJobLevelRepository
 }
 
 func NewFindAllPaginatedUseCase(
 	log *logrus.Logger,
-	jobRepository repository.IJobRepository,
+	jobLevelRepository repository.IJobLevelRepository,
 ) IFindAllPaginatedUseCase {
 	return &FindAllPaginatedUseCase{
-		Log:           log,
-		JobRepository: jobRepository,
+		Log:                log,
+		JobLevelRepository: jobLevelRepository,
 	}
 }
 
 func (uc *FindAllPaginatedUseCase) Execute(req *IFindAllPaginatedUseCaseRequest) (*IFindAllPaginatedUseCaseResponse, error) {
-	jobs, total, err := uc.JobRepository.FindAllPaginated(req.Page, req.PageSize, req.Search)
+	jobs, total, err := uc.JobLevelRepository.FindAllPaginated(req.Page, req.PageSize, req.Search)
 	if err != nil {
 		return nil, err
 	}
 
 	return &IFindAllPaginatedUseCaseResponse{
-		Jobs:  jobs,
-		Total: total,
+		JobLevels: dto.ConvertToJobLevelResponse(jobs),
+		Total:     total,
 	}, nil
 }
 
 func FindAllPaginatedUseCaseFactory(log *logrus.Logger) IFindAllPaginatedUseCase {
-	jobRepository := repository.JobRepositoryFactory(log)
-	return NewFindAllPaginatedUseCase(log, jobRepository)
+	jobLevelRepository := repository.JobLevelRepositoryFactory(log)
+	return NewFindAllPaginatedUseCase(log, jobLevelRepository)
 }

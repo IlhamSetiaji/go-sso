@@ -15,3 +15,11 @@ type OrganizationStructureResponse struct {
 	Parent         *OrganizationStructureResponse  `json:"parent,omitempty"`
 	Children       []OrganizationStructureResponse `json:"children,omitempty"`
 }
+
+type OrganizationStructureMinimalResponse struct {
+	ID             uuid.UUID `json:"id"`
+	OrganizationID uuid.UUID `json:"organization_id"`
+	Name           string    `json:"name"`
+	Level          int       `json:"level"`
+	Path           string    `json:"path"`
+}

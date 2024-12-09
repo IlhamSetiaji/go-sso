@@ -30,7 +30,7 @@ func (r *JobLevelRepository) FindAllPaginated(page int, pageSize int, search str
 	var jobLevels []entity.JobLevel
 	var total int64
 
-	query := r.DB
+	query := r.DB.Preload("OrganizationStructures")
 
 	if search != "" {
 		query = query.Where("name LIKE ?", "%"+search+"%")
@@ -49,7 +49,7 @@ func (r *JobLevelRepository) FindAllPaginated(page int, pageSize int, search str
 
 func (r *JobLevelRepository) FindById(id uuid.UUID) (*entity.JobLevel, error) {
 	var jobLevel entity.JobLevel
-	err := r.DB.Where("id = ?", id).First(&jobLevel).Error
+	err := r.DB.Preload("OrganizationStructures").Where("id = ?", id).First(&jobLevel).Error
 	if err != nil {
 		return nil, err
 	}

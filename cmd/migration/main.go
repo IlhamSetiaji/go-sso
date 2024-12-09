@@ -174,22 +174,27 @@ func main() {
 		{
 			Name:                    "Kage",
 			OrganizationStructureID: createdStructures["Kage Department"].ID,
+			Existing:                30,
 		},
 		{
 			Name:                    "Jounin",
 			OrganizationStructureID: createdStructures["Jounin Department"].ID,
+			Existing:                30,
 		},
 		{
 			Name:                    "Chunin",
 			OrganizationStructureID: createdStructures["Chunin Department"].ID,
+			Existing:                30,
 		},
 		{
 			Name:                    "Genin",
 			OrganizationStructureID: createdStructures["Genin Department"].ID,
+			Existing:                30,
 		},
 		{
 			Name:                    "Academy",
 			OrganizationStructureID: createdStructures["Academy Department"].ID,
+			Existing:                30,
 		},
 	}
 
