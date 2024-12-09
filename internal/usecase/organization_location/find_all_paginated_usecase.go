@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"app/go-sso/internal/entity"
+	"app/go-sso/internal/http/dto"
+	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
 	"github.com/sirupsen/logrus"
@@ -14,8 +15,8 @@ type IFindAllPaginatedUseCaseRequest struct {
 }
 
 type IFindAllPaginatedUseCaseResponse struct {
-	OrganizationLocations *[]entity.OrganizationLocation `json:"organization_locations"`
-	Total                 int64                          `json:"total"`
+	OrganizationLocations *[]response.OrganizationLocationResponse `json:"organization_locations"`
+	Total                 int64                                    `json:"total"`
 }
 
 type IFindAllPaginatedUseCase interface {
@@ -44,7 +45,7 @@ func (uc *FindAllPaginatedUseCase) Execute(req *IFindAllPaginatedUseCaseRequest)
 	}
 
 	return &IFindAllPaginatedUseCaseResponse{
-		OrganizationLocations: organizationLocations,
+		OrganizationLocations: dto.ConvertToOrganizationLocationResponse(organizationLocations),
 		Total:                 total,
 	}, nil
 }
