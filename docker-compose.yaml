@@ -16,10 +16,10 @@ services:
       - COOKIE_SECRET=jancok
       - SESSION_NAME=julong-portal
       - CSRF_SECRET=jancok
-      - DB_HOST=postgres
-      - DB_PORT=5432
+      - DB_HOST=15.235.214.13
+      - DB_PORT=8741
       - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_PASSWORD=gEJIfovgvDAroHhqRiKhYVvrkn2OqXfF3tw8xJmnvw7JhrZgN24pTD9iWMIUIUL6
       - DB_NAME=julong-portal
       - RABBITMQ_URL=amqp://julong:HR9hWL5jxSD09XeLIIccOyt1863WvIsy@prasi.avolut.com:5672/
       - RABBITMQ_QUEUE=julong_queue
