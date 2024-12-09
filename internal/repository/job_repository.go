@@ -3,6 +3,7 @@ package repository
 import (
 	"app/go-sso/internal/config"
 	"app/go-sso/internal/entity"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -13,6 +14,8 @@ type IJobRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Job, int64, error)
 	FindById(id uuid.UUID) (*entity.Job, error)
 	GetJobsByOrganizationStructureIDs(organizationStructureIDs []uuid.UUID) (*[]entity.Job, error)
+	FindAllChildren(parentID uuid.UUID) ([]entity.Job, error)
+	FindParent(job entity.Job) (*entity.Job, error)
 }
 
 type JobRepository struct {
@@ -64,6 +67,36 @@ func (r *JobRepository) GetJobsByOrganizationStructureIDs(organizationStructureI
 		return nil, err
 	}
 	return &jobs, nil
+}
+
+func (r *JobRepository) FindAllChildren(parentID uuid.UUID) ([]entity.Job, error) {
+	var children []entity.Job
+	if err := r.DB.Where("parent_id = ?", parentID).Find(&children).Error; err != nil {
+		return nil, err
+	}
+
+	for i := range children {
+		subChildren, err := r.FindAllChildren(children[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		children[i].Children = subChildren
+	}
+
+	return children, nil
+}
+
+func (r *JobRepository) FindParent(job entity.Job) (*entity.Job, error) {
+	var parent entity.Job
+	err := r.DB.Where("id = ?", job.ParentID).First(&parent).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		} else {
+			return nil, errors.New("[JobRepository.FindParent] " + err.Error())
+		}
+	}
+	return &parent, nil
 }
 
 func JobRepositoryFactory(log *logrus.Logger) IJobRepository {

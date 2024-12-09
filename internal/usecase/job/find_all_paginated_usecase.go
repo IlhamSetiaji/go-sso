@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"app/go-sso/internal/entity"
+	"app/go-sso/internal/http/dto"
+	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
 	"github.com/sirupsen/logrus"
@@ -14,8 +15,8 @@ type IFindAllPaginatedUseCaseRequest struct {
 }
 
 type IFindAllPaginatedUseCaseResponse struct {
-	Jobs  *[]entity.Job `json:"jobs"`
-	Total int64         `json:"total"`
+	Jobs  *[]response.JobResponse `json:"jobs"`
+	Total int64                   `json:"total"`
 }
 
 type IFindAllPaginatedUseCase interface {
@@ -43,8 +44,16 @@ func (uc *FindAllPaginatedUseCase) Execute(req *IFindAllPaginatedUseCaseRequest)
 		return nil, err
 	}
 
+	for i, job := range *jobs {
+		children, err := uc.JobRepository.FindAllChildren(job.ID)
+		if err != nil {
+			return nil, err
+		}
+		(*jobs)[i].Children = children
+	}
+
 	return &IFindAllPaginatedUseCaseResponse{
-		Jobs:  jobs,
+		Jobs:  dto.ConvertToJobResponse(jobs),
 		Total: total,
 	}, nil
 }

@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"app/go-sso/internal/entity"
+	"app/go-sso/internal/http/dto"
+	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
 	"github.com/google/uuid"
@@ -13,7 +14,7 @@ type IFindByIdUseCaseRequest struct {
 }
 
 type IFindByIdUseCaseResponse struct {
-	Job *entity.Job `json:"job"`
+	Job *response.JobResponse `json:"job"`
 }
 
 type IFindByIdUseCase interface {
@@ -41,8 +42,14 @@ func (uc *FindByIdUseCase) Execute(req *IFindByIdUseCaseRequest) (*IFindByIdUseC
 		return nil, err
 	}
 
+	children, err := uc.JobRepository.FindAllChildren(job.ID)
+	if err != nil {
+		return nil, err
+	}
+	job.Children = children
+
 	return &IFindByIdUseCaseResponse{
-		Job: job,
+		Job: dto.ConvertToSingleJobResponse(job),
 	}, nil
 }
 
