@@ -294,6 +294,33 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			"job_level_id": jobLevelID,
 			"exists":       message.Exists,
 		}
+	case "find_organization_structure_by_id":
+		organizationStructureID, ok := docMsg.MessageData["organization_structure_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'organization_structure_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'organization_structure_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := orgMessaging.FindOrganizationStructureByIDMessageFactory(log)
+		message, err := messageFactory.Execute(orgMessaging.IFindOrganizationStructureByIDMessageRequest{
+			OrganizationStructureID: uuid.MustParse(organizationStructureID),
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"organization_structure_id": organizationStructureID,
+			"name":                      message.Name,
+		}
 	default:
 		log.Printf("Unknown message type: %s", docMsg.MessageType)
 
