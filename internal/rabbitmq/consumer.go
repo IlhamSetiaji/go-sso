@@ -321,6 +321,32 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			"organization_structure_id": organizationStructureID,
 			"name":                      message.Name,
 		}
+	case "get_user_me":
+		userID, ok := docMsg.MessageData["user_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'user_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'user_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := userMessaging.GetUserMeMessageFactory(log)
+		message, err := messageFactory.Execute(userMessaging.IGetUserMeMessageRequest{
+			UserID: uuid.MustParse(userID),
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"user": message.User,
+		}
 	default:
 		log.Printf("Unknown message type: %s", docMsg.MessageType)
 

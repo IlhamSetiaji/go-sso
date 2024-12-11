@@ -4,6 +4,7 @@ import (
 	"app/go-sso/internal/http/dto"
 	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -41,6 +42,10 @@ func (u *MeUseCase) Execute(request *IMeUseCaseRequest) (*IMeUseCaseResponse, er
 	if err != nil {
 		u.Log.Error("[MeUseCase.Execute] " + err.Error())
 		return nil, err
+	}
+
+	if user == nil {
+		return nil, errors.New("user not found")
 	}
 
 	return &IMeUseCaseResponse{
