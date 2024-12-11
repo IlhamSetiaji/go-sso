@@ -58,12 +58,12 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 				}(),
 			},
 			EmployeeJob: map[string]interface{}{
-				"ID":                     user.Employee.EmployeeJob.ID,
-				"Name":                   user.Employee.EmployeeJob.Name,
-				"EmpOrganizationID":      user.Employee.EmployeeJob.EmpOrganizationID,
-				"JobID":                  user.Employee.EmployeeJob.JobID,
-				"EmployeeID":             user.Employee.EmployeeJob.EmployeeID,
-				"OrganizationLocationID": user.Employee.EmployeeJob.OrganizationLocationID,
+				"id":                       user.Employee.EmployeeJob.ID,
+				"name":                     user.Employee.EmployeeJob.Name,
+				"emp_organization_id":      user.Employee.EmployeeJob.EmpOrganizationID,
+				"job_id":                   user.Employee.EmployeeJob.JobID,
+				"employee_id":              user.Employee.EmployeeJob.EmployeeID,
+				"organization_location_id": user.Employee.EmployeeJob.OrganizationLocationID,
 			},
 		},
 	}
