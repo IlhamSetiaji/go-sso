@@ -17,9 +17,11 @@ type OrganizationStructureResponse struct {
 }
 
 type OrganizationStructureMinimalResponse struct {
-	ID             uuid.UUID `json:"id"`
-	OrganizationID uuid.UUID `json:"organization_id"`
-	Name           string    `json:"name"`
-	Level          int       `json:"level"`
-	Path           string    `json:"path"`
+	ID               uuid.UUID              `json:"id"`
+	OrganizationID   uuid.UUID              `json:"organization_id"`
+	Name             string                 `json:"name"`
+	Level            int                    `json:"level"`
+	Path             string                 `json:"path"`
+	ParentID         *uuid.UUID             `json:"parent_id,omitempty"`
+	JobLevelResponse map[string]interface{} `json:"job_level"`
 }

@@ -83,7 +83,7 @@ func (r *UserRepository) GetAllUsers() (*[]entity.User, error) {
 
 func (r *UserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 	var user entity.User
-	err := r.DB.Preload("Roles").Preload("Employee.Organization").Preload("Employee.EmployeeJob.Job").Preload("Employee.EmployeeJob.EmpOrganization").Preload("Employee.EmployeeJob.OrganizationLocation").Where("id = ?", id).First(&user).Error
+	err := r.DB.Preload("Roles").Preload("Employee.Organization.OrganizationStructures.JobLevel").Preload("Employee.Organization.OrganizationType").Preload("Employee.EmployeeJob.Job").Preload("Employee.EmployeeJob.EmpOrganization").Preload("Employee.EmployeeJob.OrganizationLocation").Where("id = ?", id).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			r.Log.Warn("[UserRepository.FindById] User not found")

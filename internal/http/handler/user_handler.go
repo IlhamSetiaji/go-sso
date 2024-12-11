@@ -257,7 +257,18 @@ func (h *UserHandler) Me(ctx *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(ctx, 200, "success", user)
+	factory := usecase.MeUseCaseFactory(h.Log)
+	res, err := factory.Execute(&usecase.IMeUseCaseRequest{
+		ID: uuid.MustParse(user["id"].(string)),
+	})
+
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.Log.Errorf("Error when finding user by ID: %v", err)
+		return
+	}
+
+	utils.SuccessResponse(ctx, 200, "success", res.User)
 }
 
 func (h *UserHandler) LoginOAuth(ctx *gin.Context) {
