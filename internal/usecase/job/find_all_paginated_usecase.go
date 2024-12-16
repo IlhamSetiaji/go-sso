@@ -50,6 +50,20 @@ func (uc *FindAllPaginatedUseCase) Execute(req *IFindAllPaginatedUseCaseRequest)
 			return nil, err
 		}
 		(*jobs)[i].Children = children
+
+		if (*jobs)[i].ParentID != nil {
+			parent, err := uc.JobRepository.FindParent(*(*jobs)[i].ParentID)
+			if err != nil {
+				return nil, err
+			}
+
+			if parent != nil {
+				uc.Log.Info("parent", parent.ID)
+				(*jobs)[i].Parent = parent
+			} else {
+				(*jobs)[i].Parent = nil
+			}
+		}
 	}
 
 	return &IFindAllPaginatedUseCaseResponse{

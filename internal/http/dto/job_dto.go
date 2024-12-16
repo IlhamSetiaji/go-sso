@@ -8,6 +8,10 @@ import (
 func ConvertToJobResponse(jobs *[]entity.Job) *[]response.JobResponse {
 	var responseJobs []response.JobResponse
 	for _, job := range *jobs {
+		var parentResponse *response.ParentResponse
+		if job.Parent != nil {
+			parentResponse = &response.ParentResponse{ID: job.Parent.ID, Name: job.Parent.Name}
+		}
 		responseJobs = append(responseJobs, response.JobResponse{
 			ID:                      job.ID,
 			Name:                    job.Name,
@@ -16,6 +20,7 @@ func ConvertToJobResponse(jobs *[]entity.Job) *[]response.JobResponse {
 			ParentID:                job.ParentID,
 			Path:                    job.Path,
 			Existing:                job.Existing,
+			Parent:                  parentResponse,
 			Children:                *ConvertToJobResponse(&job.Children),
 		})
 	}

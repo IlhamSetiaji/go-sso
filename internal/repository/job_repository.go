@@ -14,6 +14,7 @@ type IJobRepository interface {
 	FindById(id uuid.UUID) (*entity.Job, error)
 	GetJobsByOrganizationStructureIDs(organizationStructureIDs []uuid.UUID) (*[]entity.Job, error)
 	FindAllChildren(parentID uuid.UUID) ([]entity.Job, error)
+	FindParent(id uuid.UUID) (*entity.Job, error)
 }
 
 type JobRepository struct {
@@ -82,6 +83,18 @@ func (r *JobRepository) FindAllChildren(parentID uuid.UUID) ([]entity.Job, error
 	}
 
 	return children, nil
+}
+
+func (r *JobRepository) FindParent(id uuid.UUID) (*entity.Job, error) {
+	var job entity.Job
+	if err := r.DB.Where("id = ?", id).First(&job).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+	return &job, nil
 }
 
 func JobRepositoryFactory(log *logrus.Logger) IJobRepository {
