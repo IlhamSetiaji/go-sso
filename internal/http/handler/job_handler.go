@@ -26,6 +26,7 @@ type IJobHandler interface {
 	FindJobLevelById(ctx *gin.Context)
 	GetJobsByJobLevelId(ctx *gin.Context)
 	FindJobLevelsByOrganizationId(ctx *gin.Context)
+	GetJobsByOrganizationId(ctx *gin.Context)
 }
 
 func NewJobHandler(log *logrus.Logger, validate *validator.Validate) IJobHandler {
@@ -217,4 +218,31 @@ func (h *JobHandler) FindJobLevelsByOrganizationId(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "success", response.JobLevels)
+}
+
+func (h *JobHandler) GetJobsByOrganizationId(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-job")(ctx)
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
+		return
+	}
+
+	organizationId := ctx.Param("organization_id")
+	if organizationId == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "organization_id is required")
+		return
+	}
+
+	factory := usecase.GetJobsByOrganizationIDUseCaseFactory(h.Log)
+	response, err := factory.Execute(&usecase.IGetJobsByOrganizationIDUseCaseRequest{
+		OrganizationID: uuid.MustParse(organizationId),
+	})
+
+	if err != nil {
+		h.Log.Errorf("Error GetJobsByOrganizationId: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "success", response.Jobs)
 }

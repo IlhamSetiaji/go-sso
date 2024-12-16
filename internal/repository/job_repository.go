@@ -61,7 +61,7 @@ func (r *JobRepository) FindById(id uuid.UUID) (*entity.Job, error) {
 
 func (r *JobRepository) GetJobsByOrganizationStructureIDs(organizationStructureIDs []uuid.UUID) (*[]entity.Job, error) {
 	var jobs []entity.Job
-	err := r.DB.Where("organization_structure_id IN ?", organizationStructureIDs).Find(&jobs).Error
+	err := r.DB.Preload("OrganizationStructure.Organization").Where("organization_structure_id IN ?", organizationStructureIDs).Find(&jobs).Error
 	if err != nil {
 		return nil, err
 	}
