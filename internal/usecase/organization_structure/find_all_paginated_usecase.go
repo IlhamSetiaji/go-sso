@@ -47,6 +47,19 @@ func (uc *FindAllPaginatedUseCase) Execute(request *IFindAllPaginatedUseCaseRequ
 			return nil, err
 		}
 		(*organizationStructures)[i].Children = children
+
+		if (*organizationStructures)[i].ParentID != nil {
+			parent, err := uc.Repository.FindParent(*(*organizationStructures)[i].ParentID)
+			if err != nil {
+				return nil, err
+			}
+
+			if parent != nil {
+				(*organizationStructures)[i].Parent = parent
+			} else {
+				(*organizationStructures)[i].Parent = nil
+			}
+		}
 	}
 
 	return &IFindAllPaginatedResponse{

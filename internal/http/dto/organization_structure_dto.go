@@ -8,6 +8,10 @@ import (
 func ConvertToOrganizationStructureResponse(orgStructures *[]entity.OrganizationStructure) *[]response.OrganizationStructureResponse {
 	var responseStructures []response.OrganizationStructureResponse
 	for _, orgStructure := range *orgStructures {
+		var parentResponse *response.ParentOrganizationStructureResponse
+		if orgStructure.Parent != nil {
+			parentResponse = &response.ParentOrganizationStructureResponse{ID: orgStructure.Parent.ID, Name: orgStructure.Parent.Name}
+		}
 		responseStructures = append(responseStructures, response.OrganizationStructureResponse{
 			ID:             orgStructure.ID,
 			Name:           orgStructure.Name,
@@ -16,6 +20,7 @@ func ConvertToOrganizationStructureResponse(orgStructures *[]entity.Organization
 			OrganizationID: orgStructure.OrganizationID,
 			JobLevelID:     orgStructure.JobLevelID,
 			ParentID:       orgStructure.ParentID,
+			Parent:         parentResponse,
 			Children:       *ConvertToOrganizationStructureResponse(&orgStructure.Children),
 			Organization: response.OrganizationResponse{
 				ID:                 orgStructure.Organization.ID,
