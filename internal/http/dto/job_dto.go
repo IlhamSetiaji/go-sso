@@ -13,29 +13,40 @@ func ConvertToJobResponse(jobs *[]entity.Job) *[]response.JobResponse {
 			parentResponse = &response.ParentJobResponse{ID: job.Parent.ID, Name: job.Parent.Name}
 		}
 		responseJobs = append(responseJobs, response.JobResponse{
-			ID:                      job.ID,
-			Name:                    job.Name,
-			OrganizationStructureID: job.OrganizationStructureID,
-			Level:                   job.Level,
-			ParentID:                job.ParentID,
-			Path:                    job.Path,
-			Existing:                job.Existing,
-			Parent:                  parentResponse,
-			Children:                *ConvertToJobResponse(&job.Children),
+			ID:                        job.ID,
+			Name:                      job.Name,
+			OrganizationStructureID:   job.OrganizationStructureID,
+			OrganizationStructureName: job.OrganizationStructure.Name,
+			OrganizationID:            job.OrganizationStructure.OrganizationID,
+			OrganizationName:          job.OrganizationStructure.Organization.Name,
+			Level:                     job.Level,
+			ParentID:                  job.ParentID,
+			Path:                      job.Path,
+			Existing:                  job.Existing,
+			Parent:                    parentResponse,
+			Children:                  *ConvertToJobResponse(&job.Children),
 		})
 	}
 	return &responseJobs
 }
 
 func ConvertToSingleJobResponse(job *entity.Job) *response.JobResponse {
+	var parentResponse *response.ParentJobResponse
+	if job.Parent != nil {
+		parentResponse = &response.ParentJobResponse{ID: job.Parent.ID, Name: job.Parent.Name}
+	}
 	return &response.JobResponse{
-		ID:                      job.ID,
-		Name:                    job.Name,
-		OrganizationStructureID: job.OrganizationStructureID,
-		Level:                   job.Level,
-		ParentID:                job.ParentID,
-		Path:                    job.Path,
-		Existing:                job.Existing,
-		Children:                *ConvertToJobResponse(&job.Children),
+		ID:                        job.ID,
+		Name:                      job.Name,
+		OrganizationStructureID:   job.OrganizationStructureID,
+		OrganizationStructureName: job.OrganizationStructure.Name,
+		OrganizationID:            job.OrganizationStructure.OrganizationID,
+		OrganizationName:          job.OrganizationStructure.Organization.Name,
+		Level:                     job.Level,
+		ParentID:                  job.ParentID,
+		Path:                      job.Path,
+		Existing:                  job.Existing,
+		Parent:                    parentResponse,
+		Children:                  *ConvertToJobResponse(&job.Children),
 	}
 }
