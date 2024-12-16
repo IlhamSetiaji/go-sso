@@ -9,3 +9,8 @@ type OrganizationResponse struct {
 	OrganizationType               OrganizationTypeResponse
 	OrganizationStructureResponses []OrganizationStructureMinimalResponse `json:"organization_structures"`
 }
+
+type OrganizationMinimalResponse struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}

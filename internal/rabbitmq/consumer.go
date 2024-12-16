@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"app/go-sso/internal/http/request"
 	"app/go-sso/internal/http/response"
+	empMessaging "app/go-sso/internal/messaging/employee"
 	messaging "app/go-sso/internal/messaging/job"
 	orgMessaging "app/go-sso/internal/messaging/organization"
 	userMessaging "app/go-sso/internal/messaging/user"
@@ -373,6 +374,33 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 		msgData = map[string]interface{}{
 			"job_id": jobID,
 			"job":    message.Job,
+		}
+	case "find_employee_by_id":
+		employeeID, ok := docMsg.MessageData["employee_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'employee_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'employee_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := empMessaging.FindEmployeeByIDMessageFactory(log)
+		message, err := messageFactory.Execute(empMessaging.IFindEmployeeByIDMessageRequest{
+			EmployeeID: employeeID,
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"employee_id": employeeID,
+			"employee":    message.Employee,
 		}
 	default:
 		log.Printf("Unknown message type, please recheck your type: %s", docMsg.MessageType)
