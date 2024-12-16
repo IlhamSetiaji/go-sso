@@ -375,7 +375,7 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			"job":    message.Job,
 		}
 	default:
-		log.Printf("Unknown message type: %s", docMsg.MessageType)
+		log.Printf("Unknown message type, please recheck your type: %s", docMsg.MessageType)
 
 		msgData = map[string]interface{}{
 			"error": errors.New("unknown message type").Error(),
