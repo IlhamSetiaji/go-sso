@@ -18,6 +18,7 @@ type Employee struct {
 	MobilePhone    string    `json:"mobile_phone" gorm:"unique"`
 	MidsuitID      string    `json:"midsuit_id"`
 	SignaturePath  string    `json:"signature_path" gorm:"type:text"`
+	IsCeoPic       bool      `json:"is_ceo_pic" gorm:"type:boolean;default:null"`
 
 	Organization Organization `json:"organization" gorm:"foreignKey:OrganizationID;references:ID;constraint:OnDelete:CASCADE"`
 	User         *User        `json:"user" gorm:"foreignKey:EmployeeID;references:ID"`
