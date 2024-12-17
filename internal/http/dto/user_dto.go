@@ -20,7 +20,35 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 		Status:          user.Status,
 		CreatedAt:       user.CreatedAt,
 		UpdatedAt:       user.UpdatedAt,
-
+		Roles: func() []response.RoleResponse {
+			var roles []response.RoleResponse
+			for _, role := range user.Roles {
+				roles = append(roles, response.RoleResponse{
+					ID:              role.ID,
+					ApplicationID:   role.ApplicationID,
+					ApplicationName: role.Application.Name,
+					Name:            role.Name,
+					GuardName:       role.GuardName,
+					Status:          string(role.Status),
+					CreatedAt:       role.CreatedAt,
+					UpdatedAt:       role.UpdatedAt,
+					Permissions: func() []response.PermissionResponse {
+						var permissions []response.PermissionResponse
+						for _, permission := range role.Permissions {
+							permissions = append(permissions, response.PermissionResponse{
+								ID:            permission.ID,
+								ApplicationID: permission.ApplicationID,
+								Name:          permission.Name,
+								Label:         permission.Label,
+								GuardName:     permission.GuardName,
+							})
+						}
+						return permissions
+					}(),
+				})
+			}
+			return roles
+		}(),
 		Employee: response.EmployeeResponse{
 			ID:             user.Employee.ID,
 			OrganizationID: user.Employee.OrganizationID,

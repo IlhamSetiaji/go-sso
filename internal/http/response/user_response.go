@@ -21,6 +21,7 @@ type UserResponse struct {
 	Status          entity.UserStatus `json:"status"`
 	CreatedAt       time.Time         `json:"created_at"`
 	UpdatedAt       time.Time         `json:"updated_at"`
+	Roles           []RoleResponse    `json:"roles"`
 
 	Employee EmployeeResponse `json:"employee"`
 }
