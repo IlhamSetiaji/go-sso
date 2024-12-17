@@ -40,6 +40,7 @@ type User struct {
 	AuthTokens      []AuthToken `json:"auth_tokens" gorm:"foreignKey:UserID;references:ID"`
 	CreatedAt       time.Time   `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt       time.Time   `json:"updated_at" gorm:"autoUpdateTime"`
+	MidsuitID       string      `json:"midsuit_id" gorm:"default:null"`
 	// DeletedAt       time.Time  `json:"deleted_at" gorm:"index"`
 }
 

@@ -11,6 +11,7 @@ type OrganizationType struct {
 	gorm.Model `json:"-"`
 	ID         uuid.UUID `json:"id" gorm:"type:char(36);primaryKey"`
 	Name       string    `json:"name"`
+	MidsuitID  string    `json:"midsuit_id"`
 
 	Organizations []Organization `json:"organizations" gorm:"foreignKey:OrganizationTypeID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }

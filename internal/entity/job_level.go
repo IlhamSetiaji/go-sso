@@ -8,10 +8,12 @@ import (
 )
 
 type JobLevel struct {
-	gorm.Model             `json:"-"`
-	ID                     uuid.UUID               `json:"id" gorm:"type:char(36);primaryKey"`
-	Name                   string                  `json:"name" gorm:"type:varchar(255);not null"`
-	Level                  string                  `json:"level" gorm:"type:varchar(10);not null"`
+	gorm.Model `json:"-"`
+	ID         uuid.UUID `json:"id" gorm:"type:char(36);primaryKey"`
+	Name       string    `json:"name" gorm:"type:varchar(255);not null"`
+	Level      string    `json:"level" gorm:"type:varchar(10);not null"`
+	MidsuitID  string    `json:"midsuit_id" gorm:"type:varchar(255)"`
+
 	OrganizationStructures []OrganizationStructure `json:"employee_jobs" gorm:"foreignKey:JobLevelID;references:ID"`
 }
 

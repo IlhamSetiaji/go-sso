@@ -9,11 +9,13 @@ import (
 
 type OrganizationLocation struct {
 	gorm.Model     `json:"-"`
-	ID             uuid.UUID     `json:"id" gorm:"type:char(36);primaryKey"`
-	OrganizationID uuid.UUID     `json:"organization_id" gorm:"type:char(36)"`
-	Organization   Organization  `json:"organization" gorm:"foreignKey:OrganizationID;references:ID;constraint:OnDelete:CASCADE"`
-	Name           string        `json:"name"`
-	EmployeeJobs   []EmployeeJob `json:"employee_jobs" gorm:"foreignKey:OrganizationLocationID;references:ID;constraint:OnDelete:CASCADE"`
+	ID             uuid.UUID    `json:"id" gorm:"type:char(36);primaryKey"`
+	OrganizationID uuid.UUID    `json:"organization_id" gorm:"type:char(36)"`
+	Organization   Organization `json:"organization" gorm:"foreignKey:OrganizationID;references:ID;constraint:OnDelete:CASCADE"`
+	Name           string       `json:"name"`
+	MidsuitID      string       `json:"midsuit_id"`
+
+	EmployeeJobs []EmployeeJob `json:"employee_jobs" gorm:"foreignKey:OrganizationLocationID;references:ID;constraint:OnDelete:CASCADE"`
 }
 
 func (organizationLocation *OrganizationLocation) BeforeCreate(tx *gorm.DB) (err error) {

@@ -11,17 +11,19 @@ import (
 
 type Job struct {
 	gorm.Model              `json:"-"`
-	ID                      uuid.UUID             `json:"id" gorm:"type:char(36);primaryKey"`
-	Name                    string                `json:"name"`
-	OrganizationStructureID uuid.UUID             `json:"organization_structure_id" gorm:"type:char(36)"`
-	ParentID                *uuid.UUID            `json:"parent_id" gorm:"type:char(36)"`
-	Level                   int                   `json:"level" gorm:"index"`    // Add level for hierarchy depth
-	Path                    string                `json:"path" gorm:"type:text"` // Store full path for easy traversal
-	Existing                int                   `json:"existing" gorm:"default:0"`
-	OrganizationStructure   OrganizationStructure `json:"organization_structure" gorm:"foreignKey:OrganizationStructureID;references:ID;constraint:OnDelete:CASCADE"`
-	Parent                  *Job                  `json:"parent" gorm:"foreignKey:ParentID;references:ID;constraint:OnDelete:CASCADE"`
-	Children                []Job                 `json:"children" gorm:"foreignKey:ParentID;references:ID"`
-	EmployeeJobs            []EmployeeJob         `json:"employee_jobs" gorm:"foreignKey:JobID;references:ID"`
+	ID                      uuid.UUID  `json:"id" gorm:"type:char(36);primaryKey"`
+	Name                    string     `json:"name"`
+	OrganizationStructureID uuid.UUID  `json:"organization_structure_id" gorm:"type:char(36)"`
+	ParentID                *uuid.UUID `json:"parent_id" gorm:"type:char(36)"`
+	Level                   int        `json:"level" gorm:"index"`    // Add level for hierarchy depth
+	Path                    string     `json:"path" gorm:"type:text"` // Store full path for easy traversal
+	Existing                int        `json:"existing" gorm:"default:0"`
+	MidsuitID               string     `json:"midsuit_id"`
+
+	OrganizationStructure OrganizationStructure `json:"organization_structure" gorm:"foreignKey:OrganizationStructureID;references:ID;constraint:OnDelete:CASCADE"`
+	Parent                *Job                  `json:"parent" gorm:"foreignKey:ParentID;references:ID;constraint:OnDelete:CASCADE"`
+	Children              []Job                 `json:"children" gorm:"foreignKey:ParentID;references:ID"`
+	EmployeeJobs          []EmployeeJob         `json:"employee_jobs" gorm:"foreignKey:JobID;references:ID"`
 }
 
 func (job *Job) BeforeCreate(tx *gorm.DB) (err error) {

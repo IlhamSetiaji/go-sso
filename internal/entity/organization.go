@@ -12,6 +12,7 @@ type Organization struct {
 	ID                 uuid.UUID `json:"id" gorm:"type:char(36);primaryKey"`
 	OrganizationTypeID uuid.UUID `json:"organization_type_id" gorm:"type:char(36)"`
 	Name               string    `json:"name"`
+	MidsuitID          string    `json:"midsuit_id"`
 
 	OrganizationType       OrganizationType        `json:"organization_type" gorm:"foreignKey:OrganizationTypeID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"` // Foreign key
 	OrganizationLocations  []OrganizationLocation  `json:"organization_locations" gorm:"foreignKey:OrganizationID;references:ID"`
