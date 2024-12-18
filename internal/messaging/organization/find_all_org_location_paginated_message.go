@@ -9,9 +9,10 @@ import (
 )
 
 type IFindAllOrgLocationPaginatedRequest struct {
-	Page     int    `json:"page"`
-	PageSize int    `json:"page_size"`
-	Search   string `json:"search"`
+	Page        int      `json:"page"`
+	PageSize    int      `json:"page_size"`
+	Search      string   `json:"search"`
+	IncludedIDs []string `json:"included_ids"`
 }
 
 type IFindAllOrgLocationPaginatedResponse struct {
@@ -39,7 +40,7 @@ func NewFindAllOrgLocationPaginated(
 }
 
 func (uc *FindAllOrgLocationPaginated) Execute(req *IFindAllOrgLocationPaginatedRequest) (*IFindAllOrgLocationPaginatedResponse, error) {
-	organizationLocations, total, err := uc.OrganizationLocationRepository.FindAllPaginated(req.Page, req.PageSize, req.Search)
+	organizationLocations, total, err := uc.OrganizationLocationRepository.FindAllPaginated(req.Page, req.PageSize, req.Search, req.IncludedIDs)
 	if err != nil {
 		return nil, err
 	}

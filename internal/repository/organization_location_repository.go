@@ -10,7 +10,7 @@ import (
 )
 
 type IOrganizationLocationRepository interface {
-	FindAllPaginated(page int, pageSize int, search string) (*[]entity.OrganizationLocation, int64, error)
+	FindAllPaginated(page int, pageSize int, search string, includedIDs []string) (*[]entity.OrganizationLocation, int64, error)
 	FindById(id uuid.UUID) (*entity.OrganizationLocation, error)
 	FindByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationLocation, error)
 }
@@ -27,23 +27,31 @@ func NewOrganizationLocationRepository(log *logrus.Logger, db *gorm.DB) IOrganiz
 	}
 }
 
-func (r *OrganizationLocationRepository) FindAllPaginated(page int, pageSize int, search string) (*[]entity.OrganizationLocation, int64, error) {
+func (r *OrganizationLocationRepository) FindAllPaginated(page int, pageSize int, search string, includedIDs []string) (*[]entity.OrganizationLocation, int64, error) {
 	var organizationLocations []entity.OrganizationLocation
 	var total int64
 
-	query := r.DB
+	query := r.DB.Model(&entity.OrganizationLocation{})
+
+	if len(includedIDs) > 0 {
+		query = query.Where("id IN (?)", includedIDs)
+	}
 
 	if search != "" {
 		query = query.Where("name LIKE ?", "%"+search+"%")
 	}
 
-	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&organizationLocations).Error; err != nil {
+	err := query.Count(&total).Error
+	if err != nil {
 		return nil, 0, err
 	}
 
-	if err := query.Model(&entity.OrganizationLocation{}).Count(&total).Error; err != nil {
+	err = query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&organizationLocations).Error
+	if err != nil {
 		return nil, 0, err
 	}
+
+	r.Log.Infof("Total ids: %d", includedIDs)
 
 	return &organizationLocations, total, nil
 }

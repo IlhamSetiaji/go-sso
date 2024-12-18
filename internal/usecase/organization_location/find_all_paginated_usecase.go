@@ -9,9 +9,10 @@ import (
 )
 
 type IFindAllPaginatedUseCaseRequest struct {
-	Page     int    `json:"page"`
-	PageSize int    `json:"page_size"`
-	Search   string `json:"search"`
+	Page        int      `json:"page"`
+	PageSize    int      `json:"page_size"`
+	Search      string   `json:"search"`
+	IncludedIDs []string `json:"included_ids"`
 }
 
 type IFindAllPaginatedUseCaseResponse struct {
@@ -39,7 +40,7 @@ func NewFindAllPaginatedUseCase(
 }
 
 func (uc *FindAllPaginatedUseCase) Execute(req *IFindAllPaginatedUseCaseRequest) (*IFindAllPaginatedUseCaseResponse, error) {
-	organizationLocations, total, err := uc.Repository.FindAllPaginated(req.Page, req.PageSize, req.Search)
+	organizationLocations, total, err := uc.Repository.FindAllPaginated(req.Page, req.PageSize, req.Search, req.IncludedIDs)
 	if err != nil {
 		return nil, err
 	}
