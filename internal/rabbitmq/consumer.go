@@ -403,6 +403,53 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			"employee_id": employeeID,
 			"employee":    message.Employee,
 		}
+	case "find_organization_locations_paginated":
+		page, ok := docMsg.MessageData["page"].(float64)
+		if !ok {
+			log.Printf("Invalid request format: missing 'page'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'page'").Error(),
+			}
+			break
+		}
+
+		pageSize, ok := docMsg.MessageData["page_size"].(float64)
+		if !ok {
+			log.Printf("Invalid request format: missing 'page_size'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'page_size'").Error(),
+			}
+			break
+		}
+
+		search, ok := docMsg.MessageData["search"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'search'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'search'").Error(),
+			}
+			break
+		}
+
+		messageFactory := orgMessaging.FindAllOrgLocationPaginatedUseCaseFactory(log)
+		message, err := messageFactory.Execute(&orgMessaging.IFindAllOrgLocationPaginatedRequest{
+			Page:     int(page),
+			PageSize: int(pageSize),
+			Search:   search,
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"organization_locations": message.OrganizationLocations,
+			"total":                  message.Total,
+		}
 	default:
 		log.Printf("Unknown message type, please recheck your type: %s", docMsg.MessageType)
 

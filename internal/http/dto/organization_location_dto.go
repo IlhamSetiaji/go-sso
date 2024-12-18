@@ -9,11 +9,12 @@ func ConvertToOrganizationLocationResponse(orgLocations *[]entity.OrganizationLo
 	var responseLocations []response.OrganizationLocationResponse
 	for _, orgLocation := range *orgLocations {
 		responseLocations = append(responseLocations, response.OrganizationLocationResponse{
-			ID:             orgLocation.ID,
-			OrganizationID: orgLocation.OrganizationID,
-			Name:           orgLocation.Name,
-			CreatedAt:      orgLocation.CreatedAt,
-			UpdatedAt:      orgLocation.UpdatedAt,
+			ID:               orgLocation.ID,
+			OrganizationID:   orgLocation.OrganizationID,
+			OrganizationName: orgLocation.Organization.Name,
+			Name:             orgLocation.Name,
+			CreatedAt:        orgLocation.CreatedAt,
+			UpdatedAt:        orgLocation.UpdatedAt,
 		})
 	}
 	return &responseLocations
