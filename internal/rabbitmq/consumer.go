@@ -256,6 +256,7 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 		msgData = map[string]interface{}{
 			"job_level_id": jobLevelID,
 			"name":         message.Name,
+			"level":        message.Level,
 		}
 	case "check_job_by_job_level":
 		jobID, ok := docMsg.MessageData["job_id"].(string)
