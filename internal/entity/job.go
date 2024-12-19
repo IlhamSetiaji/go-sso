@@ -18,6 +18,7 @@ type Job struct {
 	Level                   int        `json:"level" gorm:"index"`    // Add level for hierarchy depth
 	Path                    string     `json:"path" gorm:"type:text"` // Store full path for easy traversal
 	Existing                int        `json:"existing" gorm:"default:0"`
+	Promotion               int        `json:"promotion" gorm:"default:0"`
 	MidsuitID               string     `json:"midsuit_id"`
 
 	// JobLevelData          JobLevel              `json:"job_level_data" gorm:"-"`

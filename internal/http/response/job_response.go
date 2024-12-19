@@ -15,6 +15,7 @@ type JobResponse struct {
 	Level                     int                `json:"level"` // Add level for hierarchy depth
 	Path                      string             `json:"path"`  // Store full path for easy traversal
 	Existing                  int                `json:"existing"`
+	Promotion                 int                `json:"promotion"`
 	JobLevel                  JobLevelResponse   `json:"job_level"`
 	Parent                    *ParentJobResponse `json:"parent"`
 	Children                  []JobResponse      `json:"children"`
