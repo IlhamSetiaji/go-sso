@@ -440,6 +440,15 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			break
 		}
 
+		isNull, ok := docMsg.MessageData["is_null"].(bool)
+		if !ok {
+			log.Printf("Invalid request format: missing 'is_null'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'is_null'").Error(),
+			}
+			break
+		}
+
 		includedIDs := make([]string, len(includedIDsInterface))
 		for i, v := range includedIDsInterface {
 			str, ok := v.(string)
@@ -468,6 +477,7 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			PageSize:    int(pageSize),
 			Search:      search,
 			IncludedIDs: includedIDs,
+			IsNull:      isNull,
 		})
 
 		if err != nil {

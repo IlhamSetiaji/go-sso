@@ -13,6 +13,7 @@ type IFindAllPaginatedUseCaseRequest struct {
 	PageSize    int      `json:"page_size"`
 	Search      string   `json:"search"`
 	IncludedIDs []string `json:"included_ids"`
+	IsNull      bool     `json:"is_null"`
 }
 
 type IFindAllPaginatedUseCaseResponse struct {
@@ -40,7 +41,7 @@ func NewFindAllPaginatedUseCase(
 }
 
 func (uc *FindAllPaginatedUseCase) Execute(req *IFindAllPaginatedUseCaseRequest) (*IFindAllPaginatedUseCaseResponse, error) {
-	organizationLocations, total, err := uc.Repository.FindAllPaginated(req.Page, req.PageSize, req.Search, req.IncludedIDs)
+	organizationLocations, total, err := uc.Repository.FindAllPaginated(req.Page, req.PageSize, req.Search, req.IncludedIDs, req.IsNull)
 	if err != nil {
 		return nil, err
 	}
