@@ -12,8 +12,9 @@ type IFindOrganizationByIDMessageRequest struct {
 }
 
 type IFindOrganizationByIDMessageResponse struct {
-	OrganizationID uuid.UUID `json:"organization_id"`
-	Name           string    `json:"name"`
+	OrganizationID       uuid.UUID `json:"organization_id"`
+	Name                 string    `json:"name"`
+	OrganizationCategory string    `json:"organization_category"`
 }
 
 type IFindOrganizationByIDMessage interface {
@@ -39,8 +40,9 @@ func (m *FindOrganizationByIDMessage) Execute(request IFindOrganizationByIDMessa
 	}
 
 	return &IFindOrganizationByIDMessageResponse{
-		OrganizationID: organization.ID,
-		Name:           organization.Name,
+		OrganizationID:       organization.ID,
+		Name:                 organization.Name,
+		OrganizationCategory: organization.OrganizationType.Category,
 	}, nil
 }
 

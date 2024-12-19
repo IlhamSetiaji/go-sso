@@ -146,8 +146,9 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 		}
 
 		msgData = map[string]interface{}{
-			"organization_id": organizationID,
-			"name":            message.Name,
+			"organization_id":       organizationID,
+			"name":                  message.Name,
+			"organization_category": message.OrganizationCategory,
 		}
 	case "find_job_by_id":
 		jobID, ok := docMsg.MessageData["job_id"].(string)
