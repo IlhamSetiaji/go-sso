@@ -20,6 +20,7 @@ type Job struct {
 	Existing                int        `json:"existing" gorm:"default:0"`
 	MidsuitID               string     `json:"midsuit_id"`
 
+	// JobLevelData          JobLevel              `json:"job_level_data" gorm:"-"`
 	OrganizationStructure OrganizationStructure `json:"organization_structure" gorm:"foreignKey:OrganizationStructureID;references:ID;constraint:OnDelete:CASCADE"`
 	Parent                *Job                  `json:"parent" gorm:"foreignKey:ParentID;references:ID;constraint:OnDelete:CASCADE"`
 	Children              []Job                 `json:"children" gorm:"foreignKey:ParentID;references:ID"`

@@ -23,6 +23,7 @@ func ConvertToJobResponse(jobs *[]entity.Job) *[]response.JobResponse {
 			ParentID:                  job.ParentID,
 			Path:                      job.Path,
 			Existing:                  job.Existing,
+			JobLevel:                  *ConvertToSingleJobLevelResponse(&job.OrganizationStructure.JobLevel),
 			Parent:                    parentResponse,
 			Children:                  *ConvertToJobResponse(&job.Children),
 		})
@@ -46,6 +47,7 @@ func ConvertToSingleJobResponse(job *entity.Job) *response.JobResponse {
 		ParentID:                  job.ParentID,
 		Path:                      job.Path,
 		Existing:                  job.Existing,
+		JobLevel:                  *ConvertToSingleJobLevelResponse(&job.OrganizationStructure.JobLevel),
 		Parent:                    parentResponse,
 		Children:                  *ConvertToJobResponse(&job.Children),
 	}
