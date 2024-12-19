@@ -492,6 +492,21 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			"organization_locations": message.OrganizationLocations,
 			"total":                  message.Total,
 		}
+	case "get_all_job_data":
+		messageFactory := messaging.GetAllJobMessageFactory(log)
+		message, err := messageFactory.Execute()
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"jobs": message.Jobs,
+		}
 	default:
 		log.Printf("Unknown message type, please recheck your type: %s", docMsg.MessageType)
 

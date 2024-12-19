@@ -12,6 +12,7 @@ import (
 type IJobRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Job, int64, error)
 	FindById(id uuid.UUID) (*entity.Job, error)
+	GetAll() (*[]entity.Job, error)
 	GetJobsByOrganizationStructureIDs(organizationStructureIDs []uuid.UUID) (*[]entity.Job, error)
 	FindAllChildren(parentID uuid.UUID) ([]entity.Job, error)
 	FindParent(id uuid.UUID) (*entity.Job, error)
@@ -27,6 +28,15 @@ func NewJobRepository(log *logrus.Logger, db *gorm.DB) IJobRepository {
 		Log: log,
 		DB:  db,
 	}
+}
+
+func (r *JobRepository) GetAll() (*[]entity.Job, error) {
+	var jobs []entity.Job
+	if err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Find(&jobs).Error; err != nil {
+		return nil, err
+	}
+
+	return &jobs, nil
 }
 
 func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string) (*[]entity.Job, int64, error) {
