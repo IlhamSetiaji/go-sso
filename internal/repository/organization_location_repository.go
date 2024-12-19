@@ -31,7 +31,7 @@ func (r *OrganizationLocationRepository) FindAllPaginated(page int, pageSize int
 	var organizationLocations []entity.OrganizationLocation
 	var total int64
 
-	query := r.DB.Model(&entity.OrganizationLocation{})
+	query := r.DB.Preload("Organization").Model(&entity.OrganizationLocation{})
 
 	if isNull {
 		if len(includedIDs) > 0 {
