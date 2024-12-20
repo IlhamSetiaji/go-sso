@@ -7,6 +7,7 @@ import (
 	messaging "app/go-sso/internal/messaging/job"
 	orgMessaging "app/go-sso/internal/messaging/organization"
 	userMessaging "app/go-sso/internal/messaging/user"
+	"app/go-sso/utils"
 	"encoding/json"
 	"errors"
 	"os"
@@ -71,17 +72,29 @@ func InitConsumer(viper *viper.Viper, log *logrus.Logger) {
 		case msg := <-msgChannel:
 			// unmarshal
 			docMsg := &request.RabbitMQRequest{}
+			docRply := &response.RabbitMQResponse{}
 			err = json.Unmarshal(msg.Body, docMsg)
 			if err != nil {
 				log.Printf("ERROR: fail unmarshl: %s", msg.Body)
 				continue
 			}
-			log.Printf("INFO: received msg: %v", docMsg)
+			log.Printf("INFO: received docMsg: %v", docMsg)
+
+			err = json.Unmarshal(msg.Body, docRply)
+			if err != nil {
+				log.Printf("ERROR: fail unmarshl: %s", msg.Body)
+				continue
+			}
+			log.Printf("INFO: received docRply: %v", docRply)
 
 			// ack for message
 			err = msg.Ack(true)
 			if err != nil {
 				log.Printf("ERROR: fail to ack: %s", err.Error())
+			}
+
+			if rchan, ok := utils.Rchans[docRply.ID]; ok {
+				rchan <- *docRply
 			}
 
 			// handle docMsg

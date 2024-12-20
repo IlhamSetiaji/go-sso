@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"app/go-sso/internal/http/request"
+	"app/go-sso/internal/http/response"
 	mqResponse "app/go-sso/internal/http/response"
+	"errors"
 	"log"
 	"time"
 
@@ -46,7 +49,13 @@ func (h *TemplateHelper) HasRole(requiredRole string) bool {
 	return false
 }
 
-var Rchans = make(map[string](chan interface{}))
+var Rchans = make(map[string](chan response.RabbitMQResponse))
+var Pchan = make(chan RabbitMsg, 10)
+
+type RabbitMsg struct {
+	QueueName string                  `json:"queueName"`
+	Message   request.RabbitMQRequest `json:"message"`
+}
 
 func WaitReply(uid string, rchan chan mqResponse.RabbitMQResponse, ctx *gin.Context) {
 	for {
@@ -69,6 +78,26 @@ func WaitReply(uid string, rchan chan mqResponse.RabbitMQResponse, ctx *gin.Cont
 			// remove channel from rchans
 			delete(Rchans, uid)
 			return
+		}
+	}
+}
+
+func WaitForReply(id string, rchan chan response.RabbitMQResponse) (response.RabbitMQResponse, error) {
+	for {
+		select {
+		case docReply := <-rchan:
+			// responses received
+			log.Printf("INFO: received reply: %v uid: %s", docReply, id)
+
+			delete(Rchans, id)
+			return docReply, nil
+		case <-time.After(10 * time.Second):
+			// timeout
+			log.Printf("ERROR: request timeout uid: %s", id)
+
+			// remove channel from rchans
+			delete(Rchans, id)
+			return response.RabbitMQResponse{}, errors.New("request timeout")
 		}
 	}
 }

@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"app/go-sso/internal/http/response"
+	"app/go-sso/utils"
 	"encoding/json"
 	"os"
 
@@ -62,6 +63,31 @@ func InitProducer(viper *viper.Viper, log *logrus.Logger) {
 			}
 
 			log.Printf("INFO: published msg: %v to: %s", msg.Reply, msg.QueueName)
+		case msg := <-utils.Pchan:
+			// marshal
+			data, err := json.Marshal(&msg.Message)
+			if err != nil {
+				log.Printf("ERROR: fail marshal: %s", err.Error())
+				continue
+			}
+
+			// publish message
+			err = amqpChannel.Publish(
+				"",            // exchange
+				msg.QueueName, // routing key
+				false,         // mandatory
+				false,         // immediate
+				amqp091.Publishing{
+					ContentType: "text/plain",
+					Body:        data,
+				},
+			)
+			if err != nil {
+				log.Printf("ERROR: fail publish msg: %s", err.Error())
+				continue
+			}
+
+			log.Printf("INFO: published msg: %v", msg.Message)
 		}
 	}
 }

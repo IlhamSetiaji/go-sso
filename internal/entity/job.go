@@ -26,6 +26,8 @@ type Job struct {
 	Parent                *Job                  `json:"parent" gorm:"foreignKey:ParentID;references:ID;constraint:OnDelete:CASCADE"`
 	Children              []Job                 `json:"children" gorm:"foreignKey:ParentID;references:ID"`
 	EmployeeJobs          []EmployeeJob         `json:"employee_jobs" gorm:"foreignKey:JobID;references:ID"`
+
+	Plafon int `json:"plafon" gorm:"-"`
 }
 
 func (job *Job) BeforeCreate(tx *gorm.DB) (err error) {

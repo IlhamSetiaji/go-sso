@@ -3,6 +3,7 @@ package usecase
 import (
 	"app/go-sso/internal/http/dto"
 	"app/go-sso/internal/http/response"
+	jobMsg "app/go-sso/internal/messaging/job"
 	"app/go-sso/internal/repository"
 
 	"github.com/google/uuid"
@@ -63,6 +64,20 @@ func (uc *GetJobsByJobLevelIDUseCase) Execute(request *IGetJobsByJobLevelIDUseCa
 			return nil, err
 		}
 		(*jobs)[i].Children = children
+
+		uc.Log.Info("job.ID: ", job.ID.String())
+
+		msgFactory := jobMsg.FindJobPlafonByJobIDMessageFactory(uc.Log)
+		msgReq := &jobMsg.IFindJobPlafonByJobIDMessageRequest{
+			JobID: job.ID.String(),
+		}
+		msgResp, err := msgFactory.Execute(msgReq)
+		if err != nil {
+			return nil, err
+		}
+
+		(*jobs)[i].Plafon = msgResp.Plafon
+
 	}
 
 	return &IGetJobsByJobLevelIDUseCaseResponse{
