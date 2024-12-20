@@ -50,7 +50,7 @@ func (r *EmployeeRepository) FindAllPaginated(page int, pageSize int, search str
 
 func (r *EmployeeRepository) FindById(id uuid.UUID) (*entity.Employee, error) {
 	var employee entity.Employee
-	err := r.DB.Preload("EmployeeJob").Preload("User").Preload("Organization.OrganizationType").Where("id = ?", id).First(&employee).Error
+	err := r.DB.Preload("EmployeeJob.Job").Preload("User").Preload("Organization.OrganizationType").Where("id = ?", id).First(&employee).Error
 	if err != nil {
 		return nil, err
 	}

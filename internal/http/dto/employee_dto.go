@@ -27,6 +27,7 @@ func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.Employ
 			"name":                     employee.EmployeeJob.Name,
 			"emp_organization_id":      employee.EmployeeJob.EmpOrganizationID,
 			"job_id":                   employee.EmployeeJob.JobID,
+			"job_name":                 employee.EmployeeJob.Job.Name,
 			"employee_id":              employee.EmployeeJob.EmployeeID,
 			"organization_location_id": employee.EmployeeJob.OrganizationLocationID,
 		},
