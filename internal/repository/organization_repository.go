@@ -12,6 +12,7 @@ import (
 type IOrganizationRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Organization, int64, error)
 	FindById(id uuid.UUID) (*entity.Organization, error)
+	FindByIDs(ids []uuid.UUID) (*[]entity.Organization, error)
 }
 
 type OrganizationRepository struct {
@@ -54,6 +55,15 @@ func (r *OrganizationRepository) FindById(id uuid.UUID) (*entity.Organization, e
 		return nil, err
 	}
 	return &organization, nil
+}
+
+func (r *OrganizationRepository) FindByIDs(ids []uuid.UUID) (*[]entity.Organization, error) {
+	var organizations []entity.Organization
+	err := r.DB.Preload("OrganizationLocations").Preload("OrganizationStructures").Preload("OrganizationType").Where("id IN ?", ids).Find(&organizations).Error
+	if err != nil {
+		return nil, err
+	}
+	return &organizations, nil
 }
 
 func OrganizationRepositoryFactory(log *logrus.Logger) IOrganizationRepository {

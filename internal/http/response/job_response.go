@@ -17,6 +17,7 @@ type JobResponse struct {
 	Existing                  int                `json:"existing"`
 	Promotion                 int                `json:"promotion"`
 	JobLevel                  JobLevelResponse   `json:"job_level"`
+	JobPlafon                 int                `json:"job_plafon"`
 	Parent                    *ParentJobResponse `json:"parent"`
 	Children                  []JobResponse      `json:"children"`
 }
