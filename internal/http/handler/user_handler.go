@@ -2,6 +2,7 @@ package handler
 
 import (
 	"app/go-sso/internal/config"
+	"app/go-sso/internal/entity"
 	"app/go-sso/internal/http/middleware"
 	request "app/go-sso/internal/http/request/user"
 	authUsecase "app/go-sso/internal/usecase/auth_token"
@@ -112,6 +113,16 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		h.Log.Errorf("Error when login: %v", err)
 		return
 	}
+
+	filteredRoles := []entity.Role{}
+	for _, role := range response.User.Roles {
+		if role.Name == payload.ChoosedRole {
+			filteredRoles = append(filteredRoles, role)
+			break
+		}
+	}
+	response.User.Roles = filteredRoles
+
 	token, err := utils.GenerateToken(&response.User)
 	if err != nil {
 		h.Log.Errorf("Error when generating token: %v", err)
@@ -259,7 +270,8 @@ func (h *UserHandler) Me(ctx *gin.Context) {
 
 	factory := usecase.MeUseCaseFactory(h.Log)
 	res, err := factory.Execute(&usecase.IMeUseCaseRequest{
-		ID: uuid.MustParse(user["id"].(string)),
+		ID:          uuid.MustParse(user["id"].(string)),
+		ChoosedRole: user["choosed_role"].(string),
 	})
 
 	if err != nil {

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/base64"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,6 +41,7 @@ func SetTokenCookie(ctx *gin.Context, token string, opts CookieOptions) {
 		opts.Secure,
 		opts.HTTPOnly,
 	)
+	fmt.Println("Cookie set")
 }
 
 func GetTokenFromCookie(ctx *gin.Context, cookieName string) (string, error) {

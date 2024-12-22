@@ -9,6 +9,7 @@ import (
 
 type UserResponse struct {
 	ID              uuid.UUID         `json:"id"`
+	ChoosedRole     string            `json:"choosed_role"`
 	EmployeeID      uuid.UUID         `json:"employee_id"`
 	OauthID         string            `json:"oauth_id"`
 	Username        string            `json:"username"`

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"app/go-sso/internal/entity"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -23,6 +24,7 @@ func GenerateToken(user *entity.User) (string, error) {
 	}
 
 	// Prepare roles and permissions
+	fmt.Println("length of user.Roles", len(user.Roles))
 	roles := make([]map[string]interface{}, len(user.Roles))
 	for i, role := range user.Roles {
 		permissions := make([]string, len(role.Permissions))
@@ -37,14 +39,17 @@ func GenerateToken(user *entity.User) (string, error) {
 
 	// prepare token claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":       user.ID,
-		"name":     user.Name,
-		"username": user.Username,
-		"email":    user.Email,
-		"roles":    roles,
-		"exp":      time.Now().Add(time.Hour * 72).Unix(),
-		"employee": user.Employee,
+		"id":           user.ID,
+		"name":         user.Name,
+		"username":     user.Username,
+		"email":        user.Email,
+		"choosed_role": roles[0]["name"],
+		"roles":        roles,
+		"exp":          time.Now().Add(time.Hour * 72).Unix(),
+		"employee":     user.Employee,
 	})
+
+	fmt.Println("Choosed Role", roles[0]["name"])
 
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString([]byte(viper.GetString("jwt.secret")))

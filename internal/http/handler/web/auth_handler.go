@@ -8,11 +8,11 @@ import (
 	"app/go-sso/utils"
 	"app/go-sso/views"
 	"fmt"
-	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -25,6 +25,8 @@ type AuthHandler struct {
 
 type AuthHandlerInterface interface {
 	LoginView(ctx *gin.Context)
+	ChooseRoles(ctx *gin.Context)
+	ContinueLogin(ctx *gin.Context)
 	Login(ctx *gin.Context)
 	Logout(ctx *gin.Context)
 	CheckCookieTest(ctx *gin.Context)
@@ -59,6 +61,120 @@ func (h *AuthHandler) LoginView(ctx *gin.Context) {
 	}
 
 	login.Render(ctx, data)
+}
+
+func (h *AuthHandler) ChooseRoles(ctx *gin.Context) {
+	state := ctx.Query("state")
+	session := sessions.Default(ctx)
+	profile := session.Get("profile")
+	if profile == nil {
+		session.Set("error", "Profile not found")
+		session.Save()
+		h.Log.Printf("Profile not found")
+		ctx.Redirect(302, "/logout")
+		return
+	}
+
+	userProfile, ok := profile.(entity.Profile)
+	if !ok {
+		session.Set("error", "Profile not found")
+		session.Save()
+		h.Log.Printf("Profile not found")
+		ctx.Redirect(302, "/logout")
+		return
+	}
+
+	factory := usecase.FindByIdUseCaseFactory(h.Log)
+	response, err := factory.Execute(&usecase.IFindByIdUseCaseRequest{
+		ID: userProfile.ID,
+	})
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, "/logout")
+		return
+	}
+
+	if response.User == nil {
+		session.Set("error", "User not found")
+		session.Save()
+		h.Log.Printf("User not found")
+	}
+
+	viewRoles := views.NewView("auth_base", "views/auth/choose_roles.html")
+	data := map[string]interface{}{
+		"Title": "Go SSO | Choose Roles",
+		"Roles": response.User.Roles,
+	}
+
+	if state != "" {
+		data["State"] = state
+	}
+
+	viewRoles.Render(ctx, data)
+}
+
+func (h *AuthHandler) ContinueLogin(ctx *gin.Context) {
+	testCookie := utils.NewDefaultCookieOptions("test_haha")
+	testCookie.Domain = h.Config.GetString("app.domain")
+	utils.SetTokenCookie(ctx, "test_cookie", testCookie)
+
+	session := sessions.Default(ctx)
+	payload := new(webRequest.ChooseRolesWebRequest)
+	if err := ctx.ShouldBind(payload); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+	err := h.Validate.Struct(payload)
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory := usecase.FindByIdOnlyUseCaseFactory(h.Log)
+	response, err := factory.Execute(&usecase.IFindByIdOnlyUseCaseRequest{
+		ID: uuid.MustParse(payload.ID),
+	})
+
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	filteredRoles := []entity.Role{}
+	for _, role := range response.User.Roles {
+		if role.ID.String() == payload.RoleID {
+			filteredRoles = append(filteredRoles, role)
+			break
+		}
+	}
+	response.User.Roles = filteredRoles
+
+	token, err := utils.GenerateToken(response.User)
+	if err != nil {
+		h.Log.Errorf("Error when generating token: %v", err)
+		session.Set("error", err.Error())
+		session.Save()
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	jwtCookie := utils.NewDefaultCookieOptions("jwt_token")
+	jwtCookie.Domain = h.Config.GetString("app.domain")
+	utils.SetTokenCookie(ctx, token, jwtCookie)
+
+	ctx.Redirect(302, "/portal")
+
 }
 
 func (h *AuthHandler) Login(ctx *gin.Context) {
@@ -108,37 +224,40 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateToken(&response.User)
-	if err != nil {
-		h.Log.Errorf("Error when generating token: %v", err)
-		session.Set("error", err.Error())
-		session.Save()
-		ctx.Redirect(302, ctx.Request.Referer())
-		return
-	}
+	ctx.Redirect(302, "/choose-roles")
+	return
 
-	if payload.State != "" {
-		data, err := h.loginAsApplication(token, payload.State, response)
-		if err != nil {
-			session.Set("error", err.Error())
-			session.Save()
-			h.Log.Printf(err.Error())
-			ctx.Redirect(302, ctx.Request.Referer())
-			return
-		}
+	// token, err := utils.GenerateToken(&response.User)
+	// if err != nil {
+	// 	h.Log.Errorf("Error when generating token: %v", err)
+	// 	session.Set("error", err.Error())
+	// 	session.Save()
+	// 	ctx.Redirect(302, ctx.Request.Referer())
+	// 	return
+	// }
 
-		application := data["application"].(*entity.Application)
+	// if payload.State != "" {
+	// 	data, err := h.loginAsApplication(token, payload.State, &response.User)
+	// 	if err != nil {
+	// 		session.Set("error", err.Error())
+	// 		session.Save()
+	// 		h.Log.Printf(err.Error())
+	// 		ctx.Redirect(302, ctx.Request.Referer())
+	// 		return
+	// 	}
 
-		redirectURL := fmt.Sprintf("%s?token=%s", application.RedirectURI, data["token"])
-		h.Log.Printf("Redirecting to URL: %s", redirectURL)
+	// 	application := data["application"].(*entity.Application)
 
-		if !strings.HasPrefix(redirectURL, "http") {
-			redirectURL = "http://" + redirectURL
-		}
+	// 	redirectURL := fmt.Sprintf("%s?token=%s", application.RedirectURI, data["token"])
+	// 	h.Log.Printf("Redirecting to URL: %s", redirectURL)
 
-		ctx.Redirect(302, redirectURL)
-		return
-	}
+	// 	if !strings.HasPrefix(redirectURL, "http") {
+	// 		redirectURL = "http://" + redirectURL
+	// 	}
+
+	// 	ctx.Redirect(302, redirectURL)
+	// 	return
+	// }
 
 	// if !h.checkUserRole(&response.User, "superadmin") {
 	// 	session.Set("error", "You are not allowed to access this page")
@@ -147,11 +266,12 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	// 	return
 	// }
 
-	jwtCookie := utils.NewDefaultCookieOptions("jwt_token")
-	jwtCookie.Domain = h.Config.GetString("app.domain")
-	utils.SetTokenCookie(ctx, token, jwtCookie)
-
-	ctx.Redirect(302, "/portal")
+	// jwtCookie := utils.NewDefaultCookieOptions("jwt_token")
+	// jwtCookie.Domain = h.Config.GetString("app.domain")
+	// utils.SetTokenCookie(ctx, token, jwtCookie)
+	// utils.SuccessResponse(ctx, 200, "success", response.User)
+	// return
+	// ctx.Redirect(302, "/portal")
 }
 
 func (h *AuthHandler) CheckCookieTest(ctx *gin.Context) {
@@ -177,7 +297,7 @@ func (h *AuthHandler) checkUserRole(user *entity.User, role string) bool {
 	return false
 }
 
-func (h *AuthHandler) loginAsApplication(token string, state string, response *usecase.ILoginUseCaseResponse) (map[string]interface{}, error) {
+func (h *AuthHandler) loginAsApplication(token string, state string, user *entity.User) (map[string]interface{}, error) {
 	factory := appUsecase.FindApplicationByNameUsecaseFactory(h.Log)
 	application, err := factory.Execute(&appUsecase.IFindApplicationByNameUsecaseRequest{
 		Name: state,
@@ -191,7 +311,7 @@ func (h *AuthHandler) loginAsApplication(token string, state string, response *u
 	data := map[string]interface{}{
 		"token":       token,
 		"application": application.Application,
-		"user":        response.User,
+		"user":        user,
 	}
 
 	return data, nil
@@ -202,5 +322,6 @@ func (h *AuthHandler) Logout(ctx *gin.Context) {
 	session.Delete("profile")
 	session.Set("success", "You have been logged out")
 	session.Save()
+	utils.ClearTokenCookie(ctx, "jwt_token", h.Config.GetString("app.domain"))
 	ctx.Redirect(302, "/login")
 }

@@ -93,6 +93,8 @@ func (c *RouteConfig) SetupApiRoutes() {
 
 func (c *RouteConfig) SetupWebRoutes() {
 	c.App.GET("/login", c.AuthWebHandler.LoginView)
+	c.App.GET("/choose-roles", c.AuthWebHandler.ChooseRoles)
+	c.App.POST("/continue-login", c.AuthWebHandler.ContinueLogin)
 	c.App.POST("/login", c.AuthWebHandler.Login)
 	c.App.Use(c.WebAuthMiddleware)
 	{

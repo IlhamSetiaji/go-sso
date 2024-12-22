@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"app/go-sso/internal/entity"
 	"app/go-sso/internal/http/dto"
 	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
@@ -11,7 +12,8 @@ import (
 )
 
 type IMeUseCaseRequest struct {
-	ID uuid.UUID `json:"id"`
+	ID          uuid.UUID `json:"id"`
+	ChoosedRole string    `json:"choosed_role"`
 }
 
 type IMeUseCase interface {
@@ -47,6 +49,16 @@ func (u *MeUseCase) Execute(request *IMeUseCaseRequest) (*IMeUseCaseResponse, er
 	if user == nil {
 		return nil, errors.New("user not found")
 	}
+
+	filteredRoles := []entity.Role{}
+	for _, role := range user.Roles {
+		if role.Name == request.ChoosedRole {
+			filteredRoles = append(filteredRoles, role)
+			break
+		}
+	}
+	user.Roles = filteredRoles
+	user.ChoosedRole = request.ChoosedRole
 
 	return &IMeUseCaseResponse{
 		User: dto.ConvertToSingleUserResponse(user),

@@ -42,6 +42,8 @@ type User struct {
 	UpdatedAt       time.Time   `json:"updated_at" gorm:"autoUpdateTime"`
 	MidsuitID       string      `json:"midsuit_id" gorm:"default:null"`
 	// DeletedAt       time.Time  `json:"deleted_at" gorm:"index"`
+
+	ChoosedRole string `json:"choosed_role" gorm:"-"`
 }
 
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
