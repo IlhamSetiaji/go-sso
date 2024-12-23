@@ -10,7 +10,7 @@ import (
 )
 
 type IJobRepository interface {
-	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Job, int64, error)
+	FindAllPaginated(page int, pageSize int, search string, orgStructureIds []string) (*[]entity.Job, int64, error)
 	FindById(id uuid.UUID) (*entity.Job, error)
 	GetAll() (*[]entity.Job, error)
 	FindAllJobs(includedIDs []string) (*[]entity.Job, error)
@@ -49,7 +49,7 @@ func (r *JobRepository) FindAllJobs(includedIDs []string) (*[]entity.Job, error)
 	return &jobs, nil
 }
 
-func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string) (*[]entity.Job, int64, error) {
+func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string, orgStructureIds []string) (*[]entity.Job, int64, error) {
 	var jobs []entity.Job
 	var total int64
 
@@ -57,6 +57,10 @@ func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string) 
 
 	if search != "" {
 		query = query.Where("name LIKE ?", "%"+search+"%")
+	}
+
+	if len(orgStructureIds) > 0 {
+		query = query.Where("organization_structure_id IN ?", orgStructureIds)
 	}
 
 	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&jobs).Error; err != nil {
@@ -90,7 +94,7 @@ func (r *JobRepository) GetJobsByOrganizationStructureIDs(organizationStructureI
 
 func (r *JobRepository) FindAllChildren(parentID uuid.UUID) ([]entity.Job, error) {
 	var children []entity.Job
-	if err := r.DB.Where("parent_id = ?", parentID).Find(&children).Error; err != nil {
+	if err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Where("parent_id = ?", parentID).Find(&children).Error; err != nil {
 		return nil, err
 	}
 

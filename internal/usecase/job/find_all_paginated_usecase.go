@@ -5,13 +5,15 @@ import (
 	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
 type IFindAllPaginatedUseCaseRequest struct {
-	Page     int    `json:"page"`
-	PageSize int    `json:"page_size"`
-	Search   string `json:"search"`
+	Page           int    `json:"page"`
+	PageSize       int    `json:"page_size"`
+	Search         string `json:"search"`
+	OrganizationID string `json:"organization_id"`
 }
 
 type IFindAllPaginatedUseCaseResponse struct {
@@ -24,22 +26,40 @@ type IFindAllPaginatedUseCase interface {
 }
 
 type FindAllPaginatedUseCase struct {
-	Log           *logrus.Logger
-	JobRepository repository.IJobRepository
+	Log              *logrus.Logger
+	JobRepository    repository.IJobRepository
+	OrgStructureRepo repository.IOrganizationStructureRepository
 }
 
 func NewFindAllPaginatedUseCase(
 	log *logrus.Logger,
 	jobRepository repository.IJobRepository,
+	orgStructureRepo repository.IOrganizationStructureRepository,
 ) IFindAllPaginatedUseCase {
 	return &FindAllPaginatedUseCase{
-		Log:           log,
-		JobRepository: jobRepository,
+		Log:              log,
+		JobRepository:    jobRepository,
+		OrgStructureRepo: orgStructureRepo,
 	}
 }
 
 func (uc *FindAllPaginatedUseCase) Execute(req *IFindAllPaginatedUseCaseRequest) (*IFindAllPaginatedUseCaseResponse, error) {
-	jobs, total, err := uc.JobRepository.FindAllPaginated(req.Page, req.PageSize, req.Search)
+	var includedIDs []string
+	if req.OrganizationID != "" {
+		orgStructures, err := uc.OrgStructureRepo.FindAllOrgStructuresByOrganizationID(uuid.MustParse(req.OrganizationID))
+		if err != nil {
+			return nil, err
+		}
+
+		for _, orgStructure := range *orgStructures {
+			includedIDs = append(includedIDs, orgStructure.ID.String())
+		}
+
+	} else {
+		includedIDs = []string{}
+	}
+
+	jobs, total, err := uc.JobRepository.FindAllPaginated(req.Page, req.PageSize, req.Search, includedIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -74,5 +94,6 @@ func (uc *FindAllPaginatedUseCase) Execute(req *IFindAllPaginatedUseCaseRequest)
 
 func FindAllPaginatedUseCaseFactory(log *logrus.Logger) IFindAllPaginatedUseCase {
 	jobRepository := repository.JobRepositoryFactory(log)
-	return NewFindAllPaginatedUseCase(log, jobRepository)
+	orgStructureRepo := repository.OrganizationStructureRepositoryFactory(log)
+	return NewFindAllPaginatedUseCase(log, jobRepository, orgStructureRepo)
 }

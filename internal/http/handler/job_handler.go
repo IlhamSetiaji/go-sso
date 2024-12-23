@@ -62,11 +62,17 @@ func (h *JobHandler) FindAllPaginated(ctx *gin.Context) {
 		search = ""
 	}
 
+	organizationId := ctx.Query("organization_id")
+	if organizationId == "" {
+		organizationId = ""
+	}
+
 	factory := usecase.FindAllPaginatedUseCaseFactory(h.Log)
 	response, err := factory.Execute(&usecase.IFindAllPaginatedUseCaseRequest{
-		Page:     page,
-		PageSize: pageSize,
-		Search:   search,
+		Page:           page,
+		PageSize:       pageSize,
+		Search:         search,
+		OrganizationID: organizationId,
 	})
 
 	if err != nil {

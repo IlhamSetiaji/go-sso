@@ -11,6 +11,7 @@ import (
 
 type IOrganizationStructureRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error)
+	FindAllOrgStructuresByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindById(id uuid.UUID) (*entity.OrganizationStructure, error)
 	GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindByOrganizationId(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
@@ -51,6 +52,15 @@ func (r *OrganizationStructureRepository) FindAllPaginated(page int, pageSize in
 	}
 
 	return &organizationStructures, total, nil
+}
+
+func (r *OrganizationStructureRepository) FindAllOrgStructuresByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error) {
+	var organizationStructures []entity.OrganizationStructure
+	err := r.DB.Preload("Organization.OrganizationType").Preload("JobLevel").Where("organization_id = ?", organizationID).Find(&organizationStructures).Error
+	if err != nil {
+		return nil, err
+	}
+	return &organizationStructures, nil
 }
 
 func (r *OrganizationStructureRepository) FindAllChildren(parentID uuid.UUID) ([]entity.OrganizationStructure, error) {
