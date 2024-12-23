@@ -12,6 +12,7 @@ import (
 type IOrganizationLocationRepository interface {
 	FindAllPaginated(page int, pageSize int, search string, includedIDs []string, isNull bool) (*[]entity.OrganizationLocation, int64, error)
 	FindById(id uuid.UUID) (*entity.OrganizationLocation, error)
+	FindAllOrganizationLocations(includedIDs []string) (*[]entity.OrganizationLocation, error)
 	FindByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationLocation, error)
 }
 
@@ -60,6 +61,16 @@ func (r *OrganizationLocationRepository) FindAllPaginated(page int, pageSize int
 	r.Log.Infof("Total ids: %d", includedIDs)
 
 	return &organizationLocations, total, nil
+}
+
+func (r *OrganizationLocationRepository) FindAllOrganizationLocations(includedIDs []string) (*[]entity.OrganizationLocation, error) {
+	var organizationLocations []entity.OrganizationLocation
+	err := r.DB.Where("id IN ?", includedIDs).Find(&organizationLocations).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &organizationLocations, nil
 }
 
 func (r *OrganizationLocationRepository) FindById(id uuid.UUID) (*entity.OrganizationLocation, error) {

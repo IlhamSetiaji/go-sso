@@ -598,6 +598,45 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 		msgData = map[string]interface{}{
 			"jobs": message.Jobs,
 		}
+	case "find_all_organization_locations_by_ids":
+		includedIDsInterface, ok := docMsg.MessageData["included_ids"].([]interface{})
+		if !ok {
+			log.Printf("Invalid request format: missing 'included_ids'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'included_ids'").Error(),
+			}
+			break
+		}
+
+		includedIDs := make([]string, len(includedIDsInterface))
+		for i, v := range includedIDsInterface {
+			str, ok := v.(string)
+			if !ok {
+				log.Printf("Invalid request format: missing 'included_ids'")
+				msgData = map[string]interface{}{
+					"error": errors.New("missing 'included_ids'").Error(),
+				}
+				break
+			}
+			includedIDs[i] = str
+		}
+
+		messageFactory := orgMessaging.FindAllOrgLocationsByIDsMessageFactory(log)
+		message, err := messageFactory.Execute(&orgMessaging.IFindAllOrgLocationsByIDsMessageRequest{
+			IncludedIDs: includedIDs,
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"organization_locations": message.OrgLocations,
+		}
 	default:
 		log.Printf("Unknown message type, please recheck your type: %s", docMsg.MessageType)
 
