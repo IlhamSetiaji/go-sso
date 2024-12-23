@@ -8,6 +8,7 @@ import (
 	"app/go-sso/utils"
 	"app/go-sso/views"
 	"fmt"
+	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -172,6 +173,29 @@ func (h *AuthHandler) ContinueLogin(ctx *gin.Context) {
 	jwtCookie := utils.NewDefaultCookieOptions("jwt_token")
 	jwtCookie.Domain = h.Config.GetString("app.domain")
 	utils.SetTokenCookie(ctx, token, jwtCookie)
+
+	if payload.State != "" {
+		data, err := h.loginAsApplication(token, payload.State, response.User)
+		if err != nil {
+			session.Set("error", err.Error())
+			session.Save()
+			h.Log.Printf(err.Error())
+			ctx.Redirect(302, ctx.Request.Referer())
+			return
+		}
+
+		application := data["application"].(*entity.Application)
+
+		redirectURL := fmt.Sprintf("%s?token=%s", application.RedirectURI, data["token"])
+		h.Log.Printf("Redirecting to URL: %s", redirectURL)
+
+		if !strings.HasPrefix(redirectURL, "http") {
+			redirectURL = "http://" + redirectURL
+		}
+
+		ctx.Redirect(302, redirectURL)
+		return
+	}
 
 	ctx.Redirect(302, "/portal")
 
