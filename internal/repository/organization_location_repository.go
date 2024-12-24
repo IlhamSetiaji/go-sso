@@ -45,7 +45,7 @@ func (r *OrganizationLocationRepository) FindAllPaginated(page int, pageSize int
 	}
 
 	if search != "" {
-		query = query.Where("name LIKE ?", "%"+search+"%")
+		query = query.Where("name ILIKE ?", "%"+search+"%")
 	}
 
 	err := query.Count(&total).Error

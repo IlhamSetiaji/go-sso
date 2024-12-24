@@ -33,7 +33,7 @@ func (r *OrganizationTypeRepository) FindAllPaginated(page int, pageSize int, se
 	query := r.DB
 
 	if search != "" {
-		query = query.Where("name LIKE ?", "%"+search+"%")
+		query = query.Where("name ILIKE ?", "%"+search+"%")
 	}
 
 	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&organizationTypes).Error; err != nil {

@@ -55,7 +55,7 @@ func (r *UserRepository) FindAllPaginated(page int, pageSize int, search string)
 	query := r.DB.Preload("Employee.Organization").Preload("Employee.EmployeeJob.Job").Preload("Employee.EmployeeJob.EmpOrganization").Preload("Employee.EmployeeJob.OrganizationLocation")
 
 	if search != "" {
-		query = query.Where("email LIKE ?", "%"+search+"%").Or("name LIKE ?", "%"+search+"%").Or("username LIKE ?", "%"+search+"%")
+		query = query.Where("email ILIKE ?", "%"+search+"%").Or("name ILIKE ?", "%"+search+"%").Or("username ILIKE ?", "%"+search+"%")
 	}
 
 	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&users).Error; err != nil {

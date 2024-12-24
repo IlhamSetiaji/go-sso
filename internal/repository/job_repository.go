@@ -56,7 +56,7 @@ func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string, 
 	query := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel")
 
 	if search != "" {
-		query = query.Where("name LIKE ?", "%"+search+"%")
+		query = query.Where("name ILIKE ?", "%"+search+"%")
 	}
 
 	if len(orgStructureIds) > 0 {
