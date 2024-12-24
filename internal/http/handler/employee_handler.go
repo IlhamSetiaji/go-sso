@@ -61,7 +61,7 @@ func (h *EmployeeHandler) FindAllPaginated(ctx *gin.Context) {
 		page = 1
 	}
 
-	pageSize, err := strconv.Atoi(ctx.Query("pageSize"))
+	pageSize, err := strconv.Atoi(ctx.Query("page_size"))
 	if err != nil || pageSize < 1 {
 		pageSize = 10
 	}
