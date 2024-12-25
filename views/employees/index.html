@@ -39,6 +39,7 @@
         <thead>
           <tr>
             <th>ID</th>
+            <th>User Name</th>
             <th>Name</th>
             <th>Email</th>
             <th>Mobile Phone</th>
@@ -52,12 +53,13 @@
           {{range .Employees}}
           <tr>
             <td>{{.ID}}</td>
+            <td>{{.User.Name}}</td>
             <td>{{.Name}}</td>
             <td>{{.Email}}</td>
             <td>{{.MobilePhone}}</td>
             <td>{{.Organization.Name}}</td>
-            <td>{{.EndDate}}</td>
-            <td>{{.RetirementDate}}</td>
+            <td>{{call $.DateFormatter .EndDate}}</td>
+            <td>{{call $.DateFormatter .RetirementDate}}</td>
             <td>
               {{if call $.HasPermission "delete-employee"}}
               <form

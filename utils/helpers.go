@@ -49,6 +49,10 @@ func (h *TemplateHelper) HasRole(requiredRole string) bool {
 	return false
 }
 
+func (h *TemplateHelper) DateFormatter(date time.Time) string {
+	return date.Format("2006-01-02")
+}
+
 var Rchans = make(map[string](chan response.RabbitMQResponse))
 var Pchan = make(chan RabbitMsg, 10)
 

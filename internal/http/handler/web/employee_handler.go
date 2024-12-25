@@ -3,6 +3,7 @@ package web
 import (
 	"app/go-sso/internal/http/middleware"
 	usecase "app/go-sso/internal/usecase/employee"
+	userUsecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/views"
 
 	"github.com/gin-gonic/gin"
@@ -42,10 +43,20 @@ func (h *EmployeeHandler) Index(ctx *gin.Context) {
 		return
 	}
 
+	userFactory := userUsecase.GetAllUsersDoesntHaveEmployeeUsecaseFactory(h.Log)
+
+	userResp, err := userFactory.Execute()
+	if err != nil {
+		h.Log.Error(err)
+		ctx.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
 	index := views.NewView("base", "views/employees/index.html")
 	data := map[string]interface{}{
 		"Title":     "Go SSO | Employee",
 		"Employees": resp.Employees,
+		"Users":     userResp.Users,
 	}
 
 	index.Render(ctx, data)

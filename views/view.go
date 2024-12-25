@@ -79,6 +79,7 @@ func (v *View) Render(c *gin.Context, data interface{}) {
 
 	dataMap["HasPermission"] = templateHelper.HasPermission
 	dataMap["HasRole"] = templateHelper.HasRole
+	dataMap["DateFormatter"] = templateHelper.DateFormatter
 
 	err := v.Template.ExecuteTemplate(c.Writer, v.Layout, dataMap)
 	if err != nil {

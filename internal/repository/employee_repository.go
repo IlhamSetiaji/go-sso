@@ -12,6 +12,7 @@ import (
 type IEmployeeRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Employee, int64, error)
 	FindAllEmployees() (*[]entity.Employee, error)
+	Store(employee *entity.Employee) (*entity.Employee, error)
 	FindById(id uuid.UUID) (*entity.Employee, error)
 	CountEmployeeRetiredEndByDateRange(startDate string, endDate string) (int64, error)
 }
@@ -77,6 +78,25 @@ func (r *EmployeeRepository) CountEmployeeRetiredEndByDateRange(startDate string
 		return 0, err
 	}
 	return total, nil
+}
+
+func (r *EmployeeRepository) Store(employee *entity.Employee) (*entity.Employee, error) {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	if err := tx.Create(employee).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return employee, nil
 }
 
 func EmployeeRepositoryFactory(log *logrus.Logger) IEmployeeRepository {

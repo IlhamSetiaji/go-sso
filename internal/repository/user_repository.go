@@ -16,6 +16,7 @@ type IUserRepository interface {
 	FindById(id uuid.UUID) (*entity.User, error)
 	FindByIdOnly(id uuid.UUID) (*entity.User, error)
 	GetAllUsers() (*[]entity.User, error)
+	GetAllUsersDoesNotHaveEmployee() (*[]entity.User, error)
 	CreateUser(user *entity.User, roleId uuid.UUID) (*entity.User, error)
 	UpdateUser(user *entity.User, roleId *uuid.UUID) (*entity.User, error)
 	DeleteUser(id uuid.UUID) error
@@ -77,6 +78,17 @@ func (r *UserRepository) GetAllUsers() (*[]entity.User, error) {
 	if err := r.DB.Preload("Roles.Application").Find(&users).Error; err != nil {
 		r.Log.Error("[UserRepository.GetAllUsers] " + err.Error())
 		return nil, errors.New("[UserRepository.GetAllUsers] " + err.Error())
+	}
+
+	return &users, nil
+}
+
+func (r *UserRepository) GetAllUsersDoesNotHaveEmployee() (*[]entity.User, error) {
+	var users []entity.User
+
+	if err := r.DB.Preload("Roles.Application").Where("employee_id IS NULL").Find(&users).Error; err != nil {
+		r.Log.Error("[UserRepository.GetAllUsersDoesNotHaveEmployee] " + err.Error())
+		return nil, errors.New("[UserRepository.GetAllUsersDoesNotHaveEmployee] " + err.Error())
 	}
 
 	return &users, nil
