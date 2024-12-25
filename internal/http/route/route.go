@@ -113,12 +113,14 @@ func (c *RouteConfig) SetupWebRoutes() {
 		{
 			roleRoutes.GET("/", c.RoleWebHandler.Index)
 			roleRoutes.POST("/", c.RoleWebHandler.StoreRole)
+			roleRoutes.POST("/assign-permissions", c.RoleWebHandler.AssignRoleToPermissions)
 			roleRoutes.POST("/update", c.RoleWebHandler.UpdateRole)
 			roleRoutes.POST("/delete", c.RoleWebHandler.DeleteRole)
 		}
 		permissionRoutes := c.App.Group("/permissions")
 		{
 			permissionRoutes.GET("/", c.PermissionWebHandler.Index)
+			permissionRoutes.GET("/role/:role_id", c.PermissionWebHandler.GetPermissionsByRoleID)
 			permissionRoutes.POST("/", c.PermissionWebHandler.StorePermission)
 			permissionRoutes.POST("/update", c.PermissionWebHandler.UpdatePermission)
 			permissionRoutes.POST("/delete", c.PermissionWebHandler.DeletePermission)

@@ -6,6 +6,7 @@ import (
 	request "app/go-sso/internal/http/request/web/permission"
 	appUsecase "app/go-sso/internal/usecase/application"
 	usecase "app/go-sso/internal/usecase/permission"
+	roleUsecase "app/go-sso/internal/usecase/role"
 	"app/go-sso/views"
 	"net/http"
 
@@ -23,6 +24,7 @@ type PermissionHandler struct {
 
 type PermissionHandlerInterface interface {
 	Index(ctx *gin.Context)
+	GetPermissionsByRoleID(ctx *gin.Context)
 	StorePermission(ctx *gin.Context)
 	UpdatePermission(ctx *gin.Context)
 	DeletePermission(ctx *gin.Context)
@@ -65,6 +67,76 @@ func (h *PermissionHandler) Index(ctx *gin.Context) {
 		"Title":        "Julong Portal | Permissions",
 		"Permissions":  resp.Permissions,
 		"Applications": appResp.Applications,
+	}
+
+	index.Render(ctx, data)
+}
+
+func (h *PermissionHandler) GetPermissionsByRoleID(ctx *gin.Context) {
+	middleware.PermissionMiddleware("read-permission")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
+	session := sessions.Default(ctx)
+
+	roleId := ctx.Param("role_id")
+
+	roleFactory := roleUsecase.FindByIdUseCaseFactory(h.Log)
+	role, err := roleFactory.Execute(&roleUsecase.IFindByIdUseCaseRequest{
+		ID: uuid.MustParse(roleId),
+	})
+
+	if err != nil {
+		h.Log.Error(err)
+		session.Set("error", err.Error())
+		session.Save()
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	if role == nil {
+		h.Log.Error("role not found")
+		session.Set("error", "Role not found")
+		session.Save()
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory := usecase.GetAllPermissionsByRoleIDUsecaseFactory(h.Log)
+
+	resp, err := factory.Execute(&usecase.IGetAllPermissionsByRoleIDUsecaseRequest{
+		RoleID: roleId,
+	})
+
+	if err != nil {
+		h.Log.Error(err)
+		session.Set("error", err.Error())
+		session.Save()
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory2 := usecase.GetAllPermissionsNotInRoleIDUsecaseFactory(h.Log)
+	perResp, err := factory2.Execute(&usecase.IGetAllPermissionsNotInRoleIDUsecaseRequest{
+		RoleID: roleId,
+	})
+
+	if err != nil {
+		h.Log.Error(err)
+		session.Set("error", err.Error())
+		session.Save()
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	index := views.NewView("base", "views/permissions/role_permissions.html")
+	data := map[string]interface{}{
+		"Title":          "Julong Portal | Permissions",
+		"Permissions":    resp.Permissions,
+		"AllPermissions": perResp.Permissions,
+		"Role":           role.Role,
 	}
 
 	index.Render(ctx, data)

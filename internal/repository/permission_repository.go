@@ -12,6 +12,8 @@ import (
 
 type IPermissionRepository interface {
 	GetAllPermissions() (*[]entity.Permission, error)
+	GetAllPermissionsByRoleID(roleID uuid.UUID) (*[]entity.Permission, error)
+	GetAllPermissionsNotInRoleID(roleID uuid.UUID) (*[]entity.Permission, error)
 	FindById(id uuid.UUID) (*entity.Permission, error)
 	StorePermission(permission *entity.Permission) (*entity.Permission, error)
 	UpdatePermission(permission *entity.Permission) (*entity.Permission, error)
@@ -41,6 +43,28 @@ func (r *PermissionRepository) GetAllPermissions() (*[]entity.Permission, error)
 		r.Log.Error(err)
 		return nil, err
 	}
+	return &permissions, nil
+}
+
+func (r *PermissionRepository) GetAllPermissionsByRoleID(roleID uuid.UUID) (*[]entity.Permission, error) {
+	var permissions []entity.Permission
+
+	if err := r.DB.Preload("Application").Preload("Roles").Joins("JOIN role_permissions ON role_permissions.permission_id = permissions.id").Where("role_permissions.role_id = ?", roleID).Find(&permissions).Error; err != nil {
+		r.Log.Error(err)
+		return nil, err
+	}
+
+	return &permissions, nil
+}
+
+func (r *PermissionRepository) GetAllPermissionsNotInRoleID(roleID uuid.UUID) (*[]entity.Permission, error) {
+	var permissions []entity.Permission
+
+	if err := r.DB.Preload("Application").Preload("Roles").Not("id IN (?)", r.DB.Table("role_permissions").Select("permission_id").Where("role_id = ?", roleID)).Find(&permissions).Error; err != nil {
+		r.Log.Error(err)
+		return nil, err
+	}
+
 	return &permissions, nil
 }
 

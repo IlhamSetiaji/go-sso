@@ -15,6 +15,7 @@ type IRoleRepository interface {
 	FindById(id uuid.UUID) (*entity.Role, error)
 	StoreRole(role *entity.Role) (*entity.Role, error)
 	UpdateRole(role *entity.Role) (*entity.Role, error)
+	AssignRoleToPermissions(role *entity.Role, permissionsIDs []string) (*entity.Role, error)
 	DeleteRole(id uuid.UUID) error
 }
 
@@ -108,4 +109,71 @@ func (r *RoleRepository) DeleteRole(id uuid.UUID) error {
 		return errors.New("[RoleRepository.DeleteRole] failed to commit transaction: " + err.Error())
 	}
 	return nil
+}
+
+func (r *RoleRepository) AssignRoleToPermissions(role *entity.Role, permissionsIDs []string) (*entity.Role, error) {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return nil, errors.New("[RoleRepository.AssignRoleToPermissions] failed to begin transaction: " + tx.Error.Error())
+	}
+
+	// if err := tx.Model(&role).Association("Permissions").Clear(); err != nil {
+	// 	tx.Rollback()
+	// 	r.Log.Error(err)
+	// 	return nil, err
+	// }
+	r.Log.Infof("Permission IDs: %v", permissionsIDs)
+	for _, id := range permissionsIDs {
+		permissionID, err := uuid.Parse(id)
+		if err != nil {
+			tx.Rollback()
+			r.Log.Error(err)
+			return nil, err
+		}
+		var permission entity.Permission
+		if err := r.DB.Where("id = ?", id).First(&permission).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				tx.Rollback()
+				r.Log.Error("[RoleRepository.AssignRoleToPermissions] permission not found")
+				return nil, errors.New("[RoleRepository.AssignRoleToPermissions] permission not found")
+			} else {
+				tx.Rollback()
+				r.Log.Error("[RoleRepository.AssignRoleToPermissions] error" + err.Error())
+				return nil, errors.New("[RoleRepository.AssignRoleToPermissions]" + err.Error())
+			}
+		}
+
+		// check if permission id and role id already exists in role_permissions
+		var rolePermission entity.RolePermission
+		if err := tx.Where("role_id = ? AND permission_id = ?", role.ID, permissionID).First(&rolePermission).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// do nothing
+				// continue
+				if err := tx.Create(&entity.RolePermission{
+					RoleID:       role.ID,
+					PermissionID: permissionID,
+				}).Error; err != nil {
+					tx.Rollback()
+					r.Log.Error(err)
+					return nil, err
+				}
+			} else {
+				tx.Rollback()
+				r.Log.Error("[RoleRepository.AssignRoleToPermissions] error" + err.Error())
+				return nil, errors.New("[RoleRepository.AssignRoleToPermissions]" + err.Error())
+			}
+		} else {
+			continue
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[RoleRepository.AssignRoleToPermissions] failed to commit transaction: " + err.Error())
+		return nil, errors.New("[RoleRepository.AssignRoleToPermissions] failed to commit transaction: " + err.Error())
+	}
+
+	r.Log.Info("Role assigned to permissions")
+
+	return role, nil
 }
