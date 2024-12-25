@@ -262,7 +262,8 @@
           confirmButtonText: "Yes, delete it!",
         }).then((result) => {
           if (result.isConfirmed) {
-            $(this).parent().submit();
+            alert("You could not delete yet, the feature is under development");
+            // $(this).parent().submit();
           }
         });
       });
