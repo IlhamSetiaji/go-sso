@@ -130,6 +130,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 		employeeRoutes := c.App.Group("/employees")
 		{
 			employeeRoutes.GET("/", c.EmployeeWebHandler.Index)
+			employeeRoutes.POST("/", c.EmployeeWebHandler.Store)
 		}
 	}
 }

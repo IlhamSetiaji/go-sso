@@ -19,6 +19,7 @@ type IUserRepository interface {
 	GetAllUsersDoesNotHaveEmployee() (*[]entity.User, error)
 	CreateUser(user *entity.User, roleId uuid.UUID) (*entity.User, error)
 	UpdateUser(user *entity.User, roleId *uuid.UUID) (*entity.User, error)
+	UpdateUserOnly(user *entity.User) (*entity.User, error)
 	DeleteUser(id uuid.UUID) error
 }
 
@@ -204,6 +205,32 @@ func (r *UserRepository) UpdateUser(user *entity.User, roleId *uuid.UUID) (*enti
 	if err := r.DB.Preload("Roles").First(user, user.ID).Error; err != nil {
 		r.Log.Error("[UserRepository.CreateUser] Failed to reload user: " + err.Error())
 		return nil, errors.New("[UserRepository.CreateUser] Failed to reload user: " + err.Error())
+	}
+
+	return user, nil
+}
+
+func (r *UserRepository) UpdateUserOnly(user *entity.User) (*entity.User, error) {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return nil, errors.New("[UserRepository.UpdateUserOnly] failed to begin transaction: " + tx.Error.Error())
+	}
+
+	if err := tx.Model(&user).Where("id = ?", user.ID).Updates(user).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.UpdateUserOnly] " + err.Error())
+		return nil, errors.New("[UserRepository.UpdateUserOnly] " + err.Error())
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.UpdateUserOnly] failed to commit transaction: " + err.Error())
+		return nil, errors.New("[UserRepository.UpdateUserOnly] failed to commit transaction: " + err.Error())
+	}
+
+	if err := r.DB.Preload("Roles").First(user, user.ID).Error; err != nil {
+		r.Log.Error("[UserRepository.UpdateUserOnly] Failed to reload user: " + err.Error())
+		return nil, errors.New("[UserRepository.UpdateUserOnly] Failed to reload user: " + err.Error())
 	}
 
 	return user, nil

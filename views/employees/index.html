@@ -86,6 +86,163 @@
       </table>
     </div>
     {{if call .HasPermission "create-employee"}}
+    <div
+      class="modal fade text-left w-100"
+      id="xlarge"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myModalLabel16"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"
+        role="document"
+      >
+        <div class="modal-content">
+          <div class="modal-header bg-success">
+            <h4 class="modal-title text-white" id="myModalLabel16">
+              Create New Employee
+            </h4>
+            <button
+              type="button"
+              class="close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              <i data-feather="x"></i>
+            </button>
+          </div>
+          <form action="/employees" method="POST">
+            <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
+            <div class="modal-body">
+              <div class="form-group has-icon-left">
+                <label for="user_id">User</label>
+                <div class="position-relative">
+                  <select
+                    name="user_id"
+                    id="user_id"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Select User</option>
+                    {{range .Users}}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                  </select>
+                  <div class="form-control-icon">
+                    <i class="fas fa-user"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="user_id">Organization</label>
+                <div class="position-relative">
+                  <select
+                    name="organization_id"
+                    id="organization_id"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Select Organization</option>
+                    {{range .Organizations}}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                  </select>
+                  <div class="form-control-icon">
+                    <i class="fas fa-users"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="name">Name</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="name"
+                    class="form-control"
+                    placeholder="Fill your full name"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-id-card"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="name">Email</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="email"
+                    class="form-control"
+                    placeholder="Fill your email"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-envelope"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="name">Mobile Phone</label>
+                <div class="position-relative">
+                  <input
+                    type="tel"
+                    name="phone_number"
+                    class="form-control"
+                    placeholder="Fill your mobile phone"
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-phone"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="name">End Date</label>
+                <div class="position-relative">
+                  <input
+                    type="date"
+                    name="end_date"
+                    class="form-control"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-calendar"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="name">Retirement Date</label>
+                <div class="position-relative">
+                  <input
+                    type="date"
+                    name="retirement_date"
+                    class="form-control"
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-calendar-check"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-light-secondary"
+                data-bs-dismiss="modal"
+              >
+                <i class="bx bx-x d-block d-sm-none"></i>
+                <span class="d-none d-sm-block">Close</span>
+              </button>
+              <button type="submit" class="btn btn-primary ms-1">
+                <i class="bx bx-check d-block d-sm-none"></i>
+                <span class="d-none d-sm-block">Submit</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
     {{end}}
   </div>
   {{end}} {{define "custom-script"}}
