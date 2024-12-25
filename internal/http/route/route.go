@@ -114,6 +114,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 			roleRoutes.GET("/", c.RoleWebHandler.Index)
 			roleRoutes.POST("/", c.RoleWebHandler.StoreRole)
 			roleRoutes.POST("/assign-permissions", c.RoleWebHandler.AssignRoleToPermissions)
+			roleRoutes.POST("/resign-permissions", c.RoleWebHandler.ResignRoleFromPermission)
 			roleRoutes.POST("/update", c.RoleWebHandler.UpdateRole)
 			roleRoutes.POST("/delete", c.RoleWebHandler.DeleteRole)
 		}

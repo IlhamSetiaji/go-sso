@@ -58,8 +58,9 @@
             <td>{{len .Roles}}</td>
             <td>
               {{if call $.HasPermission "delete-permission"}}
-              <form action="/permissions/delete" method="POST" class="d-inline">
-                <input type="hidden" name="id" value="{{.ID}}" />
+              <form action="/roles/resign-permissions" method="POST" class="d-inline">
+                <input type="hidden" name="role_id" value="{{$.Role.ID}}" />
+                <input type="hidden" name="permission_id" value="{{.ID}}" />
                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
                 <button
                   type="button"

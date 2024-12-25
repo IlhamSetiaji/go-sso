@@ -16,6 +16,7 @@ type IRoleRepository interface {
 	StoreRole(role *entity.Role) (*entity.Role, error)
 	UpdateRole(role *entity.Role) (*entity.Role, error)
 	AssignRoleToPermissions(role *entity.Role, permissionsIDs []string) (*entity.Role, error)
+	ResignRoleFromPermission(role *entity.Role, permissionID uuid.UUID) (*entity.Role, error)
 	DeleteRole(id uuid.UUID) error
 }
 
@@ -174,6 +175,42 @@ func (r *RoleRepository) AssignRoleToPermissions(role *entity.Role, permissionsI
 	}
 
 	r.Log.Info("Role assigned to permissions")
+
+	return role, nil
+}
+
+func (r *RoleRepository) ResignRoleFromPermission(role *entity.Role, permissionID uuid.UUID) (*entity.Role, error) {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return nil, errors.New("[RoleRepository.ResignRoleFromPermission] failed to begin transaction: " + tx.Error.Error())
+	}
+
+	var rolePermission entity.RolePermission
+	if err := tx.Where("role_id = ? AND permission_id = ?", role.ID, permissionID).First(&rolePermission).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			tx.Rollback()
+			r.Log.Error("[RoleRepository.ResignRoleFromPermission] role permission not found")
+			return nil, errors.New("[RoleRepository.ResignRoleFromPermission] role permission not found")
+		} else {
+			tx.Rollback()
+			r.Log.Error("[RoleRepository.ResignRoleFromPermission] error" + err.Error())
+			return nil, errors.New("[RoleRepository.ResignRoleFromPermission]" + err.Error())
+		}
+	}
+
+	if err := tx.Where("role_id = ? AND permission_id = ?", role.ID, permissionID).Delete(&entity.RolePermission{}).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error(err)
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[RoleRepository.ResignRoleFromPermission] failed to commit transaction: " + err.Error())
+		return nil, errors.New("[RoleRepository.ResignRoleFromPermission] failed to commit transaction: " + err.Error())
+	}
+
+	r.Log.Info("Role resigned from permission")
 
 	return role, nil
 }
