@@ -23,6 +23,7 @@ type RouteConfig struct {
 	AuthMiddleware       gin.HandlerFunc
 	JobHandler           handler.IJobHandler
 	EmployeeHandler      handler.IEmployeeHandler
+	EmployeeWebHandler   web.EmployeeHandlerInterface
 }
 
 func (c *RouteConfig) SetupRoutes() {
@@ -125,6 +126,10 @@ func (c *RouteConfig) SetupWebRoutes() {
 			permissionRoutes.POST("/", c.PermissionWebHandler.StorePermission)
 			permissionRoutes.POST("/update", c.PermissionWebHandler.UpdatePermission)
 			permissionRoutes.POST("/delete", c.PermissionWebHandler.DeletePermission)
+		}
+		employeeRoutes := c.App.Group("/employees")
+		{
+			employeeRoutes.GET("/", c.EmployeeWebHandler.Index)
 		}
 	}
 }

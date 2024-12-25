@@ -11,6 +11,7 @@ import (
 
 type IEmployeeRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Employee, int64, error)
+	FindAllEmployees() (*[]entity.Employee, error)
 	FindById(id uuid.UUID) (*entity.Employee, error)
 	CountEmployeeRetiredEndByDateRange(startDate string, endDate string) (int64, error)
 }
@@ -46,6 +47,16 @@ func (r *EmployeeRepository) FindAllPaginated(page int, pageSize int, search str
 	}
 
 	return &employees, total, nil
+}
+
+func (r *EmployeeRepository) FindAllEmployees() (*[]entity.Employee, error) {
+	var employees []entity.Employee
+	err := r.DB.Preload("EmployeeJob.Job").Preload("User").Preload("Organization.OrganizationType").Find(&employees).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &employees, nil
 }
 
 func (r *EmployeeRepository) FindById(id uuid.UUID) (*entity.Employee, error) {

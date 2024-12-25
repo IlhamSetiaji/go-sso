@@ -88,6 +88,12 @@
             <span>Users</span>
           </a>
         </li>
+        <li class="sidebar-item {{if eq .CurrentPath "/employees/"}}active{{end}}">
+          <a href="/employees" class="sidebar-link">
+            <i class="fas fa-user-shield"></i>
+            <span>Employees</span>
+          </a>
+        </li>
         <li class="sidebar-item {{if eq .CurrentPath "/roles/"}}active{{end}}">
           <a href="/roles" class="sidebar-link">
             <i class="fas fa-users"></i>

@@ -104,6 +104,7 @@ func main() {
 	userWebHandler := web.UserHandlerFactory(log, validate)
 	roleWebHandler := web.RoleHandlerFactory(log, validate)
 	permissionWebHandler := web.PermissionHandlerFactory(log, validate)
+	employeeWebHandler := web.EmployeeHandlerFactory(log, validate)
 
 	// handle middleware
 	authMiddleware := middleware.NewAuth(viperConfig)
@@ -124,6 +125,7 @@ func main() {
 		AuthMiddleware:       authMiddleware,
 		WebAuthMiddleware:    authWebMiddleware,
 		EmployeeHandler:      employeeHandler,
+		EmployeeWebHandler:   employeeWebHandler,
 	}
 	routeConfig.SetupRoutes()
 
