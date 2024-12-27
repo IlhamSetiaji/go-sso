@@ -28,6 +28,7 @@ type EmployeeHandlerInterface interface {
 	Delete(ctx *gin.Context)
 	EmployeeJobs(ctx *gin.Context)
 	StoreEmployeeJob(ctx *gin.Context)
+	UpdateEmployeeJob(ctx *gin.Context)
 }
 
 func EmployeeHandlerFactory(log *logrus.Logger, validator *validator.Validate) EmployeeHandlerInterface {
@@ -330,6 +331,48 @@ func (h *EmployeeHandler) StoreEmployeeJob(ctx *gin.Context) {
 	}
 
 	session.Set("success", "Employee Job created")
+	session.Save()
+	ctx.Redirect(302, ctx.Request.Referer())
+}
+
+func (h *EmployeeHandler) UpdateEmployeeJob(ctx *gin.Context) {
+	middleware.PermissionMiddleware("update-employee-job")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
+	session := sessions.Default(ctx)
+
+	var request usecase.IUpdateEmployeeJobUsecaseRequest
+	if err := ctx.ShouldBind(&request); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err)
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	if err := h.Validate.Struct(request); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err)
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory := usecase.UpdateEmployeeJobUsecaseFactory(h.Log)
+
+	_, err := factory.Execute(&request)
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err)
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	session.Set("success", "Employee Job updated")
 	session.Save()
 	ctx.Redirect(302, ctx.Request.Referer())
 }
