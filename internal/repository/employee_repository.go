@@ -129,7 +129,14 @@ func (r *EmployeeRepository) Delete(id uuid.UUID) error {
 		return tx.Error
 	}
 
-	if err := tx.Where("id = ?", id).Delete(&entity.Employee{}).Error; err != nil {
+	var employee entity.Employee
+
+	if err := tx.Where("id = ?", id).First(&employee).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Where("id = ?", employee.ID).Delete(&employee).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

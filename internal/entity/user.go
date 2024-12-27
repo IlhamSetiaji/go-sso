@@ -53,6 +53,21 @@ func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
+func (user *User) BeforeUpdate(tx *gorm.DB) (err error) {
+	user.UpdatedAt = time.Now().Add(time.Hour * 7)
+	return nil
+}
+
+func (user *User) BeforeDelete(tx *gorm.DB) (err error) {
+	user.Email = user.Email + "_deleted"
+	user.MobilePhone = user.MobilePhone + "_deleted"
+	tx.Model(&User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
+		"email":        user.Email,
+		"mobile_phone": user.MobilePhone,
+	})
+	return nil
+}
+
 func (User) TableName() string {
 	return "users"
 }

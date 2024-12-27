@@ -47,21 +47,22 @@ func (u *DeleteEmployeeUsecase) Execute(request *IDeleteEmployeeUsecaseRequest) 
 		return nil, errors.New("Employee not found")
 	}
 
-	user, err := u.UserRepo.FindByIdOnly(uuid.MustParse(employee.User.ID.String()))
-	if err != nil {
-		u.Log.Error(err)
-		return nil, err
-	}
+	if employee.User != nil {
+		user, err := u.UserRepo.FindByIdOnly(uuid.MustParse(employee.User.ID.String()))
+		if err != nil {
+			u.Log.Error(err)
+			return nil, err
+		}
 
-	if user == nil {
-		return nil, errors.New("User not found")
-	}
+		if user == nil {
+			return nil, errors.New("User not found")
+		}
 
-	user.EmployeeID = nil
-
-	if _, err := u.UserRepo.UpdateEmployeeIdToNull(user); err != nil {
-		u.Log.Error(err)
-		return nil, err
+		user.EmployeeID = nil
+		if _, err := u.UserRepo.UpdateEmployeeIdToNull(user); err != nil {
+			u.Log.Error(err)
+			return nil, err
+		}
 	}
 
 	if err := u.EmployeeRepo.Delete(uuid.MustParse(request.ID)); err != nil {

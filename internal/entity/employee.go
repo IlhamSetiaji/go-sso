@@ -37,6 +37,26 @@ func (employee *Employee) BeforeUpdate(tx *gorm.DB) (err error) {
 	return nil
 }
 
+func (employee *Employee) BeforeDelete(tx *gorm.DB) (err error) {
+	// Modify unique columns before soft delete
+	if employee.DeletedAt.Valid {
+		return nil
+	}
+
+	employee.Email = employee.Email + "_deleted"
+	employee.MobilePhone = employee.MobilePhone + "_deleted"
+
+	// Update the record with the modified unique columns
+	if err := tx.Model(&employee).Where("id = ?", employee.ID).Updates(map[string]interface{}{
+		"email":        employee.Email,
+		"mobile_phone": employee.MobilePhone,
+	}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (Employee) TableName() string {
 	return "employees"
 }
