@@ -77,7 +77,7 @@ func (r *UserRepository) FindAllPaginated(page int, pageSize int, search string)
 func (r *UserRepository) GetAllUsers() (*[]entity.User, error) {
 	var users []entity.User
 
-	if err := r.DB.Preload("Roles.Application").Find(&users).Error; err != nil {
+	if err := r.DB.Preload("Roles.Application").Preload("Employee.Organization").Find(&users).Error; err != nil {
 		r.Log.Error("[UserRepository.GetAllUsers] " + err.Error())
 		return nil, errors.New("[UserRepository.GetAllUsers] " + err.Error())
 	}

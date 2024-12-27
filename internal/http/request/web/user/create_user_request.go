@@ -5,6 +5,7 @@ import (
 )
 
 type CreateUserRequest struct {
+	EmployeeID  string            `form:"employee_id" validate:"omitempty"`
 	Name        string            `form:"name" validate:"required"`
 	Email       string            `form:"email" validate:"required,email"`
 	Username    string            `form:"username" validate:"required"`

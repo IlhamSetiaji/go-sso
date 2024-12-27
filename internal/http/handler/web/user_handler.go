@@ -125,6 +125,15 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 		log.Fatalf("failed to hash password: %v", err)
 	}
 
+	var employeeID *uuid.UUID
+
+	if payload.EmployeeID != "" {
+		parsedID := uuid.MustParse(payload.EmployeeID)
+		employeeID = &parsedID
+	} else {
+		employeeID = nil
+	}
+
 	var user = &entity.User{
 		Name:        payload.Name,
 		Username:    payload.Username,
@@ -133,7 +142,9 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 		MobilePhone: payload.MobilePhone,
 		Password:    string(hashedPasswordBytes),
 		Status:      payload.Status,
+		EmployeeID:  employeeID,
 	}
+
 	factory := usecase.CreateUserUseCaseFactory(h.Log)
 	response, err := factory.Execute(usecase.ICreateUserUseCaseRequest{
 		User:    user,
@@ -175,6 +186,15 @@ func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
+	var employeeID *uuid.UUID
+
+	if payload.EmployeeID != "" {
+		parsedID := uuid.MustParse(payload.EmployeeID)
+		employeeID = &parsedID
+	} else {
+		employeeID = nil
+	}
+
 	var user = &entity.User{
 		ID:          uuid.MustParse(payload.ID),
 		Name:        payload.Name,
@@ -183,6 +203,7 @@ func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 		Gender:      payload.Gender,
 		MobilePhone: payload.MobilePhone,
 		Status:      payload.Status,
+		EmployeeID:  employeeID,
 	}
 	factory := usecase.UpdateUserUseCaseFactory(h.Log)
 

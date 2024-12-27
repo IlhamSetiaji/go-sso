@@ -3,6 +3,7 @@ package request
 import "app/go-sso/internal/entity"
 
 type UpdateUserRequest struct {
+	EmployeeID  string            `form:"employee_id" validate:"omitempty"`
 	ID          string            `form:"id" validate:"required"`
 	Name        string            `form:"name" validate:"required"`
 	Email       string            `fo	rm:"email" validate:"required,email"`

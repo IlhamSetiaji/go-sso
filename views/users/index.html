@@ -66,7 +66,20 @@
               {{end}}{{$role.Name}}[{{$role.Application.Name}}]{{end}}
             </td>
             <td>
-              {{if call $.HasPermission "update-user"}}
+              {{ if .EmployeeID }}
+              <button
+                type="button"
+                class="btn btn-outline-info"
+                data-bs-toggle="modal"
+                data-bs-target="#employee"
+                data-id="{{.ID}}"
+                data-name="{{.Employee.Name}}"
+                data-organization="{{.Employee.Organization.Name}}"
+                data-email="{{.Employee.Email}}"
+              >
+                <i class="fas fa-briefcase"></i>
+              </button>
+              {{ end }} {{if call $.HasPermission "update-user"}}
               <button
                 type="button"
                 class="btn btn-outline-warning"
@@ -79,6 +92,7 @@
                 data-gender="{{.Gender}}"
                 data-status="{{.Status}}"
                 data-username="{{.Username}}"
+                data-employee_id="{{.EmployeeID}}"
               >
                 <i class="fas fa-pencil"></i>
               </button>
@@ -101,6 +115,92 @@
           {{end}}
         </tbody>
       </table>
+    </div>
+    <div
+      class="modal fade text-left w-100"
+      id="employee"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myModalLabel16"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"
+        role="document"
+      >
+        <div class="modal-content">
+          <div class="modal-header bg-info">
+            <h4 class="modal-title text-white" id="myModalLabel16">
+              Info Employee
+            </h4>
+            <button
+              type="button"
+              class="close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              <i data-feather="x"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group has-icon-left">
+              <label for="name">Employee Name</label>
+              <div class="position-relative">
+                <input
+                  type="text"
+                  name="name"
+                  class="form-control"
+                  placeholder="Fill your full name"
+                  required
+                />
+                <div class="form-control-icon">
+                  <i class="bi bi-person"></i>
+                </div>
+              </div>
+            </div>
+            <div class="form-group has-icon-left">
+              <label for="name">Employee Organization</label>
+              <div class="position-relative">
+                <input
+                  type="text"
+                  name="organization"
+                  class="form-control"
+                  placeholder="Fill your full name"
+                  required
+                />
+                <div class="form-control-icon">
+                  <i class="bi bi-person"></i>
+                </div>
+              </div>
+            </div>
+            <div class="form-group has-icon-left">
+              <label for="name">Employee Email</label>
+              <div class="position-relative">
+                <input
+                  type="text"
+                  name="email"
+                  class="form-control"
+                  placeholder="Fill your full name"
+                  required
+                />
+                <div class="form-control-icon">
+                  <i class="bi bi-person"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-light-secondary"
+              data-bs-dismiss="modal"
+            >
+              <i class="bx bx-x d-block d-sm-none"></i>
+              <span class="d-none d-sm-block">Close</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     {{if call .HasPermission "create-user"}}
     <div
@@ -132,6 +232,21 @@
           <form action="/users" method="POST">
             <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
             <div class="modal-body">
+              <div class="form-group">
+                <label for="employee_id">Employee</label>
+                <select
+                  name="employee_id"
+                  id="employee_id"
+                  class="choices form-select"
+                >
+                  <option value="">Select Employee</option>
+                  {{ range .Employees }}
+                  <option value="{{.ID}}">
+                    {{.Name}} - {{.Organization.Name}}
+                  </option>
+                  {{ end }}
+                </select>
+              </div>
               <div class="form-group has-icon-left">
                 <label for="name">Name</label>
                 <div class="position-relative">
@@ -294,6 +409,21 @@
           <form action="/users/update" method="POST">
             <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
             <div class="modal-body">
+              <div class="form-group">
+                <label for="employee_id">Employee</label>
+                <select
+                  name="employee_id"
+                  id="employee_id"
+                  class="choices form-select"
+                >
+                  <option value="">Select Employee</option>
+                  {{ range .Employees }}
+                  <option value="{{.ID}}">
+                    {{.Name}} - {{.Organization.Name}}
+                  </option>
+                  {{ end }}
+                </select>
+              </div>
               <div class="form-group has-icon-left">
                 <label for="name">Name</label>
                 <div class="position-relative">
@@ -460,6 +590,7 @@
       const username = button.data("username");
       const gender = button.data("gender");
       const status = button.data("status");
+      const employeeID = button.data("employee_id");
       const modal = $(this);
       modal.find('.modal-body input[name="name"]').val(name);
       modal.find('.modal-body input[name="mobile_phone"]').val(mobile_phone);
@@ -468,6 +599,18 @@
       modal.find('.modal-body select[name="status"]').val(status);
       modal.find('.modal-body input[name="email"]').val(email);
       modal.find('.modal-body input[name="id"]').val(id);
+      modal.find('.modal-body select[name="employee_id"]').val(employeeID);
+    });
+
+    $("#employee").on("show.bs.modal", function (event) {
+      const button = $(event.relatedTarget);
+      const name = button.data("name");
+      const organization = button.data("organization");
+      const email = button.data("email");
+      const modal = $(this);
+      modal.find('.modal-body input[name="name"]').val(name);
+      modal.find('.modal-body input[name="organization"]').val(organization);
+      modal.find('.modal-body input[name="email"]').val(email);
     });
   </script>
   {{end}}
