@@ -65,6 +65,7 @@
             <td>{{call $.DateFormatter .EndDate}}</td>
             <td>{{call $.DateFormatter .RetirementDate}}</td>
             <td>
+              <a href="/employees/{{ .ID }}/job" class="btn btn-outline-info"><i class="fas fa-briefcase"></i></a>
               {{if call $.HasPermission "update-employee"}}
               <button
                 type="button"
@@ -82,11 +83,7 @@
                 <i class="fas fa-pencil"></i>
               </button>
               {{end}} {{if call $.HasPermission "delete-employee"}}
-              <form
-                action="/employees/delete"
-                method="POST"
-                class="d-inline"
-              >
+              <form action="/employees/delete" method="POST" class="d-inline">
                 <input type="hidden" name="id" value="{{.ID}}" />
                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
                 <button
@@ -445,11 +442,15 @@
         modal.find('.modal-body input[name="email"]').val(email);
         modal.find('.modal-body input[name="mobile_phone"]').val(mobilePhone);
         modal.find('.modal-body input[name="end_date"]').val(endDate);
-        modal.find('.modal-body input[name="retirement_date"]').val(retirementDate);
-        modal.find('.modal-body select[name="organization_id"]').val(organizationId);
+        modal
+          .find('.modal-body input[name="retirement_date"]')
+          .val(retirementDate);
+        modal
+          .find('.modal-body select[name="organization_id"]')
+          .val(organizationId);
         // modal.find('.modal-body select[name="user_id"]').val(userId);
       });
     });
   </script>
-  {{end}}
 </section>
+{{end}}

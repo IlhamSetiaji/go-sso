@@ -1,0 +1,126 @@
+{{define "content"}}
+<div class="page-title">
+  <div class="row">
+    <div class="col-12 col-md-6 order-md-1 order-last">
+      <h3>Employee Job for {{ .Employee.Name }}</h3>
+    </div>
+    <div class="col-12 col-md-6 order-md-2 order-first">
+      <nav
+        aria-label="breadcrumb"
+        class="breadcrumb-header float-start float-lg-end"
+      >
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/employees">Employees</a></li>
+          <li class="breadcrumb-item"><a href="#">Employee Job</a></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+</div>
+<section class="section">
+  <div class="card">
+    <div class="card-header d-grid gap-3">
+      <div class="row">
+        <div class="col-md-6">
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      {{if eq .Tipe "create" }}
+      <form action="/employees/{{.EmployeeID}}/job" method="POST">
+      {{ else }}
+      <form action="/employees/{{.EmployeeID}}/job/{{.ID}}" method="POST">
+      {{ end }}
+      <div class="form-group has-icon-left">
+        <label for="name">Name</label>
+        <div class="position-relative">
+          <input
+            type="text"
+            name="name"
+            id="name"
+            class="form-control"
+            placeholder="Fill your full name"
+          />
+          <div class="form-control-icon">
+            <i class="fas fa-id-card"></i>
+          </div>
+        </div>
+      </div>
+      <div class="form-group has-icon-left">
+        <label for="user_id">Employee Organization</label>
+        <div class="position-relative">
+          <input type="hidden" name="id" value="" />
+          <select
+            name="emp_organization_id"
+            id="emp_organization_id"
+            class="form-control"
+            required
+          >
+            <option value="">Select Organization</option>
+            {{range .Organizations}}
+            <option value="{{.ID}}">{{.Name}}</option>
+            {{end}}
+          </select>
+          <div class="form-control-icon">
+            <i class="fas fa-users"></i>
+          </div>
+        </div>
+      </div>
+      <div class="form-group has-icon-left">
+        <label for="user_id">Job</label>
+        <div class="position-relative">
+          <select
+            name="job_id"
+            id="job_id"
+            class="form-control"
+            required
+          >
+            <option value="">Select Job</option>
+            {{range .Jobs}}
+            <option value="{{.ID}}">{{.Name}}</option>
+            {{end}}
+          </select>
+          <div class="form-control-icon">
+            <i class="fas fa-users"></i>
+          </div>
+        </div>
+      </div>
+      <div class="form-group has-icon-left">
+        <label for="user_id">Organization Location</label>
+        <div class="position-relative">
+          <select
+            name="organization_location_id"
+            id="organization_location_id"
+            class="form-control"
+            required
+          >
+            <option value="">Select Location</option>
+            {{range .OrgLocs}}
+            <option value="{{.ID}}">{{.Name}}</option>
+            {{end}}
+          </select>
+          <div class="form-control-icon">
+            <i class="fas fa-users"></i>
+          </div>
+        </div>
+      </div>
+      {{ if eq .Tipe "create" }}
+      <button type="submit" class="btn btn-success">Submit</button>
+      {{ else }}
+      <button type="submit" class="btn btn-primary">Update</button>
+      {{ end }}
+      </form> 
+    </div>
+  </div>
+</section>
+{{end}}
+{{ define "custom-script" }}
+<script>
+  $(document).ready(function () {
+    $("#name").val("{{.Employee.Name}}");
+    $("#emp_organization_id").val("{{.Employee.EmployeeJob.EmpOrganizationID}}");
+    $("#job_id").val("{{.Employee.EmployeeJob.JobID}}");
+    $("#organization_location_id").val("{{.Employee.EmployeeJob.OrganizationLocationID}}");
+  });
+</script>
+{{ end }}
