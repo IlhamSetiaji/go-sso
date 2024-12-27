@@ -22,6 +22,7 @@ type EmployeeHandlerInterface interface {
 	Index(ctx *gin.Context)
 	Store(ctx *gin.Context)
 	Update(ctx *gin.Context)
+	Delete(ctx *gin.Context)
 }
 
 func EmployeeHandlerFactory(log *logrus.Logger, validator *validator.Validate) EmployeeHandlerInterface {
@@ -156,6 +157,48 @@ func (h *EmployeeHandler) Update(ctx *gin.Context) {
 	}
 
 	session.Set("success", "Employee updated")
+	session.Save()
+	ctx.Redirect(302, ctx.Request.Referer())
+}
+
+func (h *EmployeeHandler) Delete(ctx *gin.Context) {
+	middleware.PermissionMiddleware("delete-employee")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
+	session := sessions.Default(ctx)
+
+	var request usecase.IDeleteEmployeeUsecaseRequest
+	if err := ctx.ShouldBind(&request); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err)
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	if err := h.Validate.Struct(request); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err)
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory := usecase.DeleteEmployeeUsecaseFactory(h.Log)
+
+	_, err := factory.Execute(&request)
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err)
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	session.Set("success", "Employee deleted")
 	session.Save()
 	ctx.Redirect(302, ctx.Request.Referer())
 }

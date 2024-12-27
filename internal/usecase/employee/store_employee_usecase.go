@@ -86,7 +86,7 @@ func (u *StoreEmployeeUsecase) Execute(request *IStoreEmployeeUsecaseRequest) (*
 
 	_, err = u.UserRepo.UpdateUserOnly(&entity.User{
 		ID:         user.ID,
-		EmployeeID: employee.ID,
+		EmployeeID: &employee.ID,
 	})
 
 	if err != nil {

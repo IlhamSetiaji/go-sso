@@ -80,7 +80,7 @@
               </button>
               {{end}} {{if call $.HasPermission "delete-employee"}}
               <form
-                action="/roles/resign-permissions"
+                action="/employees/delete"
                 method="POST"
                 class="d-inline"
               >
@@ -419,8 +419,8 @@
           confirmButtonText: "Yes, delete it!",
         }).then((result) => {
           if (result.isConfirmed) {
-            alert("You could not delete yet, the feature is under development");
-            // $(this).parent().submit();
+            // alert("You could not delete yet, the feature is under development");
+            $(this).parent().submit();
           }
         });
       });

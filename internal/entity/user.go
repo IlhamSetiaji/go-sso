@@ -24,7 +24,7 @@ const (
 type User struct {
 	gorm.Model      `json:"-"`
 	ID              uuid.UUID   `json:"id" gorm:"type:char(36);primaryKey"`
-	EmployeeID      uuid.UUID   `json:"employee_id" gorm:"type:char(36);default:null"`
+	EmployeeID      *uuid.UUID  `json:"employee_id" gorm:"type:char(36);default:null"`
 	Employee        *Employee   `json:"employee" gorm:"foreignKey:EmployeeID;references:ID;constraint:OnDelete:CASCADE"`
 	OauthID         string      `json:"oauth_id" gorm:"unique; default:null"`
 	Username        string      `json:"username" gorm:"unique;not null"`

@@ -11,7 +11,7 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 		ChoosedRole:     user.ChoosedRole,
 		Username:        user.Username,
 		Email:           user.Email,
-		EmployeeID:      user.EmployeeID,
+		EmployeeID:      *user.EmployeeID,
 		Name:            user.Name,
 		MobilePhone:     user.MobilePhone,
 		OauthID:         user.OauthID,
