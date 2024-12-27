@@ -12,7 +12,7 @@ import (
 
 type IStoreEmployeeUsecaseRequest struct {
 	OrganizationID string `form:"organization_id" validate:"required"` // Add this line
-	UserID         string `form:"user_id" validate:"required"`
+	UserID         string `form:"user_id" validate:"omitempty"`
 	Name           string `form:"name" validate:"required"`
 	Email          string `form:"email" validate:"required"`
 	MobilePhone    string `form:"mobile_phone" validate:"omitempty"`
@@ -45,15 +45,6 @@ func StoreEmployeeUsecaseFactory(log *logrus.Logger) IStoreEmployeeUsecase {
 }
 
 func (u *StoreEmployeeUsecase) Execute(request *IStoreEmployeeUsecaseRequest) (*IStoreEmployeeUsecaseResponse, error) {
-	user, err := u.UserRepo.FindById(uuid.MustParse(request.UserID))
-	if err != nil {
-		u.Log.Error(err)
-		return nil, err
-	}
-
-	if user == nil {
-		return nil, errors.New("User not found")
-	}
 	endDate, err := time.Parse("2006-01-02", request.EndDate)
 	if err != nil {
 		u.Log.Error(err)
@@ -84,14 +75,26 @@ func (u *StoreEmployeeUsecase) Execute(request *IStoreEmployeeUsecaseRequest) (*
 		return nil, err
 	}
 
-	_, err = u.UserRepo.UpdateUserOnly(&entity.User{
-		ID:         user.ID,
-		EmployeeID: &employee.ID,
-	})
+	if request.UserID != "" {
+		user, err := u.UserRepo.FindById(uuid.MustParse(request.UserID))
+		if err != nil {
+			u.Log.Error(err)
+			return nil, err
+		}
 
-	if err != nil {
-		u.Log.Error(err)
-		return nil, err
+		if user == nil {
+			return nil, errors.New("User not found")
+		}
+
+		_, err = u.UserRepo.UpdateUserOnly(&entity.User{
+			ID:         user.ID,
+			EmployeeID: &employee.ID,
+		})
+
+		if err != nil {
+			u.Log.Error(err)
+			return nil, err
+		}
 	}
 
 	return &IStoreEmployeeUsecaseResponse{
