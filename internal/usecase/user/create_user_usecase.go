@@ -9,8 +9,8 @@ import (
 )
 
 type ICreateUserUseCaseRequest struct {
-	User   *entity.User `json:"user"`
-	RoleID uuid.UUID    `json:"role_id"`
+	User    *entity.User `json:"user"`
+	RoleIDs []string     `json:"role_ids[]"`
 }
 
 type ICreateUserUseCaseResponse struct {
@@ -36,7 +36,17 @@ func NewCreateUserUseCase(log *logrus.Logger, userRepository repository.IUserRep
 func (uc *CreateUserUseCase) Execute(request ICreateUserUseCaseRequest) (ICreateUserUseCaseResponse, error) {
 	uc.Log.Info("CreateUserUseCase.Execute")
 
-	user, err := uc.UserRepository.CreateUser(request.User, request.RoleID)
+	// Convert RoleIDs from []string to []uuid.UUID
+	var roleUUIDs []uuid.UUID
+	for _, roleID := range request.RoleIDs {
+		roleUUID, err := uuid.Parse(roleID)
+		if err != nil {
+			return ICreateUserUseCaseResponse{}, err
+		}
+		roleUUIDs = append(roleUUIDs, roleUUID)
+	}
+
+	user, err := uc.UserRepository.CreateUser(request.User, roleUUIDs)
 	if err != nil {
 		return ICreateUserUseCaseResponse{}, err
 	}

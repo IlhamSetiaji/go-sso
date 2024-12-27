@@ -17,6 +17,8 @@ type IRoleRepository interface {
 	UpdateRole(role *entity.Role) (*entity.Role, error)
 	AssignRoleToPermissions(role *entity.Role, permissionsIDs []string) (*entity.Role, error)
 	ResignRoleFromPermission(role *entity.Role, permissionID uuid.UUID) (*entity.Role, error)
+	GetAllRolesNotInUserID(userID uuid.UUID) (*[]entity.Role, error)
+	GetAllRolesInUserID(userID uuid.UUID) (*[]entity.Role, error)
 	DeleteRole(id uuid.UUID) error
 }
 
@@ -110,6 +112,28 @@ func (r *RoleRepository) DeleteRole(id uuid.UUID) error {
 		return errors.New("[RoleRepository.DeleteRole] failed to commit transaction: " + err.Error())
 	}
 	return nil
+}
+
+func (r *RoleRepository) GetAllRolesNotInUserID(userID uuid.UUID) (*[]entity.Role, error) {
+	var roles []entity.Role
+
+	if err := r.DB.Preload("Application").Preload("Permissions").Preload("Users").Where("id NOT IN (?)", r.DB.Table("user_roles").Select("role_id").Where("user_id = ?", userID)).Find(&roles).Error; err != nil {
+		r.Log.Error(err)
+		return nil, err
+	}
+
+	return &roles, nil
+}
+
+func (r *RoleRepository) GetAllRolesInUserID(userID uuid.UUID) (*[]entity.Role, error) {
+	var roles []entity.Role
+
+	if err := r.DB.Preload("Application").Preload("Permissions").Preload("Users").Where("id IN (?)", r.DB.Table("user_roles").Select("role_id").Where("user_id = ?", userID)).Find(&roles).Error; err != nil {
+		r.Log.Error(err)
+		return nil, err
+	}
+
+	return &roles, nil
 }
 
 func (r *RoleRepository) AssignRoleToPermissions(role *entity.Role, permissionsIDs []string) (*entity.Role, error) {

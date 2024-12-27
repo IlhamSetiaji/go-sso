@@ -4,6 +4,7 @@ import (
 	"app/go-sso/internal/entity"
 	"app/go-sso/internal/http/middleware"
 	userRequest "app/go-sso/internal/http/request/web/user"
+	empUsecase "app/go-sso/internal/usecase/employee"
 	roleUsecase "app/go-sso/internal/usecase/role"
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/views"
@@ -28,6 +29,7 @@ type UserHandlerInterface interface {
 	StoreUser(ctx *gin.Context)
 	UpdateUser(ctx *gin.Context)
 	DeleteUser(ctx *gin.Context)
+	// UserRoles(ctx *gin.Context)
 }
 
 func UserHandlerFactory(log *logrus.Logger, validator *validator.Validate) UserHandlerInterface {
@@ -72,11 +74,20 @@ func (h *UserHandler) Index(ctx *gin.Context) {
 		return
 	}
 
+	empFactory := empUsecase.FindAllEmployeesNotInUserUseCaseFactory(h.Log)
+	empResp, err := empFactory.Execute()
+	if err != nil {
+		h.Log.Println(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	index := views.NewView("base", "views/users/index.html")
 	data := map[string]interface{}{
-		"Title": "Julong Portal | Users",
-		"Users": resp.Users,
-		"Roles": role.Roles,
+		"Title":     "Julong Portal | Users",
+		"Users":     resp.Users,
+		"Roles":     role.Roles,
+		"Employees": empResp.Employees,
 	}
 
 	index.Render(ctx, data)
@@ -97,6 +108,8 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 		ctx.Redirect(302, ctx.Request.Referer())
 		return
 	}
+
+	h.Log.Printf("payload: %v", payload)
 
 	err := h.Validate.Struct(payload)
 	if err != nil {
@@ -123,8 +136,8 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 	}
 	factory := usecase.CreateUserUseCaseFactory(h.Log)
 	response, err := factory.Execute(usecase.ICreateUserUseCaseRequest{
-		User:   user,
-		RoleID: uuid.MustParse(payload.RoleID),
+		User:    user,
+		RoleIDs: payload.RoleIDs,
 	})
 
 	if err != nil {

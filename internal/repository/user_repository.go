@@ -17,7 +17,7 @@ type IUserRepository interface {
 	FindByIdOnly(id uuid.UUID) (*entity.User, error)
 	GetAllUsers() (*[]entity.User, error)
 	GetAllUsersDoesNotHaveEmployee() (*[]entity.User, error)
-	CreateUser(user *entity.User, roleId uuid.UUID) (*entity.User, error)
+	CreateUser(user *entity.User, roleIDs []uuid.UUID) (*entity.User, error)
 	UpdateUser(user *entity.User, roleId *uuid.UUID) (*entity.User, error)
 	UpdateUserOnly(user *entity.User) (*entity.User, error)
 	UpdateEmployeeIdToNull(user *entity.User) (*entity.User, error)
@@ -126,17 +126,10 @@ func (r *UserRepository) FindByIdOnly(id uuid.UUID) (*entity.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) CreateUser(user *entity.User, roleId uuid.UUID) (*entity.User, error) {
+func (r *UserRepository) CreateUser(user *entity.User, roleIDs []uuid.UUID) (*entity.User, error) {
 	tx := r.DB.Begin()
 	if tx.Error != nil {
 		return nil, errors.New("[UserRepository.CreateUser] failed to begin transaction: " + tx.Error.Error())
-	}
-
-	var role entity.Role
-	if err := tx.First(&role, "id = ?", roleId).Error; err != nil {
-		tx.Rollback()
-		r.Log.Error("[UserRepository.CreateUser] Role not found: " + err.Error())
-		return nil, errors.New("[UserRepository.CreateUser] Role not found: " + err.Error())
 	}
 
 	if err := tx.Create(user).Error; err != nil {
@@ -145,15 +138,24 @@ func (r *UserRepository) CreateUser(user *entity.User, roleId uuid.UUID) (*entit
 		return nil, errors.New("[UserRepository.CreateUser] " + err.Error())
 	}
 
-	var userRole = entity.UserRole{
-		UserID: user.ID,
-		RoleID: role.ID,
-	}
+	for _, roleID := range roleIDs {
+		var role entity.Role
+		if err := tx.First(&role, "id = ?", roleID).Error; err != nil {
+			tx.Rollback()
+			r.Log.Error("[UserRepository.CreateUser] Role not found: " + err.Error())
+			return nil, errors.New("[UserRepository.CreateUser] Role not found: " + err.Error())
+		}
 
-	if err := tx.Create(&userRole).Error; err != nil {
-		tx.Rollback()
-		r.Log.Error("[UserRepository.AppendUser] " + err.Error())
-		return nil, errors.New("[UserRepository.AppendUser] " + err.Error())
+		var userRole = entity.UserRole{
+			UserID: user.ID,
+			RoleID: role.ID,
+		}
+
+		if err := tx.Create(&userRole).Error; err != nil {
+			tx.Rollback()
+			r.Log.Error("[UserRepository.AppendUser] " + err.Error())
+			return nil, errors.New("[UserRepository.AppendUser] " + err.Error())
+		}
 	}
 
 	if err := tx.Commit().Error; err != nil {

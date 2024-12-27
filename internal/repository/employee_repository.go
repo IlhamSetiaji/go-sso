@@ -12,6 +12,7 @@ import (
 type IEmployeeRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Employee, int64, error)
 	FindAllEmployees() (*[]entity.Employee, error)
+	FindAllEmployeesNotInUsers() (*[]entity.Employee, error)
 	Store(employee *entity.Employee) (*entity.Employee, error)
 	Update(employee *entity.Employee) (*entity.Employee, error)
 	Delete(id uuid.UUID) error
@@ -57,6 +58,27 @@ func (r *EmployeeRepository) FindAllPaginated(page int, pageSize int, search str
 func (r *EmployeeRepository) FindAllEmployees() (*[]entity.Employee, error) {
 	var employees []entity.Employee
 	err := r.DB.Preload("EmployeeJob.Job").Preload("User").Preload("Organization.OrganizationType").Find(&employees).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &employees, nil
+}
+
+func (r *EmployeeRepository) FindAllEmployeesNotInUsers() (*[]entity.Employee, error) {
+	var users []entity.User
+	var employeeIDs []uuid.UUID
+
+	if err := r.DB.Where("employee_id IS NOT NULL").Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		employeeIDs = append(employeeIDs, *user.EmployeeID)
+	}
+
+	var employees []entity.Employee
+	err := r.DB.Where("id NOT IN (?)", employeeIDs).Preload("EmployeeJob.Job").Preload("User").Preload("Organization.OrganizationType").Find(&employees).Error
 	if err != nil {
 		return nil, err
 	}
