@@ -119,6 +119,7 @@ func (h *UserHandler) StoreUser(ctx *gin.Context) {
 		Gender:      payload.Gender,
 		MobilePhone: payload.MobilePhone,
 		Password:    string(hashedPasswordBytes),
+		Status:      payload.Status,
 	}
 	factory := usecase.CreateUserUseCaseFactory(h.Log)
 	response, err := factory.Execute(usecase.ICreateUserUseCaseRequest{
@@ -168,6 +169,7 @@ func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 		Email:       payload.Email,
 		Gender:      payload.Gender,
 		MobilePhone: payload.MobilePhone,
+		Status:      payload.Status,
 	}
 	factory := usecase.UpdateUserUseCaseFactory(h.Log)
 	var roleUUID *uuid.UUID
