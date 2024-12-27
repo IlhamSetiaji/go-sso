@@ -14,6 +14,7 @@ type IPermissionRepository interface {
 	GetAllPermissions() (*[]entity.Permission, error)
 	GetAllPermissionsByRoleID(roleID uuid.UUID) (*[]entity.Permission, error)
 	GetAllPermissionsNotInRoleID(roleID uuid.UUID) (*[]entity.Permission, error)
+	GetAllPermissionsByNames(names []string) (*[]entity.Permission, error)
 	FindById(id uuid.UUID) (*entity.Permission, error)
 	StorePermission(permission *entity.Permission) (*entity.Permission, error)
 	UpdatePermission(permission *entity.Permission) (*entity.Permission, error)
@@ -123,4 +124,13 @@ func (r *PermissionRepository) DeletePermission(id uuid.UUID) error {
 
 	tx.Commit()
 	return nil
+}
+
+func (r *PermissionRepository) GetAllPermissionsByNames(names []string) (*[]entity.Permission, error) {
+	var permissions []entity.Permission
+	if err := r.DB.Where("name IN (?)", names).Find(&permissions).Error; err != nil {
+		r.Log.Error(err)
+		return nil, err
+	}
+	return &permissions, nil
 }

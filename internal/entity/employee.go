@@ -43,8 +43,10 @@ func (employee *Employee) BeforeDelete(tx *gorm.DB) (err error) {
 		return nil
 	}
 
-	employee.Email = employee.Email + "_deleted"
-	employee.MobilePhone = employee.MobilePhone + "_deleted"
+	randomString := uuid.New().String()
+
+	employee.Email = employee.Email + "_deleted" + randomString
+	employee.MobilePhone = employee.MobilePhone + "_deleted" + randomString
 
 	// Update the record with the modified unique columns
 	if err := tx.Model(&employee).Where("id = ?", employee.ID).Updates(map[string]interface{}{

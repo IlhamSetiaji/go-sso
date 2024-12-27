@@ -59,8 +59,14 @@ func (user *User) BeforeUpdate(tx *gorm.DB) (err error) {
 }
 
 func (user *User) BeforeDelete(tx *gorm.DB) (err error) {
-	user.Email = user.Email + "_deleted"
-	user.MobilePhone = user.MobilePhone + "_deleted"
+	if user.DeletedAt.Valid {
+		return nil
+	}
+
+	randomString := uuid.New().String()
+
+	user.Email = user.Email + "_deleted" + randomString
+	user.MobilePhone = user.MobilePhone + "_deleted" + randomString
 	tx.Model(&User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
 		"email":        user.Email,
 		"mobile_phone": user.MobilePhone,

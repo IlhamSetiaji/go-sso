@@ -22,14 +22,16 @@ type IStoreRoleUseCase interface {
 }
 
 type StoreRoleUseCase struct {
-	Log            *logrus.Logger
-	RoleRepository repository.IRoleRepository
+	Log                  *logrus.Logger
+	RoleRepository       repository.IRoleRepository
+	PermissionRepository repository.IPermissionRepository
 }
 
-func NewStoreRoleUseCase(log *logrus.Logger, roleRepository repository.IRoleRepository) IStoreRoleUseCase {
+func NewStoreRoleUseCase(log *logrus.Logger, roleRepository repository.IRoleRepository, permissionRepo repository.IPermissionRepository) IStoreRoleUseCase {
 	return &StoreRoleUseCase{
-		Log:            log,
-		RoleRepository: roleRepository,
+		Log:                  log,
+		RoleRepository:       roleRepository,
+		PermissionRepository: permissionRepo,
 	}
 }
 
@@ -46,6 +48,40 @@ func (uc *StoreRoleUseCase) Execute(request *IStoreRoleUseCaseRequest) (*IStoreR
 		return nil, err
 	}
 
+	permissionNames := []string{
+		"read-user",
+		"read-role",
+		"read-permission",
+		"read-application",
+		"read-client",
+		"assign-role",
+		"assign-permission",
+		"read-organization",
+		"read-organization-location",
+		"read-job-level",
+		"read-organization-structure",
+		"read-job",
+		"read-employee",
+		"read-employee-job",
+	}
+
+	permissions, err := uc.PermissionRepository.GetAllPermissionsByNames(permissionNames)
+	if err != nil {
+		return nil, err
+	}
+
+	var permissionIDs []string
+
+	for _, permission := range *permissions {
+		permissionIDs = append(permissionIDs, permission.ID.String())
+	}
+
+	_, err = uc.RoleRepository.AssignRoleToPermissions(role, permissionIDs)
+	if err != nil {
+		uc.Log.Error(err)
+		return nil, err
+	}
+
 	return &IStoreRoleUseCaseResponse{
 		Role: role,
 	}, nil
@@ -53,8 +89,10 @@ func (uc *StoreRoleUseCase) Execute(request *IStoreRoleUseCaseRequest) (*IStoreR
 
 func StoreRoleUseCaseFactory(log *logrus.Logger) IStoreRoleUseCase {
 	roleRepository := repository.RoleRepositoryFactory(log)
+	permissionRepo := repository.PermissionRepositoryFactory(log)
 	return &StoreRoleUseCase{
-		Log:            log,
-		RoleRepository: roleRepository,
+		Log:                  log,
+		RoleRepository:       roleRepository,
+		PermissionRepository: permissionRepo,
 	}
 }
