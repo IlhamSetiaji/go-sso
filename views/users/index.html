@@ -213,7 +213,7 @@
                 <label for="role_ids">Roles</label>
                 <select
                   name="role_ids[]"
-                  id="role_ids[]"
+                  id="role_ids"
                   class="choices form-select"
                   multiple="multiple"
                   required
@@ -348,7 +348,6 @@
                     name="mobile_phone"
                     class="form-control"
                     placeholder="Fill your valid mobile phone number"
-                    required
                   />
                   <div class="form-control-icon">
                     <i class="fas fa-phone"></i>
@@ -365,29 +364,29 @@
                     required
                   >
                     <option value="">Select Gender</option>
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
+                    <option value="MALE">MALE</option>
+                    <option value="FEMALE">FEMALE</option>
                   </select>
                   <div class="form-control-icon">
                     <i class="fas fa-venus-mars"></i>
                   </div>
                 </div>
               </div>
-              <div class="form-group has-icon-left">
-                <label for="role_id">Roles</label>
-                <div class="position-relative">
-                  <select name="role_id" id="role_id" class="form-control">
-                    <option value="">Select Role</option>
-                    {{range .Roles}}
-                    <option value="{{.ID}}">
-                      {{.Name}} - {{.Application.Name}}
-                    </option>
-                    {{end}}
-                  </select>
-                  <div class="form-control-icon">
-                    <i class="fas fa-universal-access"></i>
-                  </div>
-                </div>
+              <div class="form-group">
+                <label for="role_ids">Roles</label>
+                <select
+                  name="role_ids[]"
+                  id="role_ids_update"
+                  class="choices form-select"
+                  multiple="multiple"
+                >
+                  <option value="">Select Roles</option>
+                  {{ range .Roles }}
+                  <option value="{{.ID}}">
+                    {{.Name}} - {{.Application.Name}}
+                  </option>
+                  {{ end }}
+                </select>
               </div>
               <div class="form-group has-icon-left">
                 <label for="status">Status</label>
@@ -399,9 +398,9 @@
                     required
                   >
                     <option value="">Select Status</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="INACTIVE">INACTIVE</option>
                   </select>
                   <div class="form-control-icon">
                     <i class="fas fa-square-check"></i>

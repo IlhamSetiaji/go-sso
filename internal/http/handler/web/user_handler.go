@@ -185,17 +185,10 @@ func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 		Status:      payload.Status,
 	}
 	factory := usecase.UpdateUserUseCaseFactory(h.Log)
-	var roleUUID *uuid.UUID
-	if payload.RoleID != "" {
-		parsed := uuid.MustParse(payload.RoleID)
-		roleUUID = &parsed
-	} else {
-		roleUUID = nil
-	}
 
 	response, err := factory.Execute(usecase.IUpdateUserUseCaseRequest{
-		User:   user,
-		RoleID: roleUUID,
+		User:    user,
+		RoleIDs: payload.RoleIDs,
 	})
 
 	if err != nil {

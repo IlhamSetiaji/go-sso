@@ -10,8 +10,8 @@ import (
 )
 
 type IUpdateUserUseCaseRequest struct {
-	User   *entity.User `json:"user"`
-	RoleID *uuid.UUID   `json:"role_id, omitempty"`
+	User    *entity.User `json:"user"`
+	RoleIDs []string     `json:"role_ids,omitempty"`
 }
 
 type IUpdateUserUseCaseResponse struct {
@@ -47,7 +47,17 @@ func (uc *UpdateUserUseCase) Execute(request IUpdateUserUseCaseRequest) (IUpdate
 		return IUpdateUserUseCaseResponse{}, errors.New("[UpdateUserUseCase] user not found")
 	}
 
-	user, err := uc.userRepository.UpdateUser(request.User, request.RoleID)
+	var roleUUIDs []uuid.UUID
+	for _, roleID := range request.RoleIDs {
+		roleUUID, err := uuid.Parse(roleID)
+		if err != nil {
+			uc.Log.Error("Update user usecase: " + err.Error())
+			return IUpdateUserUseCaseResponse{}, errors.New("[UpdateUserUseCase] invalid role ID: " + err.Error())
+		}
+		roleUUIDs = append(roleUUIDs, roleUUID)
+	}
+
+	user, err := uc.userRepository.UpdateUser(request.User, roleUUIDs)
 	if err != nil {
 		uc.Log.Error("Update user usecase: " + err.Error())
 		return IUpdateUserUseCaseResponse{}, errors.New("[UpdateUserUseCase] error update user: " + err.Error())
