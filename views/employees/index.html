@@ -61,7 +61,24 @@
             <td>{{call $.DateFormatter .EndDate}}</td>
             <td>{{call $.DateFormatter .RetirementDate}}</td>
             <td>
-              {{if call $.HasPermission "delete-employee"}}
+              {{if call $.HasPermission "update-employee"}}
+              <button
+                type="button"
+                class="btn btn-outline-warning"
+                data-bs-toggle="modal"
+                data-bs-target="#edit"
+                data-id="{{.ID}}"
+                data-name="{{.Name}}"
+                data-email="{{.Email}}"
+                data-mobile_phone="{{.MobilePhone}}"
+                data-end_date="{{call $.DateFormatter .EndDate}}"
+                data-retirement_date="{{call $.DateFormatter .RetirementDate}}"
+                data-organization_id="{{ .Organization.ID }}"
+                data-user_id="{{ .User.ID }}"
+              >
+                <i class="fas fa-pencil"></i>
+              </button>
+              {{end}} {{if call $.HasPermission "delete-employee"}}
               <form
                 action="/roles/resign-permissions"
                 method="POST"
@@ -188,7 +205,147 @@
                 <div class="position-relative">
                   <input
                     type="tel"
-                    name="phone_number"
+                    name="mobile_phone"
+                    class="form-control"
+                    placeholder="Fill your mobile phone"
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-phone"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="name">End Date</label>
+                <div class="position-relative">
+                  <input
+                    type="date"
+                    name="end_date"
+                    class="form-control"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-calendar"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="name">Retirement Date</label>
+                <div class="position-relative">
+                  <input
+                    type="date"
+                    name="retirement_date"
+                    class="form-control"
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-calendar-check"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-light-secondary"
+                data-bs-dismiss="modal"
+              >
+                <i class="bx bx-x d-block d-sm-none"></i>
+                <span class="d-none d-sm-block">Close</span>
+              </button>
+              <button type="submit" class="btn btn-primary ms-1">
+                <i class="bx bx-check d-block d-sm-none"></i>
+                <span class="d-none d-sm-block">Submit</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {{end}} {{if call .HasPermission "update-employee"}}
+    <div
+      class="modal fade text-left w-100"
+      id="edit"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myModalLabel16"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"
+        role="document"
+      >
+        <div class="modal-content">
+          <div class="modal-header bg-info">
+            <h4 class="modal-title text-white" id="myModalLabel16">
+              Update Employee
+            </h4>
+            <button
+              type="button"
+              class="close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              <i data-feather="x"></i>
+            </button>
+          </div>
+          <form action="/employees/update" method="POST">
+            <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
+            <div class="modal-body">
+              <div class="form-group has-icon-left">
+                <label for="user_id">Organization</label>
+                <div class="position-relative">
+                  <input type="hidden" name="id" value="" />
+                  <select
+                    name="organization_id"
+                    id="organization_id"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Select Organization</option>
+                    {{range .Organizations}}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                  </select>
+                  <div class="form-control-icon">
+                    <i class="fas fa-users"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="name">Name</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="name"
+                    class="form-control"
+                    placeholder="Fill your full name"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-id-card"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="name">Email</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="email"
+                    class="form-control"
+                    placeholder="Fill your email"
+                    required
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-envelope"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="name">Mobile Phone</label>
+                <div class="position-relative">
+                  <input
+                    type="tel"
+                    name="mobile_phone"
                     class="form-control"
                     placeholder="Fill your mobile phone"
                   />
@@ -266,6 +423,28 @@
             // $(this).parent().submit();
           }
         });
+      });
+
+      $("#edit").on("show.bs.modal", function (event) {
+        const button = $(event.relatedTarget);
+        const id = button.data("id");
+        const name = button.data("name");
+        const email = button.data("email");
+        const mobilePhone = button.data("mobile_phone");
+        const endDate = button.data("end_date");
+        const retirementDate = button.data("retirement_date");
+        const organizationId = button.data("organization_id");
+        const userId = button.data("user_id");
+
+        const modal = $(this);
+        modal.find('.modal-body input[name="id"]').val(id);
+        modal.find('.modal-body input[name="name"]').val(name);
+        modal.find('.modal-body input[name="email"]').val(email);
+        modal.find('.modal-body input[name="mobile_phone"]').val(mobilePhone);
+        modal.find('.modal-body input[name="end_date"]').val(endDate);
+        modal.find('.modal-body input[name="retirement_date"]').val(retirementDate);
+        modal.find('.modal-body select[name="organization_id"]').val(organizationId);
+        // modal.find('.modal-body select[name="user_id"]').val(userId);
       });
     });
   </script>

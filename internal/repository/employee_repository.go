@@ -13,6 +13,8 @@ type IEmployeeRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Employee, int64, error)
 	FindAllEmployees() (*[]entity.Employee, error)
 	Store(employee *entity.Employee) (*entity.Employee, error)
+	Update(employee *entity.Employee) (*entity.Employee, error)
+	Delete(id uuid.UUID) error
 	FindById(id uuid.UUID) (*entity.Employee, error)
 	CountEmployeeRetiredEndByDateRange(startDate string, endDate string) (int64, error)
 }
@@ -97,6 +99,47 @@ func (r *EmployeeRepository) Store(employee *entity.Employee) (*entity.Employee,
 	}
 
 	return employee, nil
+}
+
+func (r *EmployeeRepository) Update(employee *entity.Employee) (*entity.Employee, error) {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		r.Log.Error(tx.Error)
+		return nil, tx.Error
+	}
+
+	if err := tx.Where("id = ?", employee.ID).Updates(employee).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error(err)
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error(err)
+		return nil, err
+	}
+
+	return employee, nil
+}
+
+func (r *EmployeeRepository) Delete(id uuid.UUID) error {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := tx.Where("id = ?", id).Delete(&entity.Employee{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
 }
 
 func EmployeeRepositoryFactory(log *logrus.Logger) IEmployeeRepository {

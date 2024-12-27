@@ -21,6 +21,7 @@ type EmployeeHandler struct {
 type EmployeeHandlerInterface interface {
 	Index(ctx *gin.Context)
 	Store(ctx *gin.Context)
+	Update(ctx *gin.Context)
 }
 
 func EmployeeHandlerFactory(log *logrus.Logger, validator *validator.Validate) EmployeeHandlerInterface {
@@ -86,7 +87,7 @@ func (h *EmployeeHandler) Store(ctx *gin.Context) {
 
 	var request usecase.IStoreEmployeeUsecaseRequest
 	if err := ctx.ShouldBind(&request); err != nil {
-		session.Set("error", "Invalid request")
+		session.Set("error", err.Error())
 		session.Save()
 		h.Log.Error(err)
 		ctx.Redirect(302, ctx.Request.Referer())
@@ -94,7 +95,7 @@ func (h *EmployeeHandler) Store(ctx *gin.Context) {
 	}
 
 	if err := h.Validate.Struct(request); err != nil {
-		session.Set("error", "Invalid request")
+		session.Set("error", err.Error())
 		session.Save()
 		h.Log.Error(err)
 		ctx.Redirect(302, ctx.Request.Referer())
@@ -113,6 +114,48 @@ func (h *EmployeeHandler) Store(ctx *gin.Context) {
 	}
 
 	session.Set("success", "Employee created")
+	session.Save()
+	ctx.Redirect(302, ctx.Request.Referer())
+}
+
+func (h *EmployeeHandler) Update(ctx *gin.Context) {
+	middleware.PermissionMiddleware("update-employee")(ctx)
+	if ctx.IsAborted() {
+		ctx.Abort()
+		return
+	}
+
+	session := sessions.Default(ctx)
+
+	var request usecase.IUpdateEmployeeUsecaseRequest
+	if err := ctx.ShouldBind(&request); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err)
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	if err := h.Validate.Struct(request); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err)
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory := usecase.UpdateEmployeeUsecaseFactory(h.Log)
+
+	_, err := factory.Execute(&request)
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Error(err)
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	session.Set("success", "Employee updated")
 	session.Save()
 	ctx.Redirect(302, ctx.Request.Referer())
 }

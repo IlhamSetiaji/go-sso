@@ -131,6 +131,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 		{
 			employeeRoutes.GET("/", c.EmployeeWebHandler.Index)
 			employeeRoutes.POST("/", c.EmployeeWebHandler.Store)
+			employeeRoutes.POST("/update", c.EmployeeWebHandler.Update)
 		}
 	}
 }
