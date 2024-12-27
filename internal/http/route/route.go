@@ -134,6 +134,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 			employeeRoutes.POST("/update", c.EmployeeWebHandler.Update)
 			employeeRoutes.POST("/delete", c.EmployeeWebHandler.Delete)
 			employeeRoutes.GET("/:id/job", c.EmployeeWebHandler.EmployeeJobs)
+			employeeRoutes.POST("/store-job", c.EmployeeWebHandler.StoreEmployeeJob)
 		}
 	}
 }

@@ -27,11 +27,14 @@
     </div>
     <div class="card-body">
       {{if eq .Tipe "create" }}
-      <form action="/employees/{{.EmployeeID}}/job" method="POST">
+      <form action="/employees/store-job" method="POST">
       {{ else }}
-      <form action="/employees/{{.EmployeeID}}/job/{{.ID}}" method="POST">
+      <form action="/employees/update-job" method="POST">
+        <input type="hidden" name="id" id="id" value="{{.Employee.EmployeeJob.ID}}" />
       {{ end }}
+      <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
       <div class="form-group has-icon-left">
+        <input type="hidden" name="employee_id" value="{{.Employee.ID}}" />
         <label for="name">Name</label>
         <div class="position-relative">
           <input
@@ -117,7 +120,7 @@
 {{ define "custom-script" }}
 <script>
   $(document).ready(function () {
-    $("#name").val("{{.Employee.Name}}");
+    $("#name").val("{{.Employee.EmployeeJob.Name}}");
     $("#emp_organization_id").val("{{.Employee.EmployeeJob.EmpOrganizationID}}");
     $("#job_id").val("{{.Employee.EmployeeJob.JobID}}");
     $("#organization_location_id").val("{{.Employee.EmployeeJob.OrganizationLocationID}}");

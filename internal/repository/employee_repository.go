@@ -15,6 +15,8 @@ type IEmployeeRepository interface {
 	Store(employee *entity.Employee) (*entity.Employee, error)
 	Update(employee *entity.Employee) (*entity.Employee, error)
 	Delete(id uuid.UUID) error
+	StoreEmployeeJob(employeeJob *entity.EmployeeJob) (*entity.EmployeeJob, error)
+	UpdateEmployeeJob(employeeJob *entity.EmployeeJob) (*entity.EmployeeJob, error)
 	FindById(id uuid.UUID) (*entity.Employee, error)
 	CountEmployeeRetiredEndByDateRange(startDate string, endDate string) (int64, error)
 }
@@ -147,6 +149,44 @@ func (r *EmployeeRepository) Delete(id uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (r *EmployeeRepository) StoreEmployeeJob(employeeJob *entity.EmployeeJob) (*entity.EmployeeJob, error) {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	if err := tx.Create(employeeJob).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return employeeJob, nil
+}
+
+func (r *EmployeeRepository) UpdateEmployeeJob(employeeJob *entity.EmployeeJob) (*entity.EmployeeJob, error) {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	if err := tx.Where("id = ?", employeeJob.ID).Updates(employeeJob).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return employeeJob, nil
 }
 
 func EmployeeRepositoryFactory(log *logrus.Logger) IEmployeeRepository {
