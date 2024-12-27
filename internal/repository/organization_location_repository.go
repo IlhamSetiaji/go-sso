@@ -65,12 +65,20 @@ func (r *OrganizationLocationRepository) FindAllPaginated(page int, pageSize int
 
 func (r *OrganizationLocationRepository) FindAllOrganizationLocations(includedIDs []string) (*[]entity.OrganizationLocation, error) {
 	var organizationLocations []entity.OrganizationLocation
-	err := r.DB.Where("id IN ?", includedIDs).Find(&organizationLocations).Error
-	if err != nil {
-		return nil, err
-	}
+	if len(includedIDs) == 0 {
+		err := r.DB.Find(&organizationLocations).Error
+		if err != nil {
+			return nil, err
+		}
+		return &organizationLocations, nil
+	} else {
+		err := r.DB.Where("id IN ?", includedIDs).Find(&organizationLocations).Error
+		if err != nil {
+			return nil, err
+		}
 
-	return &organizationLocations, nil
+		return &organizationLocations, nil
+	}
 }
 
 func (r *OrganizationLocationRepository) FindById(id uuid.UUID) (*entity.OrganizationLocation, error) {
