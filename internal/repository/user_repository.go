@@ -185,19 +185,18 @@ func (r *UserRepository) UpdateUser(user *entity.User, roleIDs []uuid.UUID) (*en
 	}
 
 	if len(roleIDs) > 0 {
+		// delete user role by user id
+		if err := tx.Where("user_id = ?", user.ID).Delete(&entity.UserRole{}).Error; err != nil {
+			tx.Rollback()
+			r.Log.Error("[UserRepository.UpdateUser] " + err.Error())
+			return nil, errors.New("[UserRepository.UpdateUser] " + err.Error())
+		}
 		for _, roleID := range roleIDs {
 			var role entity.Role
 			if err := tx.First(&role, "id = ?", roleID).Error; err != nil {
 				tx.Rollback()
 				r.Log.Error("[UserRepository.UpdateUser] Role not found: " + err.Error())
 				return nil, errors.New("[UserRepository.UpdateUser] Role not found: " + err.Error())
-			}
-
-			// delete user role by user id
-			if err := tx.Where("user_id = ?", user.ID).Delete(&entity.UserRole{}).Error; err != nil {
-				tx.Rollback()
-				r.Log.Error("[UserRepository.UpdateUser] " + err.Error())
-				return nil, errors.New("[UserRepository.UpdateUser] " + err.Error())
 			}
 
 			var userRole = entity.UserRole{
