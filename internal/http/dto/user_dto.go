@@ -88,7 +88,7 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 			},
 			EmployeeJob: map[string]interface{}{
 				"id":                       user.Employee.EmployeeJob.ID,
-				"name":                     user.Employee.EmployeeJob.Name,
+				"name":                     user.Employee.EmployeeJob.Job.Name,
 				"emp_organization_id":      user.Employee.EmployeeJob.EmpOrganizationID,
 				"job_id":                   user.Employee.EmployeeJob.JobID,
 				"employee_id":              user.Employee.EmployeeJob.EmployeeID,
