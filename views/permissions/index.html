@@ -329,24 +329,43 @@
   {{end}} {{define "custom-script"}}
   <script>
     $(document).ready(function () {
-      $("#usersTable").DataTable();
-
-      $(".hapus").on("click", function () {
-        const id = $(this).data("id");
-        Swal.fire({
-          title: "Are you sure?",
-          text: "You won't be able to revert this!",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#3085d6",
-          cancelButtonColor: "#d33",
-          confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            $(this).parent().submit();
-          }
-        });
+      $("#usersTable").DataTable({
+        drawCallback: function (settings) {
+          $(".hapus").on("click", function () {
+            const id = $(this).data("id");
+            Swal.fire({
+              title: "Are you sure?",
+              text: "You won't be able to revert this!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Yes, delete it!",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                $(this).parent().submit();
+              }
+            });
+          });
+        },
       });
+
+      // $(".hapus").on("click", function () {
+      //   const id = $(this).data("id");
+      //   Swal.fire({
+      //     title: "Are you sure?",
+      //     text: "You won't be able to revert this!",
+      //     icon: "warning",
+      //     showCancelButton: true,
+      //     confirmButtonColor: "#3085d6",
+      //     cancelButtonColor: "#d33",
+      //     confirmButtonText: "Yes, delete it!",
+      //   }).then((result) => {
+      //     if (result.isConfirmed) {
+      //       $(this).parent().submit();
+      //     }
+      //   });
+      // });
     });
 
     $("#edit").on("show.bs.modal", function (event) {
@@ -359,7 +378,9 @@
       const modal = $(this);
       modal.find('.modal-body input[name="name"]').val(name);
       modal.find('.modal-body select[name="guard_name"]').val(guard_name);
-      modal.find('.modal-body select[name="application_id"]').val(application_id);
+      modal
+        .find('.modal-body select[name="application_id"]')
+        .val(application_id);
       modal.find('.modal-body input[name="label"]').val(label);
       modal.find('.modal-body input[name="id"]').val(id);
     });

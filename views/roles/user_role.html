@@ -205,24 +205,44 @@
   {{end}} {{define "custom-script"}}
   <script>
     $(document).ready(function () {
-      $("#usersTable").DataTable();
-
-      $(".hapus").on("click", function () {
-        const id = $(this).data("id");
-        Swal.fire({
-          title: "Are you sure?",
-          text: "You won't be able to revert this!",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#3085d6",
-          cancelButtonColor: "#d33",
-          confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            $(this).parent().submit();
-          }
-        });
+      $("#usersTable").DataTable({
+        drawCallback: function (settings) {
+          $(".hapus").on("click", function () {
+            const id = $(this).data("id");
+            console.log("id", id);
+            Swal.fire({
+              title: "Are you sure?",
+              text: "You won't be able to revert this!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Yes, delete it!",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                $(this).parent().submit();
+              }
+            });
+          });
+        },
       });
+
+      // $(".hapus").on("click", function () {
+      //   const id = $(this).data("id");
+      //   Swal.fire({
+      //     title: "Are you sure?",
+      //     text: "You won't be able to revert this!",
+      //     icon: "warning",
+      //     showCancelButton: true,
+      //     confirmButtonColor: "#3085d6",
+      //     cancelButtonColor: "#d33",
+      //     confirmButtonText: "Yes, delete it!",
+      //   }).then((result) => {
+      //     if (result.isConfirmed) {
+      //       $(this).parent().submit();
+      //     }
+      //   });
+      // });
     });
 
     $("#edit").on("show.bs.modal", function (event) {
