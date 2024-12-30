@@ -15,7 +15,8 @@ type Permission struct {
 	Name          string      `json:"name" gorm:"type:varchar(255);not null"`
 	Label         string      `json:"label" gorm:"type:varchar(255);not null"`
 	GuardName     string      `json:"guard_name" gorm:"type:varchar(255);not null;default:'web'"` // default guard name is web
-	Roles         []Role      `json:"roles" gorm:"many2many:role_permissions;"`                   // many to many relationship
+	Description   string      `json:"description" gorm:"type:text;default:null"`
+	Roles         []Role      `json:"roles" gorm:"many2many:role_permissions;"` // many to many relationship
 }
 
 func (permission *Permission) BeforeCreate(tx *gorm.DB) (err error) {

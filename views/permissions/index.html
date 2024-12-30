@@ -68,6 +68,7 @@
                 data-guard_name="{{.GuardName}}"
                 data-application_id="{{.Application.ID}}"
                 data-label="{{.Label}}"
+                data-description="{{.Description}}"
               >
                 <i class="fas fa-pencil"></i>
               </button>
@@ -148,6 +149,20 @@
                   />
                   <div class="form-control-icon">
                     <i class="fas fa-tag"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
+                <label for="label">Description</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="description"
+                    class="form-control"
+                    placeholder="Fill your description"
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-notes-medical"></i>
                   </div>
                 </div>
               </div>
@@ -269,6 +284,20 @@
                 </div>
               </div>
               <div class="form-group has-icon-left">
+                <label for="label">Description</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    name="description"
+                    class="form-control"
+                    placeholder="Fill your description"
+                  />
+                  <div class="form-control-icon">
+                    <i class="fas fa-notes-medical"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group has-icon-left">
                 <label for="guard_name">Guard Name</label>
                 <div class="position-relative">
                   <select
@@ -375,8 +404,10 @@
       const guard_name = button.data("guard_name");
       const label = button.data("label");
       const application_id = button.data("application_id");
+      const description = button.data("description");
       const modal = $(this);
       modal.find('.modal-body input[name="name"]').val(name);
+      modal.find('.modal-body input[name="description"]').val(description);
       modal.find('.modal-body select[name="guard_name"]').val(guard_name);
       modal
         .find('.modal-body select[name="application_id"]')

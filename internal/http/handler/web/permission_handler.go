@@ -173,6 +173,7 @@ func (h *PermissionHandler) StorePermission(ctx *gin.Context) {
 		ApplicationID: uuid.MustParse(payload.ApplicationID),
 		GuardName:     payload.GuardName,
 		Label:         payload.Label,
+		Description:   payload.Description,
 	}
 
 	factory := usecase.StorePermissionUseCaseFactory(h.Log)
@@ -227,6 +228,7 @@ func (h *PermissionHandler) UpdatePermission(ctx *gin.Context) {
 		ApplicationID: uuid.MustParse(payload.ApplicationID),
 		GuardName:     payload.GuardName,
 		Label:         payload.Label,
+		Description:   payload.Description,
 	}
 
 	factory := usecase.UpdatePermissionUseCaseFactory(h.Log)
