@@ -41,7 +41,7 @@ func NewFindAllPaginatedUseCase(
 }
 
 func (uc *FindAllPaginatedUseCase) Execute(req *IFindAllPaginatedUseCaseRequest) (*IFindAllPaginatedUseCaseResponse, error) {
-	organizationLocations, total, err := uc.Repository.FindAllPaginated(req.Page, req.PageSize, req.Search, req.IncludedIDs, req.IsNull)
+	organizationLocations, total, err := uc.Repository.FindAllPaginated(req.Page, req.PageSize, req.Search, req.IncludedIDs, req.IsNull, "")
 	if err != nil {
 		return nil, err
 	}

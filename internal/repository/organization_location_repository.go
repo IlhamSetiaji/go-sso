@@ -10,7 +10,7 @@ import (
 )
 
 type IOrganizationLocationRepository interface {
-	FindAllPaginated(page int, pageSize int, search string, includedIDs []string, isNull bool) (*[]entity.OrganizationLocation, int64, error)
+	FindAllPaginated(page int, pageSize int, search string, includedIDs []string, isNull bool, orgID string) (*[]entity.OrganizationLocation, int64, error)
 	FindById(id uuid.UUID) (*entity.OrganizationLocation, error)
 	FindAllOrganizationLocations(includedIDs []string) (*[]entity.OrganizationLocation, error)
 	FindByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationLocation, error)
@@ -28,7 +28,7 @@ func NewOrganizationLocationRepository(log *logrus.Logger, db *gorm.DB) IOrganiz
 	}
 }
 
-func (r *OrganizationLocationRepository) FindAllPaginated(page int, pageSize int, search string, includedIDs []string, isNull bool) (*[]entity.OrganizationLocation, int64, error) {
+func (r *OrganizationLocationRepository) FindAllPaginated(page int, pageSize int, search string, includedIDs []string, isNull bool, orgID string) (*[]entity.OrganizationLocation, int64, error) {
 	var organizationLocations []entity.OrganizationLocation
 	var total int64
 
@@ -42,6 +42,10 @@ func (r *OrganizationLocationRepository) FindAllPaginated(page int, pageSize int
 		if len(includedIDs) > 0 {
 			query = query.Where("id IN (?)", includedIDs)
 		}
+	}
+
+	if orgID != "" {
+		query = query.Where("organization_id = ?", orgID)
 	}
 
 	if search != "" {

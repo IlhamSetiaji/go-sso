@@ -476,6 +476,15 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			includedIDs[i] = str
 		}
 
+		orgID, ok := docMsg.MessageData["org_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'org_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'org_id'").Error(),
+			}
+			break
+		}
+
 		// includedIds, ok := docMsg.MessageData["included_ids"].([]string)
 		// if !ok {
 		// 	log.Printf("Invalid request format: missing 'included_ids'")
@@ -492,6 +501,7 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			Search:      search,
 			IncludedIDs: includedIDs,
 			IsNull:      isNull,
+			OrgID:       orgID,
 		})
 
 		if err != nil {

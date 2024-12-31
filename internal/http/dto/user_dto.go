@@ -93,6 +93,13 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 				"job_id":                   user.Employee.EmployeeJob.JobID,
 				"employee_id":              user.Employee.EmployeeJob.EmployeeID,
 				"organization_location_id": user.Employee.EmployeeJob.OrganizationLocationID,
+				"organization_structure": response.OrganizationStructureMinimalResponse{
+					ID:             user.Employee.EmployeeJob.Job.OrganizationStructure.ID,
+					Name:           user.Employee.EmployeeJob.Job.OrganizationStructure.Name,
+					OrganizationID: user.Employee.EmployeeJob.Job.OrganizationStructure.OrganizationID,
+					ParentID:       user.Employee.EmployeeJob.Job.OrganizationStructure.ParentID,
+					Level:          user.Employee.EmployeeJob.Job.OrganizationStructure.Level,
+				},
 			},
 		},
 	}

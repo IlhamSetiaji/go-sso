@@ -14,6 +14,7 @@ type IFindAllOrgLocationPaginatedRequest struct {
 	Search      string   `json:"search"`
 	IncludedIDs []string `json:"included_ids"`
 	IsNull      bool     `json:"is_null"`
+	OrgID       string   `json:"org_id"`
 }
 
 type IFindAllOrgLocationPaginatedResponse struct {
@@ -41,7 +42,7 @@ func NewFindAllOrgLocationPaginated(
 }
 
 func (uc *FindAllOrgLocationPaginated) Execute(req *IFindAllOrgLocationPaginatedRequest) (*IFindAllOrgLocationPaginatedResponse, error) {
-	organizationLocations, total, err := uc.OrganizationLocationRepository.FindAllPaginated(req.Page, req.PageSize, req.Search, req.IncludedIDs, req.IsNull)
+	organizationLocations, total, err := uc.OrganizationLocationRepository.FindAllPaginated(req.Page, req.PageSize, req.Search, req.IncludedIDs, req.IsNull, req.OrgID)
 	if err != nil {
 		return nil, err
 	}
