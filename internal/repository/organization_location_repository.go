@@ -11,6 +11,7 @@ import (
 
 type IOrganizationLocationRepository interface {
 	FindAllPaginated(page int, pageSize int, search string, includedIDs []string, isNull bool) (*[]entity.OrganizationLocation, int64, error)
+	FindAllPaginatedWithOrgID(page int, pageSize int, search string, includedIDs []string, isNull bool, orgID string) (*[]entity.OrganizationLocation, int64, error)
 	FindById(id uuid.UUID) (*entity.OrganizationLocation, error)
 	FindAllOrganizationLocations(includedIDs []string) (*[]entity.OrganizationLocation, error)
 	FindByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationLocation, error)
@@ -46,6 +47,47 @@ func (r *OrganizationLocationRepository) FindAllPaginated(page int, pageSize int
 
 	if search != "" {
 		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	r.Log.Info("Query: ", query)
+
+	err = query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&organizationLocations).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	r.Log.Infof("Total ids: %d", includedIDs)
+
+	return &organizationLocations, total, nil
+}
+
+func (r *OrganizationLocationRepository) FindAllPaginatedWithOrgID(page int, pageSize int, search string, includedIDs []string, isNull bool, orgID string) (*[]entity.OrganizationLocation, int64, error) {
+	var organizationLocations []entity.OrganizationLocation
+	var total int64
+
+	query := r.DB.Preload("Organization").Model(&entity.OrganizationLocation{})
+
+	if isNull {
+		if len(includedIDs) > 0 {
+			query = query.Where("id NOT IN (?)", includedIDs)
+		}
+	} else {
+		if len(includedIDs) > 0 {
+			query = query.Where("id IN (?)", includedIDs)
+		}
+	}
+
+	if search != "" {
+		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+
+	if orgID != "" {
+		query = query.Where("organization_id = ?", orgID)
 	}
 
 	err := query.Count(&total).Error

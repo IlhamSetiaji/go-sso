@@ -445,6 +445,15 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 			break
 		}
 
+		organizationID, ok := docMsg.MessageData["organization_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'organization_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'organization_id'").Error(),
+			}
+			break
+		}
+
 		includedIDsInterface, ok := docMsg.MessageData["included_ids"].([]interface{})
 		if !ok {
 			log.Printf("Invalid request format: missing 'included_ids'")
@@ -487,11 +496,12 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 
 		messageFactory := orgMessaging.FindAllOrgLocationPaginatedUseCaseFactory(log)
 		message, err := messageFactory.Execute(&orgMessaging.IFindAllOrgLocationPaginatedRequest{
-			Page:        int(page),
-			PageSize:    int(pageSize),
-			Search:      search,
-			IncludedIDs: includedIDs,
-			IsNull:      isNull,
+			Page:           int(page),
+			PageSize:       int(pageSize),
+			Search:         search,
+			IncludedIDs:    includedIDs,
+			IsNull:         isNull,
+			OrganizationID: organizationID,
 		})
 
 		if err != nil {
