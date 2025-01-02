@@ -39,6 +39,7 @@
         <thead>
           <tr>
             <th>ID</th>
+            <th>Sudah Isi Job</th>
             <th>User Name</th>
             <th>Name</th>
             <th>Email</th>
@@ -53,6 +54,7 @@
           {{range .Employees}}
           <tr>
             <td>{{.ID}}</td>
+            <td>{{if .EmployeeJob}}<i class="fas fa-check"></i>{{else}}<i class="fas fa-times"></i>{{end}}</td>
             {{ if .User }}
             <td>{{.User.Name}}</td>
             {{ else }}
