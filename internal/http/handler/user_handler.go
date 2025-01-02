@@ -121,6 +121,11 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 			break
 		}
 	}
+	if len(filteredRoles) == 0 {
+		h.Log.Errorf("Role not found")
+		utils.ErrorResponse(ctx, 404, "error", "Role not found")
+		return
+	}
 	response.User.Roles = filteredRoles
 
 	token, err := utils.GenerateToken(&response.User)
