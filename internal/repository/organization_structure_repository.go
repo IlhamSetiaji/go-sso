@@ -16,6 +16,7 @@ type IOrganizationStructureRepository interface {
 	GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindByOrganizationId(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindAllChildren(parentID uuid.UUID) ([]entity.OrganizationStructure, error)
+	FindAllChildrenIDs(parentID uuid.UUID) ([]uuid.UUID, error)
 	FindParent(id uuid.UUID) (*entity.OrganizationStructure, error)
 	GetOrganizationSructuresByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	// GetDB() *gorm.DB
@@ -78,6 +79,25 @@ func (r *OrganizationStructureRepository) FindAllChildren(parentID uuid.UUID) ([
 	}
 
 	return children, nil
+}
+
+func (r *OrganizationStructureRepository) FindAllChildrenIDs(parentID uuid.UUID) ([]uuid.UUID, error) {
+	var children []entity.OrganizationStructure
+	var childrenIDs []uuid.UUID
+	if err := r.DB.Where("parent_id = ?", parentID).Find(&children).Error; err != nil {
+		return nil, err
+	}
+
+	for _, child := range children {
+		childrenIDs = append(childrenIDs, child.ID)
+		subChildrenIDs, err := r.FindAllChildrenIDs(child.ID)
+		if err != nil {
+			return nil, err
+		}
+		childrenIDs = append(childrenIDs, subChildrenIDs...)
+	}
+
+	return childrenIDs, nil
 }
 
 func (r *OrganizationStructureRepository) FindById(id uuid.UUID) (*entity.OrganizationStructure, error) {
