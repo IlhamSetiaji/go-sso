@@ -9,6 +9,8 @@ github.com/IlhamSetiaji/go-rabbitmq-utils v0.0.0-20241204142354-fc7c3cdcc1db h1:
 github.com/IlhamSetiaji/go-rabbitmq-utils v0.0.0-20241204142354-fc7c3cdcc1db/go.mod h1:EZr6+RoH/OK/xUg34Se+gzeZ/J2cStoDtrrOm0FzuVs=
 github.com/IlhamSetiaji/go-rabbitmq-utils v0.0.0-20241204144104-77fb7801722e h1:bdT4UwowbM8SQZwPzrYwwsTX3wb/HoeOLbAniMv4DUM=
 github.com/IlhamSetiaji/go-rabbitmq-utils v0.0.0-20241204144104-77fb7801722e/go.mod h1:EZr6+RoH/OK/xUg34Se+gzeZ/J2cStoDtrrOm0FzuVs=
+github.com/bas24/googletranslatefree v0.0.0-20231117033553-f5859fe54d30 h1:dvq7NKKclmPTAaB4iPRo5L4EBSxCIlVI1nxCRqX8fVA=
+github.com/bas24/googletranslatefree v0.0.0-20231117033553-f5859fe54d30/go.mod h1:ntTdGCe6WzFmHjox8vK2FZ2KLyh0IFxw43B6XCg0zf4=
 github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff/go.mod h1:+RTT1BOk5P97fT2CiHkbFQwkK3mjsFAP6zCYV2aXtjw=
 github.com/bradfitz/gomemcache v0.0.0-20180710155616-bc664df96737/go.mod h1:PmM6Mmwb0LSuEubjR8N7PtNe1KxZLtOUHtbeikc5h60=
 github.com/bradleypeabody/gorilla-sessions-memcache v0.0.0-20181103040241-659414f458e1/go.mod h1:dkChI7Tbtx7H1Tj7TqGSZMOeGpMP5gLHtjroHd4agiI=
