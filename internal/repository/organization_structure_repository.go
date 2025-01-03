@@ -83,18 +83,28 @@ func (r *OrganizationStructureRepository) FindAllChildren(parentID uuid.UUID) ([
 
 func (r *OrganizationStructureRepository) FindAllChildrenIDs(parentID uuid.UUID) ([]uuid.UUID, error) {
 	var children []entity.OrganizationStructure
+	childrenIDMap := make(map[uuid.UUID]bool)
 	var childrenIDs []uuid.UUID
+
 	if err := r.DB.Where("parent_id = ?", parentID).Find(&children).Error; err != nil {
 		return nil, err
 	}
 
 	for _, child := range children {
-		childrenIDs = append(childrenIDs, child.ID)
+		if !childrenIDMap[child.ID] {
+			childrenIDMap[child.ID] = true
+			childrenIDs = append(childrenIDs, child.ID)
+		}
 		subChildrenIDs, err := r.FindAllChildrenIDs(child.ID)
 		if err != nil {
 			return nil, err
 		}
-		childrenIDs = append(childrenIDs, subChildrenIDs...)
+		for _, subChildID := range subChildrenIDs {
+			if !childrenIDMap[subChildID] {
+				childrenIDMap[subChildID] = true
+				childrenIDs = append(childrenIDs, subChildID)
+			}
+		}
 	}
 
 	return childrenIDs, nil
