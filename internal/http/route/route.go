@@ -36,6 +36,7 @@ func (c *RouteConfig) SetupRoutes() {
 func (c *RouteConfig) SetupApiRoutes() {
 	apiRoute := c.App.Group("/api")
 	{
+		apiRoute.GET("/check-jwt-token", c.UserHandler.CheckStoredCookie)
 		apiRoute.POST("/login", c.UserHandler.Login)
 
 		oAuthRoute := apiRoute.Group("/oauth")

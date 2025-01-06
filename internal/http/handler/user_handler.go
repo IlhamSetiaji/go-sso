@@ -174,9 +174,20 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 }
 
 func (h *UserHandler) CheckStoredCookie(ctx *gin.Context) {
-	token, err := ctx.Cookie("jwt_token")
+	cookie, err := ctx.Cookie("jwt_token")
 	if err != nil {
 		utils.ErrorResponse(ctx, 400, "error", "Cookie not found")
+		return
+	}
+
+	if cookie == "" {
+		utils.ErrorResponse(ctx, 400, "error", "Cookie not found")
+		return
+	}
+
+	token, err := utils.GetTokenFromCookie(ctx, "jwt_token")
+	if err != nil {
+		utils.ErrorResponse(ctx, 400, "error", "Failed to get token from cookie")
 		return
 	}
 
