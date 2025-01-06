@@ -108,6 +108,9 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 	var msgData map[string]interface{}
 
 	switch docMsg.MessageType {
+	case "reply":
+		log.Printf("INFO: received reply message")
+		return
 	case "check_job_exist":
 		jobID, ok := docMsg.MessageData["job_id"].(string)
 		if !ok {
@@ -682,8 +685,9 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 	}
 	// reply
 	reply := response.RabbitMQResponse{
-		ID:          docMsg.ID,
-		MessageType: docMsg.MessageType,
+		ID: docMsg.ID,
+		// MessageType: docMsg.MessageType,
+		MessageType: "reply",
 		MessageData: msgData,
 	}
 	msg := RabbitMsg{
