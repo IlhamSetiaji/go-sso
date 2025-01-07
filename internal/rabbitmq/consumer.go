@@ -676,6 +676,32 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 		msgData = map[string]interface{}{
 			"children_ids": message.ChildrenIDs,
 		}
+	case "find_all_jobs_by_organization_id":
+		organizationID, ok := docMsg.MessageData["organization_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'organization_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'organization_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := messaging.FindAllJobsByOrganizationIDMessageFactory(log)
+		message, err := messageFactory.Execute(&messaging.IFindAllJobsByOrganizationIDMessageRequest{
+			OrganizationID: organizationID,
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"jobs": message.Jobs,
+		}
 	default:
 		log.Printf("Unknown message type, please recheck your type: %s", docMsg.MessageType)
 
