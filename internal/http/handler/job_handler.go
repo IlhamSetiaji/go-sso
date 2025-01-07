@@ -4,6 +4,7 @@ import (
 	"app/go-sso/internal/http/middleware"
 	usecase "app/go-sso/internal/usecase/job"
 	jobLevelUsecase "app/go-sso/internal/usecase/job_level"
+	userUsecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
 	"net/http"
 	"strconv"
@@ -47,6 +48,30 @@ func (h *JobHandler) FindAllPaginated(ctx *gin.Context) {
 		return
 	}
 
+	user, err := middleware.GetUser(ctx)
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.Log.Errorf("Error when getting user: %v", err)
+		return
+	}
+	if user == nil {
+		utils.ErrorResponse(ctx, 404, "error", "User not found")
+		h.Log.Errorf("User not found")
+		return
+	}
+
+	userFactory := userUsecase.MeUseCaseFactory(h.Log)
+	me, err := userFactory.Execute(&userUsecase.IMeUseCaseRequest{
+		ID:          uuid.MustParse(user["id"].(string)),
+		ChoosedRole: user["choosed_role"].(string),
+	})
+
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.Log.Errorf("Error when finding user by ID: %v", err)
+		return
+	}
+
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
 		page = 1
@@ -65,6 +90,10 @@ func (h *JobHandler) FindAllPaginated(ctx *gin.Context) {
 	organizationId := ctx.Query("organization_id")
 	if organizationId == "" {
 		organizationId = ""
+	}
+
+	if me.User.Employee.OrganizationID != uuid.Nil {
+		organizationId = me.User.Employee.OrganizationID.String()
 	}
 
 	factory := usecase.FindAllPaginatedUseCaseFactory(h.Log)
