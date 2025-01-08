@@ -59,7 +59,7 @@ func (r *JobLevelRepository) FindById(id uuid.UUID) (*entity.JobLevel, error) {
 
 func (r *JobLevelRepository) FindByIds(ids []uuid.UUID) (*[]entity.JobLevel, error) {
 	var jobLevels []entity.JobLevel
-	err := r.DB.Preload("OrganizationStructures").Where("id IN (?)", ids).Find(&jobLevels).Error
+	err := r.DB.Preload("OrganizationStructures").Where("id IN (?)", ids).Order("level ASC").Find(&jobLevels).Error
 	if err != nil {
 		return nil, err
 	}
