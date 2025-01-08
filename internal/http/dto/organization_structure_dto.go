@@ -67,3 +67,61 @@ func ConvertToSingleOrganizationStructureResponse(orgStructure *entity.Organizat
 		},
 	}
 }
+
+func ConvertToOrganizationStructureParentResponse(orgStructures *[]entity.OrganizationStructure) *[]response.OrganizationStructureParentResponse {
+	var responseStructures []response.OrganizationStructureParentResponse
+	for _, orgStructure := range *orgStructures {
+		responseStructures = append(responseStructures, response.OrganizationStructureParentResponse{
+			ID:             orgStructure.ID,
+			Name:           orgStructure.Name,
+			Level:          orgStructure.Level,
+			Path:           orgStructure.Path,
+			OrganizationID: orgStructure.OrganizationID,
+			JobLevelID:     orgStructure.JobLevelID,
+			ParentID:       orgStructure.ParentID,
+			Parents:        *ConvertToOrganizationStructureParentResponse(&orgStructure.Parents),
+			Organization: response.OrganizationResponse{
+				ID:                 orgStructure.Organization.ID,
+				OrganizationTypeID: orgStructure.Organization.OrganizationTypeID,
+				Name:               orgStructure.Organization.Name,
+				OrganizationType: response.OrganizationTypeResponse{
+					ID:   orgStructure.Organization.OrganizationType.ID,
+					Name: orgStructure.Organization.OrganizationType.Name,
+				},
+			},
+			JobLevel: response.JobLevelResponse{
+				ID:    orgStructure.JobLevel.ID,
+				Name:  orgStructure.JobLevel.Name,
+				Level: orgStructure.JobLevel.Level,
+			},
+		})
+	}
+	return &responseStructures
+}
+
+func ConvertToSingleOrganizationStructureParentResponse(orgStructure *entity.OrganizationStructure) *response.OrganizationStructureParentResponse {
+	return &response.OrganizationStructureParentResponse{
+		ID:             orgStructure.ID,
+		Name:           orgStructure.Name,
+		Level:          orgStructure.Level,
+		Path:           orgStructure.Path,
+		OrganizationID: orgStructure.OrganizationID,
+		JobLevelID:     orgStructure.JobLevelID,
+		ParentID:       orgStructure.ParentID,
+		Parents:        *ConvertToOrganizationStructureParentResponse(&orgStructure.Parents),
+		Organization: response.OrganizationResponse{
+			ID:                 orgStructure.Organization.ID,
+			OrganizationTypeID: orgStructure.Organization.OrganizationTypeID,
+			Name:               orgStructure.Organization.Name,
+			OrganizationType: response.OrganizationTypeResponse{
+				ID:   orgStructure.Organization.OrganizationType.ID,
+				Name: orgStructure.Organization.OrganizationType.Name,
+			},
+		},
+		JobLevel: response.JobLevelResponse{
+			ID:    orgStructure.JobLevel.ID,
+			Name:  orgStructure.JobLevel.Name,
+			Level: orgStructure.JobLevel.Level,
+		},
+	}
+}

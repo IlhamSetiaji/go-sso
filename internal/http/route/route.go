@@ -64,6 +64,7 @@ func (c *RouteConfig) SetupApiRoutes() {
 			// Organization structure routes
 			apiRoute.GET("/organization-structures", c.OrganizationHandler.FindOrganizationStructurePaginated)
 			apiRoute.GET("/organization-structures/:id", c.OrganizationHandler.FindOrganizationStructureById)
+			apiRoute.GET("/organization-structures/parents/:id", c.OrganizationHandler.FindOrganizationStructureByIdWithParents)
 
 			// Organization location routes
 			apiRoute.GET("/organization-locations", c.OrganizationHandler.FindOrganizationLocationsPaginated)

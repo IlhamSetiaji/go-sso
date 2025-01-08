@@ -24,6 +24,7 @@ type OrganizationStructure struct {
 	JobLevel     JobLevel                `json:"job_level" gorm:"foreignKey:JobLevelID;references:ID;constraint:OnDelete:CASCADE"`
 	Parent       *OrganizationStructure  `json:"parent" gorm:"foreignKey:ParentID;references:ID;constraint:OnDelete:CASCADE"`
 	Children     []OrganizationStructure `json:"children" gorm:"foreignKey:ParentID;references:ID"`
+	Parents      []OrganizationStructure `json:"parents" gorm:"-"`
 	Jobs         []Job                   `json:"jobs" gorm:"foreignKey:OrganizationStructureID;references:ID;constraint:OnDelete:CASCADE"`
 }
 

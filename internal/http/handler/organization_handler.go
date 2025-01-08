@@ -29,6 +29,7 @@ type IOrganizationHandler interface {
 	FindById(ctx *gin.Context)
 	FindOrganizationStructurePaginated(ctx *gin.Context)
 	FindOrganizationStructureById(ctx *gin.Context)
+	FindOrganizationStructureByIdWithParents(ctx *gin.Context)
 	FindOrganizationLocationsPaginated(ctx *gin.Context)
 	FindOrganizationLocationById(ctx *gin.Context)
 	FindOrganizationLocationByOrganizationId(ctx *gin.Context)
@@ -124,6 +125,32 @@ func (h *OrganizationHandler) FindById(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "success", res.Organization)
+}
+
+func (h *OrganizationHandler) FindOrganizationStructureByIdWithParents(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-organization-structure")(ctx)
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.log.Errorf("Permission denied")
+		return
+	}
+
+	id := ctx.Param("id")
+	if id == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "error", "id is required")
+		return
+	}
+
+	factory := structureUsecase.FindByIDWithParentUseCaseFactory(h.log)
+	res, err := factory.Execute(&structureUsecase.IFindByIDWithParentUseCaseRequest{
+		ID: uuid.MustParse(id),
+	})
+	if err != nil {
+		h.log.Errorf("Error: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "success", res.OrganizationStructure)
 }
 
 func (h *OrganizationHandler) FindOrganizationStructurePaginated(ctx *gin.Context) {

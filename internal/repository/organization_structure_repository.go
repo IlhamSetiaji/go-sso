@@ -16,6 +16,7 @@ type IOrganizationStructureRepository interface {
 	GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindByOrganizationId(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindAllChildren(parentID uuid.UUID) ([]entity.OrganizationStructure, error)
+	FindAllParents(parentID uuid.UUID) ([]entity.OrganizationStructure, error)
 	FindAllChildrenIDs(parentID uuid.UUID) ([]uuid.UUID, error)
 	FindParent(id uuid.UUID) (*entity.OrganizationStructure, error)
 	GetOrganizationSructuresByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
@@ -79,6 +80,25 @@ func (r *OrganizationStructureRepository) FindAllChildren(parentID uuid.UUID) ([
 	}
 
 	return children, nil
+}
+
+func (r *OrganizationStructureRepository) FindAllParents(parentID uuid.UUID) ([]entity.OrganizationStructure, error) {
+	var parents []entity.OrganizationStructure
+	if err := r.DB.Preload("Organization.OrganizationType").Preload("JobLevel").Where("id = ?", parentID).Find(&parents).Error; err != nil {
+		return nil, err
+	}
+
+	for i := range parents {
+		if parents[i].ParentID != nil {
+			subParents, err := r.FindAllParents(*parents[i].ParentID)
+			if err != nil {
+				return nil, err
+			}
+			parents[i].Parents = subParents
+		}
+	}
+
+	return parents, nil
 }
 
 func (r *OrganizationStructureRepository) FindAllChildrenIDs(parentID uuid.UUID) ([]uuid.UUID, error) {
