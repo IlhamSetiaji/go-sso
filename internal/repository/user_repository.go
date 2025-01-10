@@ -4,6 +4,7 @@ import (
 	"app/go-sso/internal/config"
 	"app/go-sso/internal/entity"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -22,6 +23,10 @@ type IUserRepository interface {
 	UpdateUserOnly(user *entity.User) (*entity.User, error)
 	UpdateEmployeeIdToNull(user *entity.User) (*entity.User, error)
 	DeleteUser(id uuid.UUID) error
+	CreateUserToken(email string, token int, tokenType entity.UserTokenType) error
+	AcknowledgeUserToken(email string, token int) error
+	VerifyUserEmail(email string) error
+	FindUserTokenByEmail(email string) (*entity.UserToken, error)
 }
 
 type UserRepository struct {
@@ -306,6 +311,114 @@ func (r *UserRepository) DeleteUser(id uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (r *UserRepository) CreateUserToken(email string, token int, tokenType entity.UserTokenType) error {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return errors.New("[UserRepository.CreateUserToken] failed to begin transaction: " + tx.Error.Error())
+	}
+
+	var user entity.User
+	if err := tx.First(&user, "email = ?", email).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.CreateUserToken] User not found: " + err.Error())
+		return errors.New("[UserRepository.CreateUserToken] User not found: " + err.Error())
+	}
+
+	var userToken = entity.UserToken{
+		Email:     email,
+		Token:     token,
+		TokenType: tokenType,
+	}
+
+	if err := tx.Create(&userToken).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.CreateUserToken] " + err.Error())
+		return errors.New("[UserRepository.CreateUserToken] " + err.Error())
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.CreateUserToken] failed to commit transaction: " + err.Error())
+		return errors.New("[UserRepository.CreateUserToken] failed to commit transaction: " + err.Error())
+	}
+
+	return nil
+}
+
+func (r *UserRepository) AcknowledgeUserToken(email string, token int) error {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return errors.New("[UserRepository.AcknowledgeUserToken] failed to begin transaction: " + tx.Error.Error())
+	}
+
+	var userToken entity.UserToken
+	if err := tx.First(&userToken, "email = ? AND token = ?", email, token).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.AcknowledgeUserToken] User token not found: " + err.Error())
+		return errors.New("[UserRepository.AcknowledgeUserToken] User token not found: " + err.Error())
+	}
+
+	if err := tx.Where("email = ? AND token = ?", userToken.Email, userToken.Token).Delete(&userToken).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.AcknowledgeUserToken] " + err.Error())
+		return errors.New("[UserRepository.AcknowledgeUserToken] " + err.Error())
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.AcknowledgeUserToken] failed to commit transaction: " + err.Error())
+		return errors.New("[UserRepository.AcknowledgeUserToken] failed to commit transaction: " + err.Error())
+	}
+
+	return nil
+}
+
+func (r *UserRepository) VerifyUserEmail(email string) error {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return errors.New("[UserRepository.VerifyUserEmail] failed to begin transaction: " + tx.Error.Error())
+	}
+
+	var user entity.User
+	if err := tx.First(&user, "email = ?", email).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.VerifyUserEmail] User not found: " + err.Error())
+		return errors.New("[UserRepository.VerifyUserEmail] User not found: " + err.Error())
+	}
+
+	if err := tx.Model(&user).Where("email = ?", email).Updates(map[string]interface{}{
+		"email_verified_at": time.Now(),
+		"status":            entity.USER_ACTIVE,
+	}).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.VerifyUserEmail] " + err.Error())
+		return errors.New("[UserRepository.VerifyUserEmail] " + err.Error())
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.VerifyUserEmail] failed to commit transaction: " + err.Error())
+		return errors.New("[UserRepository.VerifyUserEmail] failed to commit transaction: " + err.Error())
+	}
+
+	return nil
+}
+
+func (r *UserRepository) FindUserTokenByEmail(email string) (*entity.UserToken, error) {
+	var userToken entity.UserToken
+	err := r.DB.Where("token_type = ?", entity.UserTokenVerification).First(&userToken, "email = ?", email).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			r.Log.Warn("[UserRepository.FindUserTokenByEmail] User token not found")
+			return nil, nil
+		} else {
+			r.Log.Error("[UserRepository.FindUserTokenByEmail] " + err.Error())
+			return nil, errors.New("[UserRepository.FindUserTokenByEmail] " + err.Error())
+		}
+	}
+	return &userToken, nil
 }
 
 func UserRepositoryFactory(log *logrus.Logger) IUserRepository {
