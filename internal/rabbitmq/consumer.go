@@ -7,6 +7,7 @@ import (
 	messaging "app/go-sso/internal/messaging/job"
 	orgMessaging "app/go-sso/internal/messaging/organization"
 	userMessaging "app/go-sso/internal/messaging/user"
+	"app/go-sso/internal/service"
 	"app/go-sso/utils"
 	"encoding/json"
 	"errors"
@@ -98,12 +99,12 @@ func InitConsumer(viper *viper.Viper, log *logrus.Logger) {
 			}
 
 			// handle docMsg
-			handleMsg(docMsg, log)
+			handleMsg(docMsg, log, viper)
 		}
 	}
 }
 
-func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
+func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper.Viper) {
 	// switch case
 	var msgData map[string]interface{}
 
@@ -701,6 +702,60 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger) {
 
 		msgData = map[string]interface{}{
 			"jobs": message.Jobs,
+		}
+	case "send_mail":
+		to, ok := docMsg.MessageData["to"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'to'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'to'").Error(),
+			}
+			break
+		}
+		subject, ok := docMsg.MessageData["subject"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'subject'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'subject'").Error(),
+			}
+			break
+		}
+		body, ok := docMsg.MessageData["body"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'body'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'body'").Error(),
+			}
+			break
+		}
+		from, ok := docMsg.MessageData["from"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'from'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'from'").Error(),
+			}
+			break
+		}
+
+		mailService := service.MailServiceFactory(log, viper)
+		err := mailService.SendMail(service.MailData{
+			From:    from,
+			To:      []string{to},
+			Subject: subject,
+			Body:    body,
+		})
+		if err != nil {
+			log.Errorf("ERROR: fail send mail: %s", err.Error())
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		} else {
+			log.Printf("INFO: success send mail")
+		}
+
+		msgData = map[string]interface{}{
+			"message": "success",
 		}
 	default:
 		log.Printf("Unknown message type, please recheck your type: %s", docMsg.MessageType)
