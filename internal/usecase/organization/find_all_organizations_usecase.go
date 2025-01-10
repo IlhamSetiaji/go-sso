@@ -1,14 +1,15 @@
 package usecase
 
 import (
-	"app/go-sso/internal/entity"
+	"app/go-sso/internal/http/dto"
+	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
 	"github.com/sirupsen/logrus"
 )
 
 type IFindAllOrganizationsUsecaseResponse struct {
-	Organizations []entity.Organization `json:"organizations"`
+	Organizations []response.OrganizationResponse `json:"organizations"`
 }
 
 type IFindAllOrganizationsUsecase interface {
@@ -36,6 +37,6 @@ func (u *FindAllOrganizationsUsecase) Execute() (*IFindAllOrganizationsUsecaseRe
 	}
 
 	return &IFindAllOrganizationsUsecaseResponse{
-		Organizations: *organizations,
+		Organizations: *dto.ConvertToOrganizationResponse(organizations),
 	}, nil
 }

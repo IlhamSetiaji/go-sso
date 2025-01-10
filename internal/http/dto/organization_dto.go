@@ -16,3 +16,21 @@ func ConvertToOrganizationForMessageResponse(organizations *[]entity.Organizatio
 	}
 	return &responseOrganizations
 }
+
+func ConvertToOrganizationResponse(organizations *[]entity.Organization) *[]response.OrganizationResponse {
+	var responseOrganizations []response.OrganizationResponse
+	for _, organization := range *organizations {
+		responseOrganizations = append(responseOrganizations, response.OrganizationResponse{
+			ID:                 organization.ID,
+			OrganizationTypeID: organization.OrganizationTypeID,
+			Name:               organization.Name,
+			OrganizationType: response.OrganizationTypeResponse{
+				ID:   organization.OrganizationType.ID,
+				Name: organization.OrganizationType.Name,
+			},
+			OrganizationStructureResponses: *ConvertToOrganizationStructureMinimalResponse(&organization.OrganizationStructures),
+		})
+	}
+	return &responseOrganizations
+}
+

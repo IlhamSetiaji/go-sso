@@ -125,3 +125,17 @@ func ConvertToSingleOrganizationStructureParentResponse(orgStructure *entity.Org
 		},
 	}
 }
+
+func ConvertToOrganizationStructureMinimalResponse(orgStructures *[]entity.OrganizationStructure) *[]response.OrganizationStructureMinimalResponse {
+	var responseStructures []response.OrganizationStructureMinimalResponse
+	for _, orgStructure := range *orgStructures {
+		responseStructures = append(responseStructures, response.OrganizationStructureMinimalResponse{
+			ID:             orgStructure.ID,
+			Name:           orgStructure.Name,
+			Level:          orgStructure.Level,
+			OrganizationID: orgStructure.OrganizationID,
+			ParentID:       orgStructure.ParentID,
+		})
+	}
+	return &responseStructures
+}
