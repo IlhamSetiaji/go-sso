@@ -41,6 +41,12 @@ type User struct {
 	CreatedAt       time.Time   `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt       time.Time   `json:"updated_at" gorm:"autoUpdateTime"`
 	MidsuitID       string      `json:"midsuit_id" gorm:"default:null"`
+	BirthDate       *time.Time  `json:"birth_date" gorm:"default:null"`
+	BirthPlace      string      `json:"birth_place" gorm:"default:null"`
+	Age             int         `json:"age" gorm:"default:null"`
+	NoKTP           string      `json:"no_ktp" gorm:"default:null"`
+	KTP             string      `json:"ktp" gorm:"type:text;default:null"`
+	Address         string      `json:"address" gorm:"type:text;default:null"`
 	// DeletedAt       time.Time  `json:"deleted_at" gorm:"index"`
 
 	ChoosedRole string `json:"choosed_role" gorm:"-"`
