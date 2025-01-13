@@ -15,7 +15,7 @@ func main() {
 
 	// Migrate the schema
 	err := db.AutoMigrate(&entity.Application{}, &entity.Role{}, &entity.Permission{}, &entity.RolePermission{}, &entity.AuthToken{}, &entity.Organization{},
-		&entity.OrganizationLocation{}, &entity.JobLevel{}, &entity.OrganizationStructure{}, &entity.Job{}, &entity.Employee{}, &entity.EmployeeJob{}, &entity.User{}, &entity.UserRole{})
+		&entity.OrganizationLocation{}, &entity.JobLevel{}, &entity.OrganizationStructure{}, &entity.Job{}, &entity.Employee{}, &entity.EmployeeJob{}, &entity.User{}, &entity.UserRole{}, &entity.UserToken{})
 
 	if err != nil {
 		log.Fatalf("failed to migrate schema: %v", err)

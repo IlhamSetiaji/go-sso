@@ -80,6 +80,9 @@ func (v *View) Render(c *gin.Context, data interface{}) {
 	dataMap["HasPermission"] = templateHelper.HasPermission
 	dataMap["HasRole"] = templateHelper.HasRole
 	dataMap["DateFormatter"] = templateHelper.DateFormatter
+	dataMap["IsAuthenticated"] = templateHelper.IsAuthenticated
+	dataMap["NotInArrays"] = templateHelper.NotInArrays
+	dataMap["CreateSlice"] = templateHelper.CreateSlice
 
 	err := v.Template.ExecuteTemplate(c.Writer, v.Layout, dataMap)
 	if err != nil {

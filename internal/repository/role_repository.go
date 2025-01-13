@@ -12,6 +12,7 @@ import (
 
 type IRoleRepository interface {
 	GetAllRoles() (*[]entity.Role, error)
+	FindByName(name string) (*entity.Role, error)
 	FindById(id uuid.UUID) (*entity.Role, error)
 	StoreRole(role *entity.Role) (*entity.Role, error)
 	UpdateRole(role *entity.Role) (*entity.Role, error)
@@ -54,6 +55,20 @@ func (r *RoleRepository) FindById(id uuid.UUID) (*entity.Role, error) {
 		r.Log.Error(err)
 		return nil, err
 	}
+	return &role, nil
+}
+
+func (r *RoleRepository) FindByName(name string) (*entity.Role, error) {
+	var role entity.Role
+
+	if err := r.DB.Preload("Application").Preload("Permissions").Preload("Users").Where("name = ?", name).First(&role).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		r.Log.Error(err)
+		return nil, err
+	}
+
 	return &role, nil
 }
 

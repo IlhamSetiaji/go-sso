@@ -68,9 +68,10 @@
               {{ if call $.HasPermission "read-permission" }}
               <a
                 href="/permissions/role/{{.ID}}"
-                class="btn btn-outline-primary">Assign Permissions</a>
-              {{ end }}
-              {{if call $.HasPermission "update-role"}}
+                class="btn btn-outline-primary"
+                >Assign Permissions</a
+              >
+              {{ end }} {{if call $.HasPermission "update-role"}}
               <button
                 type="button"
                 class="btn btn-outline-warning"
@@ -84,7 +85,8 @@
               >
                 <i class="fas fa-pencil"></i>
               </button>
-              {{end}} {{if call $.HasPermission "delete-role"}}
+              {{end}} {{if call $.HasPermission "delete-role"}} {{ if call
+              $.NotInArrays .Name (call $.CreateSlice "Applicant" "superadmin") }}
               <form action="/roles/delete" method="POST" class="d-inline">
                 <input type="hidden" name="id" value="{{.ID}}" />
                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
@@ -97,7 +99,7 @@
                   <i class="fas fa-trash"></i>
                 </button>
               </form>
-              {{end}}
+              {{ end }} {{end}}
             </td>
           </tr>
           {{end}}
@@ -398,7 +400,9 @@
       const modal = $(this);
       modal.find('.modal-body input[name="name"]').val(name);
       modal.find('.modal-body select[name="guard_name"]').val(guard_name);
-      modal.find('.modal-body select[name="application_id"]').val(application_id);
+      modal
+        .find('.modal-body select[name="application_id"]')
+        .val(application_id);
       modal.find('.modal-body select[name="status"]').val(status);
       modal.find('.modal-body input[name="id"]').val(id);
     });

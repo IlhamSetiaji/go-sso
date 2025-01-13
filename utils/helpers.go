@@ -4,8 +4,10 @@ import (
 	"app/go-sso/internal/http/request"
 	"app/go-sso/internal/http/response"
 	mqResponse "app/go-sso/internal/http/response"
+	"crypto/rand"
 	"errors"
 	"log"
+	"math/big"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -47,6 +49,23 @@ func (h *TemplateHelper) HasRole(requiredRole string) bool {
 		}
 	}
 	return false
+}
+
+func (h *TemplateHelper) IsAuthenticated() bool {
+	return h.Ctx.GetBool("isAuthenticated")
+}
+
+func (h *TemplateHelper) NotInArrays(value string, list []string) bool {
+	for _, item := range list {
+		if value == item {
+			return false
+		}
+	}
+	return true
+}
+
+func (h *TemplateHelper) CreateSlice(values ...string) []string {
+	return values
 }
 
 func (h *TemplateHelper) DateFormatter(date time.Time) string {
@@ -104,4 +123,23 @@ func WaitForReply(id string, rchan chan response.RabbitMQResponse) (response.Rab
 			return response.RabbitMQResponse{}, errors.New("request timeout")
 		}
 	}
+}
+
+func GenerateRandomIntToken(digits int) (int64, error) {
+	max := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(digits)), nil).Sub(new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(digits)), nil), big.NewInt(1))
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return 0, err
+	}
+	return n.Int64(), nil
+}
+
+func GenerateRandomStringToken(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, length)
+	for i := range b {
+		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		b[i] = charset[n.Int64()]
+	}
+	return string(b)
 }
