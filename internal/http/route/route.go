@@ -10,20 +10,21 @@ import (
 )
 
 type RouteConfig struct {
-	App                  *gin.Engine
-	Viper                *viper.Viper
-	UserHandler          handler.UserHandlerInterface
-	UserWebHandler       web.UserHandlerInterface
-	RoleWebHandler       web.RoleHandlerInterface
-	OrganizationHandler  handler.IOrganizationHandler
-	PermissionWebHandler web.PermissionHandlerInterface
-	DashboardHandler     web.DashboardHandlerInterface
-	AuthWebHandler       web.AuthHandlerInterface
-	WebAuthMiddleware    gin.HandlerFunc
-	AuthMiddleware       gin.HandlerFunc
-	JobHandler           handler.IJobHandler
-	EmployeeHandler      handler.IEmployeeHandler
-	EmployeeWebHandler   web.EmployeeHandlerInterface
+	App                     *gin.Engine
+	Viper                   *viper.Viper
+	UserHandler             handler.UserHandlerInterface
+	UserWebHandler          web.UserHandlerInterface
+	RoleWebHandler          web.RoleHandlerInterface
+	OrganizationHandler     handler.IOrganizationHandler
+	PermissionWebHandler    web.PermissionHandlerInterface
+	DashboardHandler        web.DashboardHandlerInterface
+	AuthWebHandler          web.AuthHandlerInterface
+	WebAuthMiddleware       gin.HandlerFunc
+	AuthMiddleware          gin.HandlerFunc
+	EmailVerifiedMiddleware gin.HandlerFunc
+	JobHandler              handler.IJobHandler
+	EmployeeHandler         handler.IEmployeeHandler
+	EmployeeWebHandler      web.EmployeeHandlerInterface
 }
 
 func (c *RouteConfig) SetupRoutes() {
@@ -105,43 +106,47 @@ func (c *RouteConfig) SetupWebRoutes() {
 	{
 		c.App.GET("/", c.DashboardHandler.Index)
 		c.App.GET("/test", c.AuthWebHandler.CheckCookieTest)
-		c.App.GET("/portal", c.DashboardHandler.Portal)
 		c.App.GET("/logout", c.AuthWebHandler.Logout)
 		c.App.GET("/otp", c.AuthWebHandler.OtpView)
 		c.App.POST("/verify-email", c.AuthWebHandler.VerifyEmail)
-		userRoutes := c.App.Group("/users")
+		c.App.GET("/resend-verify-email/:email", c.AuthWebHandler.ResendVerifyEmail)
+		c.App.Use(c.EmailVerifiedMiddleware)
 		{
-			userRoutes.GET("/", c.UserWebHandler.Index)
-			userRoutes.POST("/", c.UserWebHandler.StoreUser)
-			userRoutes.POST("/update", c.UserWebHandler.UpdateUser)
-			userRoutes.POST("/delete", c.UserWebHandler.DeleteUser)
-		}
-		roleRoutes := c.App.Group("/roles")
-		{
-			roleRoutes.GET("/", c.RoleWebHandler.Index)
-			roleRoutes.POST("/", c.RoleWebHandler.StoreRole)
-			roleRoutes.POST("/assign-permissions", c.RoleWebHandler.AssignRoleToPermissions)
-			roleRoutes.POST("/resign-permissions", c.RoleWebHandler.ResignRoleFromPermission)
-			roleRoutes.POST("/update", c.RoleWebHandler.UpdateRole)
-			roleRoutes.POST("/delete", c.RoleWebHandler.DeleteRole)
-		}
-		permissionRoutes := c.App.Group("/permissions")
-		{
-			permissionRoutes.GET("/", c.PermissionWebHandler.Index)
-			permissionRoutes.GET("/role/:role_id", c.PermissionWebHandler.GetPermissionsByRoleID)
-			permissionRoutes.POST("/", c.PermissionWebHandler.StorePermission)
-			permissionRoutes.POST("/update", c.PermissionWebHandler.UpdatePermission)
-			permissionRoutes.POST("/delete", c.PermissionWebHandler.DeletePermission)
-		}
-		employeeRoutes := c.App.Group("/employees")
-		{
-			employeeRoutes.GET("/", c.EmployeeWebHandler.Index)
-			employeeRoutes.POST("/", c.EmployeeWebHandler.Store)
-			employeeRoutes.POST("/update", c.EmployeeWebHandler.Update)
-			employeeRoutes.POST("/delete", c.EmployeeWebHandler.Delete)
-			employeeRoutes.GET("/:id/job", c.EmployeeWebHandler.EmployeeJobs)
-			employeeRoutes.POST("/store-job", c.EmployeeWebHandler.StoreEmployeeJob)
-			employeeRoutes.POST("/update-job", c.EmployeeWebHandler.UpdateEmployeeJob)
+			c.App.GET("/portal", c.DashboardHandler.Portal)
+			userRoutes := c.App.Group("/users")
+			{
+				userRoutes.GET("/", c.UserWebHandler.Index)
+				userRoutes.POST("/", c.UserWebHandler.StoreUser)
+				userRoutes.POST("/update", c.UserWebHandler.UpdateUser)
+				userRoutes.POST("/delete", c.UserWebHandler.DeleteUser)
+			}
+			roleRoutes := c.App.Group("/roles")
+			{
+				roleRoutes.GET("/", c.RoleWebHandler.Index)
+				roleRoutes.POST("/", c.RoleWebHandler.StoreRole)
+				roleRoutes.POST("/assign-permissions", c.RoleWebHandler.AssignRoleToPermissions)
+				roleRoutes.POST("/resign-permissions", c.RoleWebHandler.ResignRoleFromPermission)
+				roleRoutes.POST("/update", c.RoleWebHandler.UpdateRole)
+				roleRoutes.POST("/delete", c.RoleWebHandler.DeleteRole)
+			}
+			permissionRoutes := c.App.Group("/permissions")
+			{
+				permissionRoutes.GET("/", c.PermissionWebHandler.Index)
+				permissionRoutes.GET("/role/:role_id", c.PermissionWebHandler.GetPermissionsByRoleID)
+				permissionRoutes.POST("/", c.PermissionWebHandler.StorePermission)
+				permissionRoutes.POST("/update", c.PermissionWebHandler.UpdatePermission)
+				permissionRoutes.POST("/delete", c.PermissionWebHandler.DeletePermission)
+			}
+			employeeRoutes := c.App.Group("/employees")
+			{
+				employeeRoutes.GET("/", c.EmployeeWebHandler.Index)
+				employeeRoutes.POST("/", c.EmployeeWebHandler.Store)
+				employeeRoutes.POST("/update", c.EmployeeWebHandler.Update)
+				employeeRoutes.POST("/delete", c.EmployeeWebHandler.Delete)
+				employeeRoutes.GET("/:id/job", c.EmployeeWebHandler.EmployeeJobs)
+				employeeRoutes.POST("/store-job", c.EmployeeWebHandler.StoreEmployeeJob)
+				employeeRoutes.POST("/update-job", c.EmployeeWebHandler.UpdateEmployeeJob)
+			}
 		}
 	}
 }

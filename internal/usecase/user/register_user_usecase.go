@@ -116,7 +116,12 @@ func (uc *RegisterUserUseCase) Execute(payload IRegisterUserUseCaseRequest) (*IR
 	if err != nil {
 		log.Fatalf("Failed to generate random token: %v", err)
 	}
-	if err := uc.Repository.CreateUserToken(payload.Email, int(randomIntToken), entity.UserTokenVerification); err != nil {
+	tokenInt, err := strconv.Atoi(randomIntToken)
+	if err != nil {
+		uc.Log.Error("[UserUseCase.Register] " + err.Error())
+		return nil, err
+	}
+	if err := uc.Repository.CreateUserToken(payload.Email, tokenInt, entity.UserTokenVerification); err != nil {
 		uc.Log.Error("[UserUseCase.Register] " + err.Error())
 		return nil, err
 	}
@@ -124,7 +129,7 @@ func (uc *RegisterUserUseCase) Execute(payload IRegisterUserUseCaseRequest) (*IR
 	if _, err := uc.MailMessage.SendMail(&request.MailRequest{
 		Email:   user.Email,
 		Subject: "Email Verification",
-		Body:    "Your verification code is " + strconv.Itoa(int(randomIntToken)),
+		Body:    "Your verification code is " + randomIntToken,
 		From:    "ilham.ahmadz18@gmail.com",
 		To:      user.Email,
 	}); err != nil {

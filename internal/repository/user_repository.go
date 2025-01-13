@@ -28,6 +28,7 @@ type IUserRepository interface {
 	AcknowledgeUserToken(email string, token int) error
 	VerifyUserEmail(email string) error
 	FindUserTokenByEmail(email string) (*entity.UserToken, error)
+	DeleteUserToken(email string, tokenType entity.UserTokenType) error
 }
 
 type UserRepository struct {
@@ -435,6 +436,34 @@ func (r *UserRepository) FindUserTokenByEmail(email string) (*entity.UserToken, 
 		}
 	}
 	return &userToken, nil
+}
+
+func (r *UserRepository) DeleteUserToken(email string, tokenType entity.UserTokenType) error {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return errors.New("[UserRepository.DeleteUserToken] failed to begin transaction: " + tx.Error.Error())
+	}
+
+	var userToken entity.UserToken
+	if err := tx.First(&userToken, "email = ? AND token_type = ?", email, tokenType).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.DeleteUserToken] User token not found: " + err.Error())
+		return errors.New("[UserRepository.DeleteUserToken] User token not found: " + err.Error())
+	}
+
+	if err := tx.Where("email = ? AND token_type = ?", userToken.Email, userToken.TokenType).Delete(&userToken).Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.DeleteUserToken] " + err.Error())
+		return errors.New("[UserRepository.DeleteUserToken] " + err.Error())
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		r.Log.Error("[UserRepository.DeleteUserToken] failed to commit transaction: " + err.Error())
+		return errors.New("[UserRepository.DeleteUserToken] failed to commit transaction: " + err.Error())
+	}
+
+	return nil
 }
 
 func UserRepositoryFactory(log *logrus.Logger) IUserRepository {

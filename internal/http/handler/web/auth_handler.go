@@ -10,6 +10,7 @@ import (
 	"app/go-sso/views"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,7 @@ type AuthHandlerInterface interface {
 	Register(ctx *gin.Context)
 	OtpView(ctx *gin.Context)
 	VerifyEmail(ctx *gin.Context)
+	ResendVerifyEmail(ctx *gin.Context)
 }
 
 func AuthHandlerFactory(log *logrus.Logger, validator *validator.Validate) AuthHandlerInterface {
@@ -239,11 +241,12 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	}
 
 	var profile = entity.Profile{
-		ID:         response.User.ID,
-		Name:       response.User.Name,
-		Email:      response.User.Email,
-		Username:   response.User.Username,
-		IsEmployee: h.hasEmployeeData(&response.User),
+		ID:              response.User.ID,
+		Name:            response.User.Name,
+		Email:           response.User.Email,
+		Username:        response.User.Username,
+		IsEmployee:      h.hasEmployeeData(&response.User),
+		EmailVerifiedAt: response.User.EmailVerifiedAt,
 	}
 
 	session.Set("profile", profile)
@@ -309,11 +312,12 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 	}
 
 	var profile = entity.Profile{
-		ID:         resp.User.ID,
-		Name:       resp.User.Name,
-		Email:      resp.User.Email,
-		Username:   resp.User.Username,
-		IsEmployee: h.hasEmployeeDataResp(resp.User),
+		ID:              resp.User.ID,
+		Name:            resp.User.Name,
+		Email:           resp.User.Email,
+		Username:        resp.User.Username,
+		IsEmployee:      h.hasEmployeeDataResp(resp.User),
+		EmailVerifiedAt: resp.User.EmailVerifiedAt,
 	}
 
 	session.Set("profile", profile)
@@ -378,9 +382,58 @@ func (h *AuthHandler) VerifyEmail(ctx *gin.Context) {
 	jwtCookie.Domain = h.Config.GetString("app.domain")
 	utils.SetTokenCookie(ctx, token, jwtCookie)
 
-	session.Set("success", "Email has been verified")
+	session.Delete("profile")
+
+	profile := entity.Profile{
+		ID:              resp.User.ID,
+		Name:            resp.User.Name,
+		Email:           resp.User.Email,
+		Username:        resp.User.Username,
+		IsEmployee:      h.hasEmployeeData(resp.User),
+		EmailVerifiedAt: time.Now(),
+	}
+
+	session.Set("profile", profile)
 	session.Save()
+	session.Delete("error")
+	session.Set("success", "Email has been verified")
+	if err := session.Save(); err != nil {
+		h.Log.Printf("[Auth handler] Session save error: %v", err)
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
 	ctx.Redirect(302, "/portal")
+}
+
+func (h *AuthHandler) ResendVerifyEmail(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	email := ctx.Param("email")
+	if email == "" {
+		session.Set("error", "Email not found")
+		session.Save()
+		h.Log.Printf("Email not found")
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory := usecase.ResendVerfiyEmailUseCaseFactory(h.Log)
+	_, err := factory.Execute(usecase.IResendVerfiyEmailUseCaseRequest{
+		Email: email,
+	})
+
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	session.Set("success", "Email has been sent")
+	session.Save()
+	ctx.Redirect(302, ctx.Request.Referer())
+	return
 }
 
 func (h *AuthHandler) CheckCookieTest(ctx *gin.Context) {

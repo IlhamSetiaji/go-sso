@@ -73,13 +73,14 @@
             border-radius: 20px;
             height: 40px;
             background-color: rgb(0, 255, 55);
-            border: 1px solid rgb(0, 255, 55);
+          border: 1px solid rgb(0, 255, 55);
             width: 140px
         }
     </style>
     <div class="container height-100 d-flex justify-content-center align-items-center">
-        <div class="position-relative">
-            <div class="card p-2 text-center">
+      <div class="position-relative">
+        <div class="card p-2 text-center">
+                {{template "alert" .}}
                 <h6>Please enter the one time password <br> to verify your account</h6>
                 <div> <span>A code has been sent to</span> <small>{{ .Profile.Email }}</small> </div>
                 <div> <span>This code is eligible for 10 minutes</small> </div>
@@ -104,9 +105,8 @@
                     <div class="card-2">
                         <div class="content d-flex justify-content-between align-items-center">
                             <div> <span>Didn't receive the code?</span> <a
-                                    href="">Resend</a> </div>
-                            <div> <span>Need help?</span> <a href="https://wa.me/6285852535905" target="_blank">Contact
-                                    us</a> </div>
+                                    href="/resend-verify-email/{{ .Profile.Email }}">Resend</a> </div>
+                            <div> <span>Want to change account?</span> <a href="/logout">Logout</a> </div>
                         </div>
                     </div>
                     <div class="mt-2"> <button type="submit" class="btn btn-danger px-4 validate">Validate</button>

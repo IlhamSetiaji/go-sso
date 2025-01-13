@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"app/go-sso/internal/entity"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -17,10 +18,22 @@ import (
 
 func WebAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if sessions.Default(c).Get("profile") == nil {
+		session := sessions.Default(c)
+		profile := session.Get("profile")
+
+		if profile == nil {
 			c.Redirect(http.StatusSeeOther, "/login")
-		} else {
-			c.Next()
+			c.Abort()
+			return
 		}
+
+		_, ok := profile.(entity.Profile)
+		if !ok {
+			c.Redirect(http.StatusSeeOther, "/login")
+			c.Abort()
+			return
+		}
+
+		c.Next()
 	}
 }

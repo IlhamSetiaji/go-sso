@@ -6,6 +6,7 @@ import (
 	mqResponse "app/go-sso/internal/http/response"
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"log"
 	"math/big"
 	"time"
@@ -125,13 +126,14 @@ func WaitForReply(id string, rchan chan response.RabbitMQResponse) (response.Rab
 	}
 }
 
-func GenerateRandomIntToken(digits int) (int64, error) {
-	max := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(digits)), nil).Sub(new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(digits)), nil), big.NewInt(1))
+func GenerateRandomIntToken(digits int) (string, error) {
+	max := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(digits)), nil)
 	n, err := rand.Int(rand.Reader, max)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	return n.Int64(), nil
+	token := fmt.Sprintf("%0*d", digits, n.Int64())
+	return token, nil
 }
 
 func GenerateRandomStringToken(length int) string {

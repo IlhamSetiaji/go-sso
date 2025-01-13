@@ -109,23 +109,25 @@ func main() {
 	// handle middleware
 	authMiddleware := middleware.NewAuth(viperConfig)
 	authWebMiddleware := middleware.WebAuthMiddleware()
+	emailVerifiedMiddleware := middleware.EmailVerifiedMiddleware()
 
 	// setup route config
 	routeConfig := route.RouteConfig{
-		App:                  app,
-		Viper:                viperConfig,
-		UserHandler:          userHandler,
-		DashboardHandler:     dashboardHandler,
-		AuthWebHandler:       authWebHandler,
-		OrganizationHandler:  organizationHandler,
-		JobHandler:           jobHandler,
-		UserWebHandler:       userWebHandler,
-		RoleWebHandler:       roleWebHandler,
-		PermissionWebHandler: permissionWebHandler,
-		AuthMiddleware:       authMiddleware,
-		WebAuthMiddleware:    authWebMiddleware,
-		EmployeeHandler:      employeeHandler,
-		EmployeeWebHandler:   employeeWebHandler,
+		App:                     app,
+		Viper:                   viperConfig,
+		UserHandler:             userHandler,
+		DashboardHandler:        dashboardHandler,
+		AuthWebHandler:          authWebHandler,
+		OrganizationHandler:     organizationHandler,
+		JobHandler:              jobHandler,
+		UserWebHandler:          userWebHandler,
+		RoleWebHandler:          roleWebHandler,
+		PermissionWebHandler:    permissionWebHandler,
+		AuthMiddleware:          authMiddleware,
+		WebAuthMiddleware:       authWebMiddleware,
+		EmployeeHandler:         employeeHandler,
+		EmployeeWebHandler:      employeeWebHandler,
+		EmailVerifiedMiddleware: emailVerifiedMiddleware,
 	}
 	routeConfig.SetupRoutes()
 
