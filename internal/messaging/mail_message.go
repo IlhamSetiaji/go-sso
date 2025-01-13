@@ -42,7 +42,7 @@ func (m *MailMessage) SendMail(req *request.MailRequest) (string, error) {
 		ID:          uuid.New().String(),
 		MessageType: "send_mail",
 		MessageData: payload,
-		ReplyTo:     "gift-redeem-be",
+		ReplyTo:     "julong_sso",
 	}
 
 	log.Printf("INFO: document message: %v", docMsg)
@@ -52,7 +52,7 @@ func (m *MailMessage) SendMail(req *request.MailRequest) (string, error) {
 
 	// publish rabbit message
 	msg := utils.RabbitMsg{
-		QueueName: "gift-redeem-be",
+		QueueName: "julong_sso",
 		Message:   *docMsg,
 	}
 	utils.Pchan <- msg

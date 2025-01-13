@@ -11,6 +11,7 @@ import (
 	"errors"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -22,13 +23,13 @@ type IRegisterUserUseCaseRequest struct {
 	Email       string            `json:"email"`
 	Name        string            `json:"name"`
 	Password    string            `json:"password"`
-	Gender      entity.UserGender `form:"gender"`
-	MobilePhone string            `form:"mobile_phone"`
-	BirthDate   string            `form:"birth_date"`
-	BirthPlace  string            `form:"birth_place"`
-	Address     string            `form:"address"`
-	NoKTP       string            `form:"no_ktp"`
-	KTP         string            `form:"ktp"`
+	Gender      entity.UserGender `json:"gender"`
+	MobilePhone string            `json:"mobile_phone"`
+	BirthDate   string            `json:"birth_date"`
+	BirthPlace  string            `json:"birth_place"`
+	Address     string            `json:"address"`
+	NoKTP       string            `json:"no_ktp"`
+	KTP         string            `json:"ktp"`
 }
 
 type IRegisterUserUseCaseResponse struct {
@@ -78,13 +79,19 @@ func (uc *RegisterUserUseCase) Execute(payload IRegisterUserUseCaseRequest) (*IR
 		return nil, err
 	}
 
+	birthDate, err := time.Parse("2006-01-02", payload.BirthDate)
+
 	user = &entity.User{
-		Username: payload.Username,
-		Email:    payload.Email,
-		Name:     payload.Name,
-		Password: string(hashedPassword),
-		Gender:   payload.Gender,
-		Status:   entity.USER_PENDING,
+		Username:    payload.Username,
+		Email:       payload.Email,
+		Name:        payload.Name,
+		Password:    string(hashedPassword),
+		Gender:      payload.Gender,
+		Status:      entity.USER_PENDING,
+		BirthDate:   &birthDate,
+		BirthPlace:  payload.BirthPlace,
+		NoKTP:       payload.NoKTP,
+		MobilePhone: payload.MobilePhone,
 	}
 
 	role, err := uc.RoleRepository.FindByName("Applicant")

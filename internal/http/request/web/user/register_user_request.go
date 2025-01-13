@@ -10,7 +10,7 @@ type UserRegisterRequest struct {
 	Name                 string            `form:"name" validate:"required"`
 	Password             string            `form:"password" validate:"required"`
 	PasswordConfirmation string            `form:"password_confirmation" validate:"required,eqfield=Password"`
-	Gender               entity.UserGender `form:"gender" validate:"required,UserGenderValidation"`
+	Gender               entity.UserGender `form:"gender" validate:"required,userGender"`
 	MobilePhone          string            `form:"mobile_phone" validate:"required"`
 	BirthDate            string            `form:"birth_date" validate:"required"`
 	BirthPlace           string            `form:"birth_place" validate:"required"`

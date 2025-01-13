@@ -3,6 +3,7 @@ package web
 import (
 	"app/go-sso/internal/entity"
 	webRequest "app/go-sso/internal/http/request/web/user"
+	"app/go-sso/internal/http/response"
 	appUsecase "app/go-sso/internal/usecase/application"
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
@@ -31,6 +32,10 @@ type AuthHandlerInterface interface {
 	Login(ctx *gin.Context)
 	Logout(ctx *gin.Context)
 	CheckCookieTest(ctx *gin.Context)
+	RegisterView(ctx *gin.Context)
+	Register(ctx *gin.Context)
+	OtpView(ctx *gin.Context)
+	VerifyEmail(ctx *gin.Context)
 }
 
 func AuthHandlerFactory(log *logrus.Logger, validator *validator.Validate) AuthHandlerInterface {
@@ -234,10 +239,11 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	}
 
 	var profile = entity.Profile{
-		ID:       response.User.ID,
-		Name:     response.User.Name,
-		Email:    response.User.Email,
-		Username: response.User.Username,
+		ID:         response.User.ID,
+		Name:       response.User.Name,
+		Email:      response.User.Email,
+		Username:   response.User.Username,
+		IsEmployee: h.hasEmployeeData(&response.User),
 	}
 
 	session.Set("profile", profile)
@@ -250,52 +256,131 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 
 	ctx.Redirect(302, "/choose-roles")
 	return
+}
 
-	// token, err := utils.GenerateToken(&response.User)
-	// if err != nil {
-	// 	h.Log.Errorf("Error when generating token: %v", err)
-	// 	session.Set("error", err.Error())
-	// 	session.Save()
-	// 	ctx.Redirect(302, ctx.Request.Referer())
-	// 	return
-	// }
+func (h *AuthHandler) RegisterView(ctx *gin.Context) {
+	register := views.NewView("auth_base", "views/auth/register.html")
+	data := map[string]interface{}{
+		"Title": "Go SSO | Register",
+	}
 
-	// if payload.State != "" {
-	// 	data, err := h.loginAsApplication(token, payload.State, &response.User)
-	// 	if err != nil {
-	// 		session.Set("error", err.Error())
-	// 		session.Save()
-	// 		h.Log.Printf(err.Error())
-	// 		ctx.Redirect(302, ctx.Request.Referer())
-	// 		return
-	// 	}
+	register.Render(ctx, data)
+}
 
-	// 	application := data["application"].(*entity.Application)
+func (h *AuthHandler) Register(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	payload := new(webRequest.UserRegisterRequest)
+	if err := ctx.ShouldBind(payload); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
 
-	// 	redirectURL := fmt.Sprintf("%s?token=%s", application.RedirectURI, data["token"])
-	// 	h.Log.Printf("Redirecting to URL: %s", redirectURL)
+	err := h.Validate.Struct(payload)
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
 
-	// 	if !strings.HasPrefix(redirectURL, "http") {
-	// 		redirectURL = "http://" + redirectURL
-	// 	}
+	factory := usecase.RegisterUserUseCaseFactory(h.Log)
+	resp, err := factory.Execute(usecase.IRegisterUserUseCaseRequest{
+		Username:    payload.Username,
+		Email:       payload.Email,
+		Name:        payload.Name,
+		Password:    payload.Password,
+		Gender:      payload.Gender,
+		MobilePhone: payload.MobilePhone,
+		BirthDate:   payload.BirthDate,
+		BirthPlace:  payload.BirthPlace,
+		NoKTP:       payload.NoKTP,
+	})
 
-	// 	ctx.Redirect(302, redirectURL)
-	// 	return
-	// }
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
 
-	// if !h.checkUserRole(&response.User, "superadmin") {
-	// 	session.Set("error", "You are not allowed to access this page")
-	// 	session.Save()
-	// 	ctx.Redirect(302, ctx.Request.Referer())
-	// 	return
-	// }
+	var profile = entity.Profile{
+		ID:         resp.User.ID,
+		Name:       resp.User.Name,
+		Email:      resp.User.Email,
+		Username:   resp.User.Username,
+		IsEmployee: h.hasEmployeeDataResp(resp.User),
+	}
 
-	// jwtCookie := utils.NewDefaultCookieOptions("jwt_token")
-	// jwtCookie.Domain = h.Config.GetString("app.domain")
-	// utils.SetTokenCookie(ctx, token, jwtCookie)
-	// utils.SuccessResponse(ctx, 200, "success", response.User)
-	// return
-	// ctx.Redirect(302, "/portal")
+	session.Set("profile", profile)
+	session.Set("success", "User has been registered")
+	session.Save()
+	ctx.Redirect(302, "/otp")
+}
+
+func (h *AuthHandler) OtpView(ctx *gin.Context) {
+	otp := views.NewView("otp_base", "views/auth/otp.html")
+	data := map[string]interface{}{
+		"Title": "Go SSO | OTP",
+	}
+
+	otp.Render(ctx, data)
+}
+
+func (h *AuthHandler) VerifyEmail(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	payload := new(webRequest.VerifyEmailRequest)
+	if err := ctx.ShouldBind(payload); err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	err := h.Validate.Struct(payload)
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	factory := usecase.VerifyEmailUseCaseFactory(h.Log)
+	resp, err := factory.Execute(usecase.IVerifyEmailUseCaseRequest{
+		Email: payload.Email,
+		Token: payload.Token,
+	})
+
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	token, err := utils.GenerateToken(resp.User)
+	if err != nil {
+		h.Log.Errorf("Error when generating token: %v", err)
+		session.Set("error", err.Error())
+		session.Save()
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
+
+	jwtCookie := utils.NewDefaultCookieOptions("jwt_token")
+	jwtCookie.Domain = h.Config.GetString("app.domain")
+	utils.SetTokenCookie(ctx, token, jwtCookie)
+
+	session.Set("success", "Email has been verified")
+	session.Save()
+	ctx.Redirect(302, "/portal")
 }
 
 func (h *AuthHandler) CheckCookieTest(ctx *gin.Context) {
@@ -339,6 +424,14 @@ func (h *AuthHandler) loginAsApplication(token string, state string, user *entit
 	}
 
 	return data, nil
+}
+
+func (h *AuthHandler) hasEmployeeData(user *entity.User) bool {
+	return user.EmployeeID != nil
+}
+
+func (h *AuthHandler) hasEmployeeDataResp(user *response.UserResponse) bool {
+	return user.EmployeeID != uuid.Nil
 }
 
 func (h *AuthHandler) Logout(ctx *gin.Context) {

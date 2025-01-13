@@ -99,12 +99,16 @@ func (c *RouteConfig) SetupWebRoutes() {
 	c.App.GET("/choose-roles", c.AuthWebHandler.ChooseRoles)
 	c.App.POST("/continue-login", c.AuthWebHandler.ContinueLogin)
 	c.App.POST("/login", c.AuthWebHandler.Login)
+	c.App.GET("/register", c.AuthWebHandler.RegisterView)
+	c.App.POST("/register", c.AuthWebHandler.Register)
 	c.App.Use(c.WebAuthMiddleware)
 	{
 		c.App.GET("/", c.DashboardHandler.Index)
 		c.App.GET("/test", c.AuthWebHandler.CheckCookieTest)
 		c.App.GET("/portal", c.DashboardHandler.Portal)
 		c.App.GET("/logout", c.AuthWebHandler.Logout)
+		c.App.GET("/otp", c.AuthWebHandler.OtpView)
+		c.App.POST("/verify-email", c.AuthWebHandler.VerifyEmail)
 		userRoutes := c.App.Group("/users")
 		{
 			userRoutes.GET("/", c.UserWebHandler.Index)

@@ -5,19 +5,34 @@
     <p>Please choose one of the options below:</p>
   </div>
   <div class="row">
-    {{ range .Applications }} {{ if ne .Name "authenticator" }}
+    {{ if .Profile.IsEmployee }} {{ range .Applications }} {{ if ne .Name
+    "authenticator" }}
     <div class="col-sm-6">
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">Go to {{ .Label }}</h5>
           <p class="card-text">Click the button below to visit Site.</p>
-          <a href="{{ .RedirectURI }}?token={{ $.Token }}" class="btn btn-primary"
+          <a
+            href="{{ .RedirectURI }}?token={{ $.Token }}"
+            class="btn btn-primary"
             >Go to {{ .Label }}</a
           >
         </div>
       </div>
     </div>
-    {{ end }} {{ end }}
+    {{ end }} {{ end }} {{ else }}
+    <div class="col-sm-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Register as Employee</h5>
+          <p class="card-text">
+            Click the button below to register as Employee.
+          </p>
+          <a href="/register" class="btn btn-primary">Register as Employee</a>
+        </div>
+      </div>
+    </div>
+    {{ end }}
   </div>
 </div>
 {{end}}
