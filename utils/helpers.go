@@ -92,7 +92,7 @@ func WaitReply(uid string, rchan chan mqResponse.RabbitMQResponse, ctx *gin.Cont
 			// remove channel from rchans
 			delete(Rchans, uid)
 			return
-		case <-time.After(10 * time.Second):
+		case <-time.After(100 * time.Second):
 			// timeout
 			log.Printf("ERROR: request timeout uid: %s", uid)
 
