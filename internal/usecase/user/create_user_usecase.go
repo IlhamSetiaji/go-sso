@@ -3,6 +3,7 @@ package usecase
 import (
 	"app/go-sso/internal/entity"
 	"app/go-sso/internal/repository"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -45,6 +46,8 @@ func (uc *CreateUserUseCase) Execute(request ICreateUserUseCaseRequest) (ICreate
 		}
 		roleUUIDs = append(roleUUIDs, roleUUID)
 	}
+
+	request.User.EmailVerifiedAt = time.Now()
 
 	user, err := uc.UserRepository.CreateUser(request.User, roleUUIDs)
 	if err != nil {
