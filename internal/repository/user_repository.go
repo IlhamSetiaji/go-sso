@@ -120,7 +120,7 @@ func (r *UserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 
 func (r *UserRepository) FindByIdOnly(id uuid.UUID) (*entity.User, error) {
 	var user entity.User
-	err := r.DB.Preload("Roles.Permissions").Where("id = ?", id).First(&user).Error
+	err := r.DB.Preload("Roles").Where("id = ?", id).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			r.Log.Warn("[UserRepository.FindByEmail] User not found")
