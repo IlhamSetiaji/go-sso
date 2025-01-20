@@ -16,7 +16,7 @@ services:
       - COOKIE_SECRET=jancok
       - SESSION_NAME=julong-portal
       - CSRF_SECRET=jancok
-      - DB_HOST=15.235.214.13
+      - DB_HOST=prasi.avolut.com
       - DB_PORT=8741
       - DB_USER=postgres
       - DB_PASSWORD=gEJIfovgvDAroHhqRiKhYVvrkn2OqXfF3tw8xJmnvw7JhrZgN24pTD9iWMIUIUL6
