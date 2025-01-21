@@ -11,6 +11,7 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 	return &response.UserResponse{
 		ID:          user.ID,
 		ChoosedRole: user.ChoosedRole,
+		VerifiedUserProfile: user.VerifiedUserProfile,
 		Username:    user.Username,
 		Email:       user.Email,
 		EmployeeID: func() uuid.UUID {

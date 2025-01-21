@@ -4,6 +4,7 @@ import (
 	"app/go-sso/internal/entity"
 	"app/go-sso/internal/http/dto"
 	"app/go-sso/internal/http/response"
+	messaging "app/go-sso/internal/messaging/user"
 	"app/go-sso/internal/repository"
 	"errors"
 
@@ -48,6 +49,28 @@ func (u *MeUseCase) Execute(request *IMeUseCaseRequest) (*IMeUseCaseResponse, er
 
 	if user == nil {
 		return nil, errors.New("user not found")
+	}
+
+	userProfileMessageFactory := messaging.SendFindUserProfileMessageFactory(u.Log)
+	userProfileMessage, err := userProfileMessageFactory.Execute(&messaging.ISendFindUserProfileMessageRequest{
+		UserID: user.ID.String(),
+	})
+	if err != nil {
+		u.Log.Error("[MeUseCase.Execute] " + err.Error())
+		return nil, err
+	}
+
+	var hasUserProfile bool = true
+
+	userProfile, ok := userProfileMessage.UserProfile["user_profile"].(map[string]interface{})
+	if !ok {
+		hasUserProfile = false
+	}
+
+	if hasUserProfile {
+		user.VerifiedUserProfile = userProfile["status"].(string)
+	} else {
+		user.VerifiedUserProfile = "false"
 	}
 
 	filteredRoles := []entity.Role{}
