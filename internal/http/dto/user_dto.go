@@ -9,11 +9,11 @@ import (
 
 func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 	return &response.UserResponse{
-		ID:          user.ID,
-		ChoosedRole: user.ChoosedRole,
+		ID:                  user.ID,
+		ChoosedRole:         user.ChoosedRole,
 		VerifiedUserProfile: user.VerifiedUserProfile,
-		Username:    user.Username,
-		Email:       user.Email,
+		Username:            user.Username,
+		Email:               user.Email,
 		EmployeeID: func() uuid.UUID {
 			if user.EmployeeID == nil {
 				return uuid.UUID{}
@@ -27,6 +27,7 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 		Gender:          user.Gender,
 		Photo:           user.Photo,
 		Status:          user.Status,
+		Address:         user.Address,
 		CreatedAt:       user.CreatedAt,
 		UpdatedAt:       user.UpdatedAt,
 		Roles: func() []response.RoleResponse {

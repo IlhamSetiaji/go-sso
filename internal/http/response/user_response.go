@@ -17,6 +17,7 @@ type UserResponse struct {
 	Email               string            `json:"email"`
 	Name                string            `json:"name"`
 	MobilePhone         string            `json:"mobile_phone"`
+	Address             string            `json:"address"`
 	EmailVerifiedAt     time.Time         `json:"email_verified_at"`
 	Gender              entity.UserGender `json:"gender"`
 	Photo               string            `json:"photo"`
