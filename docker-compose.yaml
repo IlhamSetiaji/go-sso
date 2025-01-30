@@ -27,7 +27,6 @@ services:
       - MAIL_HOST=smtp.gmail.com
       - MAIL_PORT=587
       - MAIL_USERNAME=ilham.signals99@gmail.com
-      - MAIL_PASSWORD="tesy kozl rpqw ujiq"
       - MAIL_FROM=ilham.signals99@gmail.com
       - AUTH0_DOMAIN=dev-haha
       - AUTH0_CLIENT_ID=5b3b7b7b7b7b7b
