@@ -32,8 +32,8 @@ func GenerateToken(user *entity.User) (string, error) {
 			permissions[j] = permission.Name
 		}
 		roles[i] = map[string]interface{}{
-			"name":        role.Name,
-			"permissions": permissions,
+			"name": role.Name,
+			// "permissions": permissions,
 		}
 	}
 
