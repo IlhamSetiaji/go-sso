@@ -1,62 +1,88 @@
 {{define "content"}}
 <div id="auth">
-  {{template "alert" .}}
-  <div class="container">
-    <div class="row h-100 mt-5 justify-content-center">
-      <div class="col-lg-4 col-md-6 col-12 text-center">
-        <div id="auth-center">
-          <div class="auth-logo">
-            <a href="#"><img class="w-25" src="{{.AssetBase}}/mazer/assets/static/images/logo/fusion_works.png" alt="Logo" /></a>
-          </div>
-          <p class="auth-subtitle mb-5 mt-5">Silahkan pilih role anda</p>
-
-          <form action="/continue-login" method="POST">
-            <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
-            {{ if .State }}
-            <input type="hidden" name="state" value="{{.State}}" />
-            {{ end }}
-            <div class="form-group position-relative has-icon-left mb-4">
-              <input type="hidden" name="id" value="{{ .Profile.ID }}" />
-              <input
-                type="text"
-                class="form-control form-control-xl"
-                placeholder="Email" value="{{ .Profile.Email }}"
-                readonly
-              />
-              <div class="form-control-icon">
-                <i class="fas fa-envelope"></i>
-              </div>
+  <div class="w-screen h-screen grid grid-cols-2 bg-white relative">
+    <div class="h-full w-full flex flex-row flex-grow justify-center p-6">
+      <div class="flex-grow flex flex-row justify-center items-center">
+        <div class="w-96">
+          <img
+            class="w-[22rem] rounded-2xl overflow-hidden"
+            src="{{.AssetBase}}/mazer/assets/static/images/logo/login.png"
+            alt="Logo"
+          />
+        </div>
+      </div>
+    </div>
+    <div class="container flex flex-row p-8 gap-x-4">
+      <div class="flex flex-row justify-center items-center">
+        <div class="flex flex-row items-center">
+          <div id="auth-center" class="flex flex-col gap-y-6">
+            <div class="auth-logo absolute top-0 right-0 m-4">
+              <a href="#"
+                ><img
+                  class="w-40"
+                  src="{{.AssetBase}}/mazer/assets/static/images/logo/logo-full.png"
+                  alt="Logo"
+              /></a>
             </div>
-            <div class="form-group position-relative has-icon-left mb-4">
-              <input
-                type="text"
-                class="form-control form-control-xl"
-                placeholder="Name" value="{{ .Profile.Name }}"
-                readonly
-              />
-              <div class="form-control-icon">
-                <i class="bi bi-person"></i>
-              </div>
+            <div class="flex flex-col gap-y-2">
+              <div class="text-2xl font-bold text-black">Switch Role</div>
             </div>
-
-            <div class="form-group position-relative has-icon-left mb-4">
-              <select class="form-control form-control-xl" name="role_id">
-                <option value="">Pilih Role</option>
-                {{ range .Roles }}
-                <option value="{{ .ID }}">{{ .Name }}</option>
+            <div class="flex flex-col gap-y-4">
+              <form
+                action="/continue-login"
+                method="POST"
+                class="flex flex-col gap-y-4"
+              >
+                <input type="hidden" name="_csrf" value="{{.CsrfToken}}" />
+                {{ if .State }}
+                <input type="hidden" name="state" value="{{.State}}" />
                 {{ end }}
-              </select>
-              <div class="form-control-icon">
-                <i class="fas fa-shield"></i>
-              </div>
+
+                <input type="hidden" name="id" value="{{ .Profile.ID }}" />
+                <input
+                  type="hidden"
+                  class="form-control form-control-xl"
+                  placeholder="Email"
+                  value="{{ .Profile.Email }}"
+                  readonly
+                />
+                <input
+                  type="hidden"
+                  class="form-control form-control-xl"
+                  placeholder="Name"
+                  value="{{ .Profile.Name }}"
+                  readonly
+                />
+                <div>
+                  <div
+                    class="form-group position-relative has-icon-left mb-4 w-80"
+                  >
+                    <select
+                      class="w-full pr-8 py-2 pl-4 mt-1 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      name="role_id"
+                    >
+                      {{ range .Roles }}
+                      <option value="{{ .ID }}">{{ .Name }}</option>
+                      {{ end }}
+                    </select>
+                  </div>
+                </div>
+                {{template "alert_auth" .}}
+                <button
+                  class="w-full bg-primary text-white font-bold py-2 rounded-md hover:bg-blue-700 transition"
+                >
+                  Continue
+                </button>
+
+                <a
+                  href="/logout"
+                  class="px-2 text-center py-2 bg-red-500 text-white cursor-pointer rounded-md text-md font-bold"
+                >
+                  Log out
+                </a>
+              </form>
             </div>
-            <button class="btn btn-success btn-block btn-lg shadow-lg mt-5">
-              Continue
-            </button>
-            <a href="/logout" class="btn btn-danger btn-block btn-lg shadow-lg mt-2">
-              Log out
-            </a>
-          </form>
+          </div>
         </div>
       </div>
     </div>
