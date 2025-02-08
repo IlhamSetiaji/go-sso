@@ -1,38 +1,151 @@
 {{define "content"}}
-<div class="container">
-  <div class="jumbotron">
-    <h1>Welcome to Julong site!</h1>
-    <p>Please choose one of the options below:</p>
+<div class="flex flex-col items-center gap-y-4">
+  <div class="flex flex-col justify-start w-full">
+    <h1 class="flex flex-row text-black">
+      Welcome to <span class="text-gray-500 ml-2">site julong</span>
+    </h1>
+    <div class="text-gray-500">Please Choose One of the options below</div>
   </div>
-  <div class="row">
-    {{ if .Profile.IsEmployee }} {{ range .Applications }} {{ if ne .Name
-    "authenticator" }}
-    <div class="col-sm-6">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Go to {{ .Label }}</h5>
-          <p class="card-text">Click the button below to visit Site.</p>
-          <a
-            href="{{ .RedirectURI }}?token={{ $.Token }}"
-            class="btn btn-primary"
-            >Go to {{ .Label }}</a
+  <div class="w-full flex">
+    <div class="grid grid-cols-3 gap-4">
+      {{ if .Profile.IsEmployee }} {{ range .Applications }} {{ if ne .Name
+      "authenticator" }}
+      <div
+        class="relative bg-blue-200 border-x-2 border-t-2 border-b-8 border-black rounded-3xl shadow-lg w-64 p-6 flex flex-col gap-y-4 justify-between"
+      >
+        <!-- Judul -->
+        <div
+          class="flex flex-col gap-y-2 title-portal-card"
+          data-label="{{ .Label }}"
+        ></div>
+
+        <!-- Tombol -->
+        <a
+          href="{{ .RedirectURI }}?token={{ $.Token }}"
+          class="flex items-center space-x-2 text-black font-medium"
+        >
+          <div
+            class="text-lime-400 text-xl w-10 h-10 flex justify-center items-center bg-black rounded-full"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="30"
+              height="30"
+              viewBox="0 0 48 48"
+            >
+              <path
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="4"
+                d="m16 32l17-17m-18 0h18v18"
+              />
+            </svg>
+          </div>
+          <span>Go to site</span>
+        </a>
+      </div>
+      {{ end }} {{ end }} {{ else }}
+      <div
+        class="relative bg-blue-200 rounded-3xl border-x-2 border-t-2 border-b-8 border-black shadow-lg w-64 p-6 flex flex-col gap-y-4 justify-between"
+      >
+        <!-- Judul -->
+        <div class="space-y-2">
+          <span
+            class="bg-purple-500 text-white text-lg font-bold px-3 py-1 rounded-lg inline-block"
+            >Julong</span
+          >
+          <span
+            class="bg-purple-500 text-white text-lg font-bold px-3 py-1 rounded-lg inline-block"
+            >Recruitment</span
           >
         </div>
+
+        <!-- Tombol -->
+        <a href="#" class="flex items-center space-x-2 text-black font-medium">
+          <div
+            class="w-10 h-10 flex justify-center text-lime-400 text-2xl items-center bg-black rounded-full"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="48"
+              height="48"
+              viewBox="0 0 48 48"
+            >
+              <path
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="4"
+                d="m16 32l17-17m-18 0h18v18"
+              />
+            </svg>
+          </div>
+          <span>Go to site</span>
+        </a>
       </div>
+      {{ end }}
     </div>
-    {{ end }} {{ end }} {{ else }}
-    <div class="col-sm-6">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Register as Employee</h5>
-          <p class="card-text">
-            Click the button below to register as Employee.
-          </p>
-          <a href="/register" class="btn btn-primary">Register as Employee</a>
-        </div>
-      </div>
-    </div>
-    {{ end }}
   </div>
 </div>
-{{end}}
+{{end}} {{ define "custom-script" }}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".title-portal-card").forEach((container) => {
+      let text = container.getAttribute("data-label").trim(); // Ambil teks
+      let words = text.split(" "); // Pisahkan berdasarkan spasi
+
+      // Kosongkan elemen sebelum menambahkan elemen baru
+      container.innerHTML = "";
+
+      // Pisahkan kata pertama dari sisanya
+      let firstWord = words.shift(); // Ambil kata pertama
+      let remainingText = words.join(" "); // Gabungkan sisa kata
+
+      // Buat div pertama untuk kata pertama
+      let divFirst = document.createElement("div");
+      divFirst.classList.add("flex", "flex-row", "items-center");
+
+      let spanFirst = document.createElement("span");
+      spanFirst.classList.add(
+        "bg-purple-500",
+        "text-white",
+        "text-lg",
+        "font-bold",
+        "px-3",
+        "py-1",
+        "rounded-lg",
+        "inline-block"
+      );
+      spanFirst.textContent = firstWord;
+
+      divFirst.appendChild(spanFirst);
+      container.appendChild(divFirst);
+
+      // Buat div kedua untuk kata-kata sisanya (jika ada)
+      if (remainingText) {
+        let divRest = document.createElement("div");
+        divRest.classList.add("flex", "flex-row", "items-center");
+
+        let spanRest = document.createElement("span");
+        spanRest.classList.add(
+          "bg-purple-500",
+          "text-white",
+          "text-lg",
+          "font-bold",
+          "px-3",
+          "py-1",
+          "rounded-lg",
+          "inline-block"
+        );
+        spanRest.textContent = remainingText;
+
+        divRest.appendChild(spanRest);
+        container.appendChild(divRest);
+      }
+    });
+  });
+</script>
+{{ end }}

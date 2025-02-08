@@ -1,14 +1,22 @@
 {{define "base"}}<!DOCTYPE html>
 <html lang="en">
-  {{template "header" .}} {{block "custom_head" .}}{{end}}
-  <body>
+  {{template "tailwind" .}} {{block "custom_head" .}}{{end}}
+  <body class="flex flex-col w-screen h-screen">
+    {{ if not (call .HasRole "superadmin") }}
+    <div class="flex flex-row p-4 border-b border-gray-300 w-full">
+      <a href="/login"
+        ><img
+          class="w-40"
+          src="{{.AssetBase}}/mazer/assets/static/images/logo/logo-full.png"
+          alt="Logo"
+      /></a>
+    </div>
+    {{ end }}
     <script src="{{.AssetBase}}/mazer/assets/static/js/initTheme.js"></script>
-    <div id="app">
-      {{ if call .HasRole "superadmin" }}
-      {{template "sidebar" .}}
-      {{ end }}
-      <div id="main" class="layout-navbar navbar-fixed">
-        <header>
+    <div id="app " class="bg-portal flex-grow">
+      {{ if call .HasRole "superadmin" }} {{template "sidebar" .}} {{ end }}
+      <div id="main" class="{{ if call .HasRole "superadmin" }}layout-navbar navbar-fixed {{ else }}layout-navbar navbar-fixed no-sidebar ml-0 {{ end }}">
+        <!-- <header class="hidden">
           <nav class="navbar navbar-expand navbar-light navbar-top">
             <div class="container-fluid">
               <a href="#" class="burger-btn d-block">
@@ -91,15 +99,13 @@
           <a href="#" class="burger-btn d-block d-xl-none">
             <i class="bi bi-justify fs-3"></i>
           </a>
-        </header>
+        </header> -->
         <div id="main-content">
           <div class="page-heading">
             {{template "alert" .}} {{block "heading" .}}{{end}} {{block
             "content" .}}{{end}}
           </div>
         </div>
-
-        {{template "footer" .}}
       </div>
     </div>
     {{template "script" .}} {{block "custom-script" .}}{{end}}

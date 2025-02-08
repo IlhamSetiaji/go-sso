@@ -19462,3 +19462,56 @@ a {
 .z-1 {
   z-index: 1;
 }
+
+.bg-linear-primary {
+  background: linear-gradient(
+    90deg,
+    rgba(62, 62, 97, 1) 0%,
+    rgba(46, 46, 72, 1) 100%
+  );
+}
+
+.active-sidebar-item {
+  background: linear-gradient(
+    90deg,
+    rgba(62, 62, 97, 1) 0%,
+    rgba(46, 46, 72, 1) 100%
+  );
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.active-sidebar-item a {
+  color: white !important;
+}
+.active-sidebar-item:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(62, 62, 97, 1) 0%,
+    rgba(46, 46, 72, 1) 100%
+  ) !important;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+.active-sidebar-item .sidebar-link:hover {
+  background: transparent !important;
+}
+
+.sidebar-menu .sidebar-item .sidebar-link:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  background-color: #ebf1f6;
+  color: #313678;
+}
+
+.bg-portal {
+  background: url("/assets/mazer/assets/static/images/bg/work.png") no-repeat
+    center center;
+  background-size: cover;
+  background-color: #f2f7ff;
+}
+
+.no-sidebar {
+  flex-grow: 1 !important;
+  min-height: auto !important;
+  margin-left: 0px !important;
+}
