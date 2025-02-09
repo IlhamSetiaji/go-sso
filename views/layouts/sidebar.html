@@ -1,7 +1,7 @@
 {{define "sidebar"}}
-<div id="sidebar">
-  <div class="sidebar-wrapper active rounded-r-3xl shadow-md">
-    <div class=" position-relative ">
+<div id="sidebar" class=" ">
+  <div class="sidebar-wrapper active rounded-r-3xl shadow-md bg-red-500 flex flex-col">
+    <div class="position-relative ">
       <div class="d-flex justify-content-between align-items-center">
         <div class="px-12 py-8 pb-0">
           <a href="#">
@@ -16,7 +16,7 @@
         </div>
       </div>
     </div>
-    <div class="sidebar-menu">
+    <div class="flex-grow sidebar-menu">
       <ul class="menu">
         <li class="sidebar-item {{if eq .CurrentPath "/portal"}}active-sidebar-item{{end}}">
           <a href="/portal" class="sidebar-link">
@@ -24,25 +24,25 @@
             <span>Portal</span>
           </a>
         </li>
-        <li class="sidebar-item {{if eq .CurrentPath "/users/"}}active{{end}}">
+        <li class="sidebar-item {{if eq .CurrentPath "/users/"}}active-sidebar-item{{end}}">
           <a href="/users" class="sidebar-link">
             <i class="fas fa-user"></i>
             <span>Users</span>
           </a>
         </li>
-        <li class="sidebar-item {{if eq .CurrentPath "/employees/"}}active{{end}}">
+        <li class="sidebar-item {{if eq .CurrentPath "/employees/"}}active-sidebar-item{{end}}">
           <a href="/employees" class="sidebar-link">
             <i class="fas fa-user-shield"></i>
             <span>Employees</span>
           </a>
         </li>
-        <li class="sidebar-item {{if eq .CurrentPath "/roles/"}}active{{end}}">
+        <li class="sidebar-item {{if eq .CurrentPath "/roles/"}}active-sidebar-item{{end}}">
           <a href="/roles" class="sidebar-link">
             <i class="fas fa-users"></i>
             <span>Roles</span>
           </a>
         </li>
-        <li class="sidebar-item {{if eq .CurrentPath "/permissions/"}}active{{end}}">
+        <li class="sidebar-item {{if eq .CurrentPath "/permissions/"}}active-sidebar-item{{end}}">
           <a href="/permissions" class="sidebar-link">
             <i class="fas fa-user-shield"></i>
             <span>Permissions</span>
@@ -50,6 +50,72 @@
         </li>
       </ul>
     </div>
+    <header class="flex flex-row w-full p-4 pt-0 ">
+      <nav class="flex flex-grow flex-col">
+      <div class="dropdown bg-primary flex-grow flex flex-row  flex-grow items-center rounded-lg p-2 px-4">
+        <a href="#" data-bs-toggle="dropdown" aria-expanded="false" class="flex flex-grow flex-col">
+          <div class="user-menu flex flex-row items-center flex-grow font-bold ">
+            <div class="user-name me-3 flex-grow">
+              <h6 class="mb-0 text-white">
+                {{if .Profile }} {{.Profile.Name}} {{else}} Guest
+                {{end}}
+              </h6>
+            </div>
+            <div class="user-img d-flex align-items-center">
+              <div class="flex -space-x-2 overflow-hidden">
+                <img
+                  class="inline-block size-10 rounded-full " 
+                  src="{{.AssetBase}}/mazer/assets/static/images/faces/2.jpg"
+                />
+              </div>
+            </div>
+          </div>
+        </a>
+        <ul
+          class="dropdown-menu dropdown-menu-end shadow-md"
+          aria-labelledby="dropdownMenuButton"
+          style="min-width: 11rem"
+        >
+          <li>
+            <h6 class="dropdown-header">
+              Hello, {{if .Profile }} {{.Profile.Name}} {{else}} Guest
+              {{end}}
+            </h6>
+          </li>
+          {{if .Profile}}
+          <li>
+            <a class="dropdown-item" href="#"
+              ><i class="icon-mid fas fa-lock me-2"></i> Change
+              Password</a
+            >
+          </li>
+          <li>
+            <a class="dropdown-item" href="/logout"
+              ><i class="icon-mid bi bi-box-arrow-left me-2"></i>
+              Logout</a
+            >
+          </li>
+          {{else}}
+          <li>
+            <a class="dropdown-item" href="/login"
+              ><i class="icon-mid bi bi-box-arrow-in-right me-2"></i>
+              Login</a
+            >
+          </li>
+          <li>
+            <a class="dropdown-item" href="/register"
+              ><i class="icon-mid bi bi-person-plus me-2"></i>
+              Register</a
+            >
+          </li>
+          {{end}}
+        </ul>
+      </div>
+      </nav>
+      <a href="#" class="burger-btn d-block d-xl-none">
+        <i class="bi bi-justify fs-3"></i>
+      </a>
+    </header>
   </div>
 </div>
 

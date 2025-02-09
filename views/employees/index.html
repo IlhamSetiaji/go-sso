@@ -4,105 +4,73 @@
     <div class="col-12 col-md-6 order-md-1 order-last">
       <h3>Employees</h3>
     </div>
-    <div class="col-12 col-md-6 order-md-2 order-first">
-      <nav
-        aria-label="breadcrumb"
-        class="breadcrumb-header float-start float-lg-end"
-      >
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Employees</a></li>
-        </ol>
-      </nav>
-    </div>
   </div>
 </div>
-<section class="section">
-  <div class="card">
-    <div class="card-header d-grid gap-3">
-      <div class="row">
-        <div class="col-md-6">
-          {{if call .HasPermission "create-employee"}}
-          <button
-            type="button"
-            class="btn btn-outline-success"
-            data-bs-toggle="modal"
-            data-bs-target="#xlarge"
-          >
-            Create New Employee
-          </button>
-          {{end}}
-        </div>
-      </div>
-    </div>
-    <div class="card-body">
-      <table id="usersTable" class="table table-striped">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Sudah Isi Job</th>
-            <th>User Name</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Mobile Phone</th>
-            <th>Organization Name</th>
-            <th>End Date</th>
-            <th>Retirement Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{range .Employees}}
-          <tr>
-            <td>{{.ID}}</td>
-            <td>{{if .EmployeeJob}}<i class="fas fa-check"></i>{{else}}<i class="fas fa-times"></i>{{end}}</td>
-            {{ if .User }}
-            <td>{{.User.Name}}</td>
-            {{ else }}
-            <td>-</td>
-            {{ end }}
-            <td>{{.Name}}</td>
-            <td>{{.Email}}</td>
-            <td>{{.MobilePhone}}</td>
-            <td>{{.Organization.Name}}</td>
-            <td>{{call $.DateFormatter .EndDate}}</td>
-            <td>{{call $.DateFormatter .RetirementDate}}</td>
-            <td>
-              <a href="/employees/{{ .ID }}/job" class="btn btn-outline-info"><i class="fas fa-briefcase"></i></a>
-              {{if call $.HasPermission "update-employee"}}
-              <button
-                type="button"
-                class="btn btn-outline-warning"
-                data-bs-toggle="modal"
-                data-bs-target="#edit"
-                data-id="{{.ID}}"
-                data-name="{{.Name}}"
-                data-email="{{.Email}}"
-                data-mobile_phone="{{.MobilePhone}}"
-                data-end_date="{{call $.DateFormatter .EndDate}}"
-                data-retirement_date="{{call $.DateFormatter .RetirementDate}}"
-                data-organization_id="{{ .Organization.ID }}"
-              >
-                <i class="fas fa-pencil"></i>
-              </button>
-              {{end}} {{if call $.HasPermission "delete-employee"}}
-              <form action="/employees/delete" method="POST" class="d-inline">
-                <input type="hidden" name="id" value="{{.ID}}" />
-                <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
+<section class="section flex-grow flex-col flex">
+  <div class="card shadow-md flex-grow m-0 flex flex-col">
+    <div class="card-body flex-grow relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-full">
+        <table id="usersTable" class="table table-striped">
+          <thead>
+            <tr>
+              <th>NIP</th>
+              <th>Email</th>
+              <th>Organization Name</th>
+              <th>Retirement Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Employees}}
+            <tr>
+              {{ if .User }}
+              <td>{{.User.Name}}</td>
+              {{ else }}
+              <td>-</td>
+              {{ end }}
+              <td>{{.Email}}</td>
+              <td>{{.Organization.Name}}</td>
+              <td>{{call $.DateFormatter .RetirementDate}}</td>
+              <td>
+                <a href="/employees/{{ .ID }}/job" class="btn btn-outline-info"
+                  ><i class="fas fa-briefcase"></i
+                ></a>
+                {{if call $.HasPermission "update-employee"}}
                 <button
                   type="button"
-                  id="hapus"
+                  class="btn btn-outline-warning"
+                  data-bs-toggle="modal"
+                  data-bs-target="#edit"
                   data-id="{{.ID}}"
-                  class="hapus btn btn-outline-danger"
+                  data-name="{{.Name}}"
+                  data-email="{{.Email}}"
+                  data-mobile_phone="{{.MobilePhone}}"
+                  data-end_date="{{call $.DateFormatter .EndDate}}"
+                  data-retirement_date="{{call $.DateFormatter .RetirementDate}}"
+                  data-organization_id="{{ .Organization.ID }}"
                 >
-                  <i class="fas fa-trash"></i>
+                  <i class="fas fa-pencil"></i>
                 </button>
-              </form>
-              {{end}}
-            </td>
-          </tr>
-          {{end}}
-        </tbody>
-      </table>
+                {{end}} {{if call $.HasPermission "delete-employee"}}
+                <form action="/employees/delete" method="POST" class="d-inline">
+                  <input type="hidden" name="id" value="{{.ID}}" />
+                  <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
+                  <button
+                    type="button"
+                    id="hapus"
+                    data-id="{{.ID}}"
+                    class="hapus btn btn-outline-danger"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+                {{end}}
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
     </div>
     {{if call .HasPermission "create-employee"}}
     <div
@@ -137,11 +105,7 @@
               <div class="form-group has-icon-left">
                 <label for="user_id">User</label>
                 <div class="position-relative">
-                  <select
-                    name="user_id"
-                    id="user_id"
-                    class="form-control"
-                  >
+                  <select name="user_id" id="user_id" class="form-control">
                     <option value="">Select User</option>
                     {{range .Users}}
                     <option value="{{.ID}}">{{.Name}}</option>
@@ -426,8 +390,43 @@
             });
           });
         },
+        dom:
+          '<"row"<"col-md-6 top-toolbar px-4 py-3"><"col-md-6 text-end px-4 py-3"f>>' +
+          '<"table-container"tr>' +
+          '<"row border-t border-gray-300 footer-table-better"<"col-md-6 table-info px-4 py-3"i><"col-md-6 text-end px-4 py-3"p>>',
+        lengthChange: false, // Hapus dropdown "Show X entries"
+        language: {
+          search: "Search:",
+        }, // Memindahkan lengthMenu ke bawah
+        scrollY: "300px", // Mengaktifkan scroll hanya dalam tabel
+        scrollCollapse: true,
+        initComplete: function (settings, json) {
+          // Bungkus .dataTables_scrollBody dengan div baru
+          $(".dataTables_wrapper").addClass("h-full flex flex-col");
+          $(".table-container").addClass("flex-grow ");
+          $(".dataTables_scroll").addClass("flex flex-col h-full");
+          $(".dataTables_scrollBody").addClass("body-table-scroll");
+          $(".dataTables_scrollBody").wrap(
+            '<div class="relative flex-grow overflow-y-scroll"></div>'
+          );
+        },
       });
 
+      $("div.top-toolbar").html(`
+        <div class="d-flex justify-content-between w-100">
+          {{if call .HasPermission "create-employee"}}
+          <button
+            type="button"
+            class="btn btn-outline-success"
+            data-bs-toggle="modal"
+            data-bs-target="#xlarge"
+          >
+            Create New Employee
+          </button>
+          {{end}}
+            <div class="dataTables_filter "></div>
+        </div>
+    `);
       // $(".hapus").on("click", function () {
       //   const id = $(this).data("id");
       //   Swal.fire({

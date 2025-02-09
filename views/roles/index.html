@@ -4,107 +4,102 @@
     <div class="col-12 col-md-6 order-md-1 order-last">
       <h3>Roles</h3>
     </div>
-    <div class="col-12 col-md-6 order-md-2 order-first">
-      <nav
-        aria-label="breadcrumb"
-        class="breadcrumb-header float-start float-lg-end"
-      >
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Roles</a></li>
-        </ol>
-      </nav>
-    </div>
   </div>
 </div>
-<section class="section">
-  <div class="card">
-    <div class="card-header d-grid gap-3">
-      <div class="row">
-        <div class="col-md-6">
-          {{if call .HasPermission "create-role"}}
-          <button
-            type="button"
-            class="btn btn-outline-success"
-            data-bs-toggle="modal"
-            data-bs-target="#xlarge"
-          >
-            Add New Role
-          </button>
-          {{end}}
-        </div>
-      </div>
-    </div>
-    <div class="card-body">
-      <table id="usersTable" class="table table-striped">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Guard Name</th>
-            <th>Application</th>
-            <th>Status</th>
-            <th>Total Permissions</th>
-            <th>Total Users</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{range .Roles}}
-          <tr>
-            <td>{{.ID}}</td>
-            <td>{{.Name}}</td>
-            <td>{{.GuardName}}</td>
-            <td>{{.Application.Name}}</td>
-            <td>
-              {{if eq .Status "ACTIVE"}}
-              <span class="badge bg-success">Active</span>
-              {{else}}
-              <span class="badge bg-danger">Inactive</span>
-              {{end}}
-            </td>
-            <td>{{len .Permissions}}</td>
-            <td>{{len .Users}}</td>
-            <td>
-              {{ if call $.HasPermission "read-permission" }}
-              <a
-                href="/permissions/role/{{.ID}}"
-                class="btn btn-outline-primary"
-                >Assign Permissions</a
-              >
-              {{ end }} {{if call $.HasPermission "update-role"}}
-              <button
-                type="button"
-                class="btn btn-outline-warning"
-                data-bs-toggle="modal"
-                data-bs-target="#edit"
-                data-id="{{.ID}}"
-                data-name="{{.Name}}"
-                data-guard_name="{{.GuardName}}"
-                data-status="{{.Status}}"
-                data-application_id="{{.Application.ID}}"
-              >
-                <i class="fas fa-pencil"></i>
-              </button>
-              {{end}} {{if call $.HasPermission "delete-role"}} {{ if call
-              $.NotInArrays .Name (call $.CreateSlice "Applicant" "superadmin") }}
-              <form action="/roles/delete" method="POST" class="d-inline">
-                <input type="hidden" name="id" value="{{.ID}}" />
-                <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
+<section class="section flex-grow flex-col flex">
+  <div class="card shadow-md flex-grow m-0 flex flex-col">
+    <div class="card-body flex-grow relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-full">
+        <table id="usersTable" class="table table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Application</th>
+              <th>Total Permissions</th>
+              <th>Total Users</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Roles}}
+            <tr>
+              <td>{{.Name}}</td>
+              <td>{{.Application.Name}}</td>
+              <td>{{len .Permissions}}</td>
+              <td>{{len .Users}}</td>
+              <td>
+                {{ if call $.HasPermission "read-permission" }}
+                <a
+                  href="/permissions/role/{{.ID}}"
+                  class="btn btn-outline-primary"
+                >
+                  <div class="btn-better h-6">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="40"
+                      height="40"
+                      viewBox="0 0 36 36"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M18 17a7.46 7.46 0 1 0-7.45-7.46A7.46 7.46 0 0 0 18 17m0-12.93a5.46 5.46 0 1 1-5.45 5.45A5.46 5.46 0 0 1 18 4.07"
+                        class="clr-i-outline clr-i-outline-path-1"
+                      />
+                      <path
+                        fill="currentColor"
+                        d="M6 31.89v-6.12a16.13 16.13 0 0 1 12-5a16.6 16.6 0 0 1 8.71 2.33l1.35-1.51A18.53 18.53 0 0 0 18 18.74A17.7 17.7 0 0 0 4.21 24.8a1 1 0 0 0-.21.6v6.49A2.06 2.06 0 0 0 6 34h12.39l-1.9-2Z"
+                        class="clr-i-outline clr-i-outline-path-2"
+                      />
+                      <path
+                        fill="currentColor"
+                        d="M30 31.89V32h-3.15l-1.8 2H30a2.06 2.06 0 0 0 2-2.07V26.2l-2 2.23Z"
+                        class="clr-i-outline clr-i-outline-path-3"
+                      />
+                      <path
+                        fill="currentColor"
+                        d="M34.76 18.62a1 1 0 0 0-1.41.08l-11.62 13l-5.2-5.59a1 1 0 0 0-1.41-.11a1 1 0 0 0-.06 1.42l6.69 7.2L34.84 20a1 1 0 0 0-.08-1.38"
+                        class="clr-i-outline clr-i-outline-path-4"
+                      />
+                      <path fill="none" d="M0 0h36v36H0z" />
+                    </svg>
+                  </div>
+                </a>
+                {{ end }} {{if call $.HasPermission "update-role"}}
                 <button
                   type="button"
-                  id="hapus"
+                  class="btn btn-outline-warning"
+                  data-bs-toggle="modal"
+                  data-bs-target="#edit"
                   data-id="{{.ID}}"
-                  class="hapus btn btn-outline-danger"
+                  data-name="{{.Name}}"
+                  data-guard_name="{{.GuardName}}"
+                  data-status="{{.Status}}"
+                  data-application_id="{{.Application.ID}}"
                 >
-                  <i class="fas fa-trash"></i>
+                  <i class="fas fa-pencil"></i>
                 </button>
-              </form>
-              {{ end }} {{end}}
-            </td>
-          </tr>
-          {{end}}
-        </tbody>
-      </table>
+                {{end}} {{if call $.HasPermission "delete-role"}} {{ if call
+                $.NotInArrays .Name (call $.CreateSlice "Applicant"
+                "superadmin") }}
+                <form action="/roles/delete" method="POST" class="d-inline">
+                  <input type="hidden" name="id" value="{{.ID}}" />
+                  <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
+                  <button
+                    type="button"
+                    id="hapus"
+                    data-id="{{.ID}}"
+                    class="hapus btn btn-outline-danger"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+                {{ end }} {{end}}
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
     </div>
     {{if call .HasPermission "create-role"}}
     <div
@@ -370,8 +365,41 @@
             });
           });
         },
+        dom:
+          '<"row"<"col-md-6 top-toolbar px-4 py-3"><"col-md-6 text-end px-4 py-3"f>>' +
+          '<"table-container"tr>' +
+          '<"row border-t border-gray-300 footer-table-better"<"col-md-6 table-info px-4 py-3"i><"col-md-6 text-end px-4 py-3"p>>',
+        lengthChange: false, // Hapus dropdown "Show X entries"
+        language: {
+          search: "Search:",
+        }, // Memindahkan lengthMenu ke bawah
+        scrollY: "300px", // Mengaktifkan scroll hanya dalam tabel
+        scrollCollapse: true,
+        initComplete: function (settings, json) {
+          // Bungkus .dataTables_scrollBody dengan div baru
+          $(".dataTables_wrapper").addClass("h-full flex flex-col");
+          $(".table-container").addClass("flex-grow ");
+          $(".dataTables_scroll").addClass("flex flex-col h-full");
+          $(".dataTables_scrollBody").addClass("body-table-scroll");
+          $(".dataTables_scrollBody").wrap(
+            '<div class="relative flex-grow overflow-y-scroll"></div>'
+          );
+        },
       });
-
+      $("div.top-toolbar").html(`
+        <div class="d-flex justify-content-between w-100">
+            {{if call .HasPermission "create-role"}}
+            <button
+              type="button"
+              class="btn btn-outline-success"
+              data-bs-toggle="modal"
+              data-bs-target="#xlarge"
+            >
+              Add New Role
+            </button>
+            {{end}}
+        </div>
+    `);
       // $(".hapus").on("click", function () {
       //   const id = $(this).data("id");
       //   Swal.fire({

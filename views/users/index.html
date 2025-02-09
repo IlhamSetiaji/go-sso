@@ -4,117 +4,93 @@
     <div class="col-12 col-md-6 order-md-1 order-last">
       <h3>Users</h3>
     </div>
-    <div class="col-12 col-md-6 order-md-2 order-first">
-      <nav
-        aria-label="breadcrumb"
-        class="breadcrumb-header float-start float-lg-end"
-      >
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Users</a></li>
-        </ol>
-      </nav>
-    </div>
   </div>
 </div>
-<section class="section">
-  <div class="card">
-    <div class="card-header d-grid gap-3">
-      <div class="row">
-        <div class="col-md-6">
-          {{if call .HasPermission "create-user"}}
-          <button
-            type="button"
-            class="btn btn-outline-success"
-            data-bs-toggle="modal"
-            data-bs-target="#xlarge"
-          >
-            Add New User
-          </button>
-          {{end}}
-        </div>
-      </div>
-    </div>
-    <div class="card-body">
-      <table id="usersTable" class="table table-striped">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Status</th>
-            <th>Roles</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{range .Users}}
-          <tr>
-            <td>{{.ID}}</td>
-            <td>{{.Name}}</td>
-            <td>{{.Username}}</td>
-            <td>{{.Email}}</td>
-            <td>
-              {{if eq .Status "ACTIVE"}}
-              <span class="badge bg-success">Active</span>
-              {{else}}
-              <span class="badge bg-danger">Inactive</span>
-              {{end}}
-            </td>
-            <td>
-              {{range $i, $role := .Roles}}{{if $i}},
-              {{end}}{{$role.Name}}[{{$role.Application.Name}}]{{end}}
-            </td>
-            <td>
-              {{ if .EmployeeID }}
-              <button
-                type="button"
-                class="btn btn-outline-info"
-                data-bs-toggle="modal"
-                data-bs-target="#employee"
-                data-id="{{.ID}}"
-                data-name="{{.Employee.Name}}"
-                data-organization="{{.Employee.Organization.Name}}"
-                data-email="{{.Employee.Email}}"
-              >
-                <i class="fas fa-briefcase"></i>
-              </button>
-              {{ end }} {{if call $.HasPermission "update-user"}}
-              <button
-                type="button"
-                class="btn btn-outline-warning"
-                data-bs-toggle="modal"
-                data-bs-target="#edit"
-                data-id="{{.ID}}"
-                data-name="{{.Name}}"
-                data-email="{{.Email}}"
-                data-mobile_phone="{{.MobilePhone}}"
-                data-gender="{{.Gender}}"
-                data-status="{{.Status}}"
-                data-username="{{.Username}}"
-                data-employee_id="{{.EmployeeID}}"
-              >
-                <i class="fas fa-pencil"></i>
-              </button>
-              {{end}} {{if call $.HasPermission "delete-user"}}
-              <form action="/users/delete" method="POST" class="d-inline">
-                <input type="hidden" name="id" value="{{.ID}}" />
-                <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
+<section class="section flex-grow flex-col flex">
+  <div class="card shadow-md flex-grow m-0 flex flex-col">
+    <div class="card-body flex-grow relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-full">
+        <table id="usersTable" class="table table-striped">
+          <thead>
+            <tr>
+              <!-- <th>ID</th> -->
+              <th>Name</th>
+              <!-- <th>Username</th> -->
+              <th>Email</th>
+              <th>Status</th>
+              <th>Roles</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Users}}
+            <tr>
+              <!-- <td>{{.ID}}</td> -->
+              <td>{{.Name}}</td>
+              <!-- <td>{{.Username}}</td> -->
+              <td>{{.Email}}</td>
+              <td>
+                {{if eq .Status "ACTIVE"}}
+                <span class="badge bg-success">Active</span>
+                {{else}}
+                <span class="badge bg-danger">Inactive</span>
+                {{end}}
+              </td>
+              <td>
+                {{range $i, $role := .Roles}}{{if $i}},
+                {{end}}{{$role.Name}}{{end}}
+              </td>
+              <td>
+                {{ if .EmployeeID }}
                 <button
                   type="button"
-                  id="hapus"
+                  class="btn btn-outline-info"
+                  data-bs-toggle="modal"
+                  data-bs-target="#employee"
                   data-id="{{.ID}}"
-                  class="hapus btn btn-outline-danger"
+                  data-name="{{.Employee.Name}}"
+                  data-organization="{{.Employee.Organization.Name}}"
+                  data-email="{{.Employee.Email}}"
                 >
-                  <i class="fas fa-trash"></i>
+                  <i class="fas fa-briefcase"></i>
                 </button>
-              </form>
-              {{end}}
-            </td>
-          </tr>
-          {{end}}
-        </tbody>
-      </table>
+                {{ end }} {{if call $.HasPermission "update-user"}}
+                <button
+                  type="button"
+                  class="btn btn-outline-warning"
+                  data-bs-toggle="modal"
+                  data-bs-target="#edit"
+                  data-id="{{.ID}}"
+                  data-name="{{.Name}}"
+                  data-email="{{.Email}}"
+                  data-mobile_phone="{{.MobilePhone}}"
+                  data-gender="{{.Gender}}"
+                  data-status="{{.Status}}"
+                  data-username="{{.Username}}"
+                  data-employee_id="{{.EmployeeID}}"
+                >
+                  <i class="fas fa-pencil"></i>
+                </button>
+                {{end}} {{if call $.HasPermission "delete-user"}}
+                <form action="/users/delete" method="POST" class="d-inline">
+                  <input type="hidden" name="id" value="{{.ID}}" />
+                  <input type="hidden" name="_csrf" value="{{$.CsrfToken}}" />
+                  <button
+                    type="button"
+                    id="hapus"
+                    data-id="{{.ID}}"
+                    class="hapus btn btn-outline-danger"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+                {{end}}
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
     </div>
     <div
       class="modal fade text-left w-100"
@@ -561,8 +537,39 @@
   {{end}} {{define "custom-script"}}
   <script>
     $(document).ready(function () {
-      $("#usersTable").DataTable();
-
+      $("#usersTable").DataTable({
+        dom:
+          '<"row"<"col-md-6 top-toolbar px-4 py-3"><"col-md-6 text-end px-4 py-3"f>>' +
+          '<"table-container"tr>' +
+          '<"row border-t border-gray-300 footer-table-better"<"col-md-6 table-info px-4 py-3"i><"col-md-6 text-end px-4 py-3"p>>',
+        lengthChange: false, // Hapus dropdown "Show X entries"
+        language: {
+          search: "Search:",
+        }, // Memindahkan lengthMenu ke bawah
+        scrollY: "300px", // Mengaktifkan scroll hanya dalam tabel
+        scrollCollapse: true,
+        initComplete: function (settings, json) {
+          // Bungkus .dataTables_scrollBody dengan div baru
+          $(".dataTables_wrapper").addClass("h-full flex flex-col");
+          $(".table-container").addClass("flex-grow ");
+          $(".dataTables_scroll").addClass("flex flex-col h-full");
+          $(".dataTables_scrollBody").addClass("body-table-scroll");
+          $(".dataTables_scrollBody").wrap(
+            '<div class="relative flex-grow overflow-y-scroll"></div>'
+          );
+        },
+      });
+      $("div.top-toolbar").html(`
+        <div class="d-flex justify-content-between w-100">
+            {{if call .HasPermission "create-user"}}
+            <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#xlarge">
+                Add New User
+            </button>
+            {{end}}
+            <div class="dataTables_filter "></div>
+        </div>
+    `);
+      // Memindahkan tombol "Add New User" ke bagian atas
       $(".hapus").on("click", function () {
         const id = $(this).data("id");
         Swal.fire({
