@@ -280,6 +280,57 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
+	filteredRoles := []entity.Role{}
+	for _, role := range response.User.Roles {
+		if role.Name == "Applicant" {
+			filteredRoles = append(filteredRoles, role)
+			break
+		}
+	}
+	response.User.Roles = filteredRoles
+	if filteredRoles[0].Name == "Applicant" {
+		token, err := utils.GenerateToken(&response.User)
+		if err != nil {
+			h.Log.Errorf("Error when generating token: %v", err)
+			session.Set("error", err.Error())
+			session.Save()
+			ctx.Redirect(302, ctx.Request.Referer())
+			return
+		}
+
+		jwtCookie := utils.NewDefaultCookieOptions("jwt_token")
+		jwtCookie.Domain = h.Config.GetString("app.domain")
+		utils.SetTokenCookie(ctx, token, jwtCookie)
+		data, err := h.loginAsApplication(token, "recruitment", &response.User)
+		if err != nil {
+			session.Set("error", err.Error())
+			session.Save()
+			h.Log.Printf(err.Error())
+			ctx.Redirect(302, ctx.Request.Referer())
+			return
+		}
+
+		application := data["application"].(*entity.Application)
+
+		redirectURL := fmt.Sprintf("%s?token=%s", application.RedirectURI, data["token"])
+		h.Log.Printf("Redirecting to URL: %s", redirectURL)
+
+		if !strings.HasPrefix(redirectURL, "http") {
+			redirectURL = "http://" + redirectURL
+		}
+
+		if response.User.EmailVerifiedAt.IsZero() {
+			session.Set("error", "Email not verified")
+			session.Save()
+			ctx.Redirect(302, ctx.Request.Referer())
+			return
+		}
+
+		ctx.Redirect(302, redirectURL)
+		return
+
+	}
+
 	ctx.Redirect(302, "/choose-roles")
 	return
 }
@@ -315,15 +366,15 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 
 	factory := usecase.RegisterUserUseCaseFactory(h.Log)
 	resp, err := factory.Execute(usecase.IRegisterUserUseCaseRequest{
-		Username:    payload.Username,
-		Email:       payload.Email,
-		Name:        payload.Name,
-		Password:    payload.Password,
-		Gender:      payload.Gender,
-		MobilePhone: payload.MobilePhone,
-		BirthDate:   payload.BirthDate,
-		BirthPlace:  payload.BirthPlace,
-		NoKTP:       payload.NoKTP,
+		// Username:    payload.Username,
+		Email:    payload.Email,
+		Name:     payload.Name,
+		Password: payload.Password,
+		// Gender:      payload.Gender,
+		// MobilePhone: payload.MobilePhone,
+		// BirthDate:   payload.BirthDate,
+		// BirthPlace:  payload.BirthPlace,
+		// NoKTP:       payload.NoKTP,
 	})
 
 	if err != nil {
@@ -335,10 +386,10 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 	}
 
 	var profile = entity.Profile{
-		ID:              resp.User.ID,
-		Name:            resp.User.Name,
-		Email:           resp.User.Email,
-		Username:        resp.User.Username,
+		ID:    resp.User.ID,
+		Name:  resp.User.Name,
+		Email: resp.User.Email,
+		// Username:        resp.User.Username,
 		IsEmployee:      h.hasEmployeeDataResp(resp.User),
 		EmailVerifiedAt: resp.User.EmailVerifiedAt,
 	}

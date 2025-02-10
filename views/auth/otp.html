@@ -85,6 +85,7 @@
         <div class="flex flex-row justify-center">
           <div class="flex flex-row">
             <div id="auth-center" class="flex flex-col gap-y-6">
+              {{ template "alert_auth" . }}
               <div class="auth-logo m-4">
                 <a href="#"
                   ><img
@@ -100,6 +101,8 @@
                 class="w-full p-8 flex-col gap-y-8 flex-grow items-center"
               >
                 <input type="hidden" name="_csrf" value="{{ .CsrfToken }}" />
+                <input type="hidden" name="email" value="{{ .Profile.Email }}" />
+                <input type="hidden" name="token" id="real_otp" />
 
                 <div class="flex flex-col gap-y-8 flex-grow">
                   <div class="flex flex-col gap-y-4">
@@ -164,7 +167,7 @@
                   </div>
                   <div class="flex flex-col gap-2">
                     <button
-                      class="w-full bg-primary text-white font-bold py-2 rounded-md cursor-pointer"
+                      class="w-full bg-primary text-white font-bold py-2 rounded-md cursor-pointer" onclick="console.log('clicked')"
                     >
                       Verify
                     </button>
