@@ -2,8 +2,8 @@ body {
   background-color: var(--bs-body-bg);
 }
 #auth {
-  height: 100vh;
-  overflow-x: hidden;
+  /* height: 100vh;
+  overflow-x: hidden; */
 }
 #auth #auth-right {
   height: 100%;
