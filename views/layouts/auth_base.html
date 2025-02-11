@@ -4,7 +4,13 @@
   {{template "tailwind" .}}
   <body>
     <script src="{{ .AssetBase }}/mazer/assets/static/js/initTheme.js"></script>
-    {{block "content" .}}{{end}}{{template "script" .}}
+    <div
+      class="h-screen w-screen flex flex-row items-center justify-center bg-white"
+    >
+      <div class="flex-grow max-w-4xl flex flex-col">
+        {{block "content" .}}{{end}}{{template "script" .}}
+      </div>
+    </div>
   </body>
 </html>
 {{end}}
