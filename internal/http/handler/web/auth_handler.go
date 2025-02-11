@@ -283,10 +283,8 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 
 	filteredRoles := []entity.Role{}
 	for _, role := range response.User.Roles {
-		if role.Name == "Applicant" {
-			filteredRoles = append(filteredRoles, role)
-			break
-		}
+		filteredRoles = append(filteredRoles, role)
+		break
 	}
 	response.User.Roles = filteredRoles
 	if filteredRoles[0].Name == "Applicant" {
