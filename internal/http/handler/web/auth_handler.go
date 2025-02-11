@@ -4,6 +4,7 @@ import (
 	"app/go-sso/internal/entity"
 	webRequest "app/go-sso/internal/http/request/web/user"
 	"app/go-sso/internal/http/response"
+	messaging "app/go-sso/internal/messaging/user"
 	appUsecase "app/go-sso/internal/usecase/application"
 	usecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
@@ -322,7 +323,7 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		if response.User.EmailVerifiedAt.IsZero() {
 			session.Set("error", "Email not verified")
 			session.Save()
-			ctx.Redirect(302, ctx.Request.Referer())
+			ctx.Redirect(302, "/otp")
 			return
 		}
 
@@ -397,6 +398,19 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 	session.Set("profile", profile)
 	session.Set("success", "User has been registered")
 	session.Save()
+
+	userProfileMessageFactory := messaging.SendFindCreateUserProfileMessageFactory(h.Log)
+	_, err = userProfileMessageFactory.Execute(&messaging.ISendFindCreateUserProfileMessageRequest{
+		UserID: resp.User.ID,
+		Name:   resp.User.Name,
+	})
+	if err != nil {
+		session.Set("error", err.Error())
+		session.Save()
+		h.Log.Printf(err.Error())
+		ctx.Redirect(302, ctx.Request.Referer())
+		return
+	}
 	ctx.Redirect(302, "/otp")
 }
 
