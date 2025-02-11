@@ -5,7 +5,6 @@ import (
 	"app/go-sso/internal/messaging"
 	"app/go-sso/internal/repository"
 	"errors"
-	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -53,7 +52,7 @@ func (u *VerifyEmailUseCase) Execute(payload IVerifyEmailUseCaseRequest) (*IVeri
 		return nil, errors.New("user not found")
 	}
 
-	userToken, err := u.Repository.FindUserTokenByEmail(payload.Email)
+	userToken, err := u.Repository.FindUserTokenByEmailAndToken(payload.Email, payload.Token)
 	if err != nil {
 		u.Log.Error("[UserUseCase.VerifyUserEmail] " + err.Error())
 		return nil, err
@@ -64,10 +63,10 @@ func (u *VerifyEmailUseCase) Execute(payload IVerifyEmailUseCaseRequest) (*IVeri
 		return nil, errors.New("user token not found")
 	}
 
-	if userToken.ExpiredAt.Before(time.Now()) {
-		u.Log.Warn("[UserUseCase.VerifyUserEmail] Token expired")
-		return nil, errors.New("token expired")
-	}
+	// if userToken.ExpiredAt.Before(time.Now()) {
+	// 	u.Log.Warn("[UserUseCase.VerifyUserEmail] Token expired")
+	// 	return nil, errors.New("token expired")
+	// }
 
 	if userToken.Token != payload.Token {
 		u.Log.Warn("[UserUseCase.VerifyUserEmail] Invalid token")

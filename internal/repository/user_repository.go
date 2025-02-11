@@ -28,6 +28,7 @@ type IUserRepository interface {
 	AcknowledgeUserToken(email string, token int) error
 	VerifyUserEmail(email string) error
 	FindUserTokenByEmail(email string) (*entity.UserToken, error)
+	FindUserTokenByEmailAndToken(email string, token int) (*entity.UserToken, error)
 	DeleteUserToken(email string, tokenType entity.UserTokenType) error
 }
 
@@ -465,6 +466,21 @@ func (r *UserRepository) DeleteUserToken(email string, tokenType entity.UserToke
 	}
 
 	return nil
+}
+
+func (r *UserRepository) FindUserTokenByEmailAndToken(email string, token int) (*entity.UserToken, error) {
+	var userToken entity.UserToken
+	err := r.DB.First(&userToken, "email = ? AND token = ?", email, token).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			r.Log.Warn("[UserRepository.FindUserTokenByEmailAndToken] User token not found")
+			return nil, nil
+		} else {
+			r.Log.Error("[UserRepository.FindUserTokenByEmailAndToken] " + err.Error())
+			return nil, errors.New("[UserRepository.FindUserTokenByEmailAndToken] " + err.Error())
+		}
+	}
+	return &userToken, nil
 }
 
 func UserRepositoryFactory(log *logrus.Logger) IUserRepository {
