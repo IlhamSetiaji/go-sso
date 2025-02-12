@@ -4,6 +4,7 @@ import (
 	"app/go-sso/internal/http/dto"
 	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -37,6 +38,10 @@ func (m *GetUserMeMessage) Execute(request IGetUserMeMessageRequest) (*IGetUserM
 	user, err := m.UserRepository.FindById(request.UserID)
 	if err != nil {
 		return nil, err
+	}
+
+	if user == nil {
+		return nil, errors.New("user not found")
 	}
 
 	return &IGetUserMeMessageResponse{
