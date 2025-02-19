@@ -3,6 +3,7 @@ package repository
 import (
 	"app/go-sso/internal/config"
 	"app/go-sso/internal/entity"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -69,18 +70,47 @@ func (r *EmployeeRepository) FindAllEmployeesNotInUsers() (*[]entity.Employee, e
 	var users []entity.User
 	var employeeIDs []uuid.UUID
 
+	// Fetch users where employee_id is not NULL
 	if err := r.DB.Where("employee_id IS NOT NULL").Find(&users).Error; err != nil {
 		return nil, err
 	}
 
+	// Collect employee IDs while checking for nil values
 	for _, user := range users {
-		employeeIDs = append(employeeIDs, *user.EmployeeID)
+		if user.EmployeeID != nil { // Avoid dereferencing nil pointer
+			employeeIDs = append(employeeIDs, *user.EmployeeID)
+		}
+	}
+
+	// Debugging: Check for invalid UUIDs
+	for _, id := range employeeIDs {
+		if _, err := uuid.Parse(id.String()); err != nil {
+			fmt.Printf("Invalid UUID: %s - Error: %s\n", id, err)
+		} else {
+			fmt.Printf("Valid UUID: %s\n", id)
+		}
 	}
 
 	var employees []entity.Employee
-	err := r.DB.Where("id NOT IN (?)", employeeIDs).Preload("EmployeeJob.Job").Preload("User").Preload("Organization.OrganizationType").Find(&employees).Error
-	if err != nil {
-		return nil, err
+
+	if len(employeeIDs) > 0 {
+		err := r.DB.Where("id NOT IN (?)", employeeIDs).
+			Preload("EmployeeJob.Job").
+			Preload("User").
+			Preload("Organization.OrganizationType").
+			Find(&employees).Error
+		if err != nil {
+			r.Log.Error("[EmployeeRepository] FindAllEmployeesNotInUsers: ", err)
+			return nil, err
+		}
+	} else {
+		err := r.DB.Preload("EmployeeJob.Job").
+			Preload("User").
+			Preload("Organization.OrganizationType").
+			Find(&employees).Error
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &employees, nil
