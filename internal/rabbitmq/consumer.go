@@ -8,6 +8,7 @@ import (
 	orgMessaging "app/go-sso/internal/messaging/organization"
 	userMessaging "app/go-sso/internal/messaging/user"
 	"app/go-sso/internal/service"
+	empUseCase "app/go-sso/internal/usecase/employee"
 	"app/go-sso/utils"
 	"encoding/json"
 	"errors"
@@ -756,6 +757,127 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 
 		msgData = map[string]interface{}{
 			"message": "success",
+		}
+	case "create_employee":
+		name, ok := docMsg.MessageData["name"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'name'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'name'").Error(),
+			}
+			break
+		}
+
+		userID, ok := docMsg.MessageData["user_id"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'user_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'user_id'").Error(),
+			}
+			break
+		}
+		parsedUserID, err := uuid.Parse(userID)
+		if err != nil {
+			log.Errorf("Invalid user id")
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		email, ok := docMsg.MessageData["email"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'email'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'email'").Error(),
+			}
+			break
+		}
+
+		jobID, ok := docMsg.MessageData["job_id"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'job_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'job_id'").Error(),
+			}
+			break
+		}
+		parsedJobID, err := uuid.Parse(jobID)
+		if err != nil {
+			log.Errorf("Invalid job id")
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		organizationID, ok := docMsg.MessageData["organization_id"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'organization_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'organization_id'").Error(),
+			}
+			break
+		}
+		parsedOrganizationID, err := uuid.Parse(organizationID)
+		if err != nil {
+			log.Errorf("Invalid organization id")
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		organizationLocationID, ok := docMsg.MessageData["organization_location_id"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'organization_location_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'organization_location_id'").Error(),
+			}
+			break
+		}
+		parsedOrganizationLocationID, err := uuid.Parse(organizationLocationID)
+		if err != nil {
+			log.Errorf("Invalid organization location id")
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		empUseCaseFactory := empUseCase.StoreEmployeeUsecaseFactory(log)
+		employee, err := empUseCaseFactory.Execute(&empUseCase.IStoreEmployeeUsecaseRequest{
+			OrganizationID: parsedOrganizationID.String(),
+			UserID:         parsedUserID.String(),
+			Name:           name,
+			Email:          email,
+		})
+		if err != nil {
+			log.Errorf("Failed to create employee: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		empJobUseCaseFactory := empUseCase.StoreEmployeeJobUsecaseFactory(log)
+		_, err = empJobUseCaseFactory.Execute(&empUseCase.IStoreEmployeeJobUsecaseRequest{
+			EmployeeID:             employee.EmployeeID,
+			Name:                   name,
+			JobID:                  parsedJobID.String(),
+			EmpOrganizationID:      parsedOrganizationID.String(),
+			OrganizationLocationID: parsedOrganizationLocationID.String(),
+		})
+		if err != nil {
+			log.Errorf("Failed to create employee job: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"employee_id": employee.EmployeeID,
 		}
 	default:
 		log.Printf("Unknown message type, please recheck your type: %s", docMsg.MessageType)
