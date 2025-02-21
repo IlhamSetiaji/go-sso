@@ -14,6 +14,7 @@ type IOrganizationStructureRepository interface {
 	FindAllOrgStructuresByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindById(id uuid.UUID) (*entity.OrganizationStructure, error)
 	GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error)
+	GetOrganizationSructuresByJobLevelIDAndOrganizationID(jobLevelID uuid.UUID, organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindByOrganizationId(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindAllChildren(parentID uuid.UUID) ([]entity.OrganizationStructure, error)
 	FindAllParents(parentID uuid.UUID) ([]entity.OrganizationStructure, error)
@@ -142,6 +143,15 @@ func (r *OrganizationStructureRepository) FindById(id uuid.UUID) (*entity.Organi
 func (r *OrganizationStructureRepository) GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error) {
 	var organizationStructures []entity.OrganizationStructure
 	err := r.DB.Preload("Organization").Preload("JobLevel").Preload("Jobs").Where("job_level_id = ?", jobLevelID).Find(&organizationStructures).Error
+	if err != nil {
+		return nil, err
+	}
+	return &organizationStructures, nil
+}
+
+func (r *OrganizationStructureRepository) GetOrganizationSructuresByJobLevelIDAndOrganizationID(jobLevelID uuid.UUID, organizationID uuid.UUID) (*[]entity.OrganizationStructure, error) {
+	var organizationStructures []entity.OrganizationStructure
+	err := r.DB.Preload("Organization").Preload("JobLevel").Preload("Jobs").Where("job_level_id = ? AND organization_id = ?", jobLevelID, organizationID).Find(&organizationStructures).Error
 	if err != nil {
 		return nil, err
 	}

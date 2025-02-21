@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"app/go-sso/internal/entity"
 	"app/go-sso/internal/http/dto"
 	"app/go-sso/internal/http/response"
 	jobMsg "app/go-sso/internal/messaging/job"
@@ -11,7 +12,8 @@ import (
 )
 
 type IGetJobsByJobLevelIDUseCaseRequest struct {
-	JobLevelID string `json:"job_level_id"`
+	JobLevelID     string `json:"job_level_id"`
+	OrganizationID string `json:"organization_id"`
 }
 
 type IGetJobsByJobLevelIDUseCaseResponse struct {
@@ -43,9 +45,23 @@ func (uc *GetJobsByJobLevelIDUseCase) Execute(request *IGetJobsByJobLevelIDUseCa
 		return nil, err
 	}
 
-	organizationStructures, err := uc.OrgStructureRepository.GetOrganizationSructuresByJobLevelID(uuidJobLevelID)
-	if err != nil {
-		return nil, err
+	var organizationStructures *[]entity.OrganizationStructure
+
+	if request.OrganizationID == "" {
+		organizationStructures, err = uc.OrgStructureRepository.GetOrganizationSructuresByJobLevelID(uuidJobLevelID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		organizationID, err := uuid.Parse(request.OrganizationID)
+		if err != nil {
+			return nil, err
+		}
+
+		organizationStructures, err = uc.OrgStructureRepository.GetOrganizationSructuresByJobLevelIDAndOrganizationID(uuidJobLevelID, organizationID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var organizationStructureIDs []uuid.UUID

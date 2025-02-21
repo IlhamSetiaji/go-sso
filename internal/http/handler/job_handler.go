@@ -214,6 +214,11 @@ func (h *JobHandler) GetJobsByJobLevelId(ctx *gin.Context) {
 		return
 	}
 
+	organizationId := ctx.Query("organization_id")
+	if organizationId == "" {
+		organizationId = ""
+	}
+
 	factory := usecase.GetJobsByJobLevelIDUseCaseFactory(h.Log)
 	response, err := factory.Execute(&usecase.IGetJobsByJobLevelIDUseCaseRequest{
 		JobLevelID: jobLevelId,
