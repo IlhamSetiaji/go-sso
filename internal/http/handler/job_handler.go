@@ -221,7 +221,8 @@ func (h *JobHandler) GetJobsByJobLevelId(ctx *gin.Context) {
 
 	factory := usecase.GetJobsByJobLevelIDUseCaseFactory(h.Log)
 	response, err := factory.Execute(&usecase.IGetJobsByJobLevelIDUseCaseRequest{
-		JobLevelID: jobLevelId,
+		JobLevelID:     jobLevelId,
+		OrganizationID: organizationId,
 	})
 
 	if err != nil {
