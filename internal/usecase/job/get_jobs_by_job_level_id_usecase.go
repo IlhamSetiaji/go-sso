@@ -6,6 +6,7 @@ import (
 	"app/go-sso/internal/http/response"
 	jobMsg "app/go-sso/internal/messaging/job"
 	"app/go-sso/internal/repository"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -45,33 +46,27 @@ func (uc *GetJobsByJobLevelIDUseCase) Execute(request *IGetJobsByJobLevelIDUseCa
 		return nil, err
 	}
 
-	var organizationStructures *[]entity.OrganizationStructure
+	var jobs *[]entity.Job
 
-	if request.OrganizationID == "" {
-		organizationStructures, err = uc.OrgStructureRepository.GetOrganizationSructuresByJobLevelID(uuidJobLevelID)
+	if request.OrganizationID != "" {
+		parsedOrganizationID, err := uuid.Parse(request.OrganizationID)
+		if err != nil {
+			return nil, errors.New("invalid organization id")
+		}
+		jobs, err = uc.JobRepository.FindAllByKeys(map[string]interface{}{
+			"job_level_id":    uuidJobLevelID,
+			"organization_id": parsedOrganizationID,
+		})
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		organizationID, err := uuid.Parse(request.OrganizationID)
+		jobs, err = uc.JobRepository.FindAllByKeys(map[string]interface{}{
+			"job_level_id": uuidJobLevelID,
+		})
 		if err != nil {
 			return nil, err
 		}
-
-		organizationStructures, err = uc.OrgStructureRepository.GetOrganizationSructuresByJobLevelIDAndOrganizationID(uuidJobLevelID, organizationID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	var organizationStructureIDs []uuid.UUID
-	for _, organizationStructure := range *organizationStructures {
-		organizationStructureIDs = append(organizationStructureIDs, organizationStructure.ID)
-	}
-
-	jobs, err := uc.JobRepository.GetJobsByOrganizationStructureIDs(organizationStructureIDs)
-	if err != nil {
-		return nil, err
 	}
 
 	for i, job := range *jobs {

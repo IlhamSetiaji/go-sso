@@ -14,7 +14,8 @@ type JobLevel struct {
 	Level      string    `json:"level" gorm:"type:varchar(10);not null"`
 	MidsuitID  string    `json:"midsuit_id" gorm:"type:varchar(255)"`
 
-	OrganizationStructures []OrganizationStructure `json:"employee_jobs" gorm:"foreignKey:JobLevelID;references:ID"`
+	OrganizationStructures []OrganizationStructure `json:"employee_jobs" gorm:"foreignKey:JobLevelID;references:ID;constraint:OnDelete:CASCADE"`
+	Jobs                   []Job                   `json:"jobs" gorm:"foreignKey:JobLevelID;references:ID";constraint:OnDelete:CASCADE`
 }
 
 func (jobLevel *JobLevel) BeforeCreate(tx *gorm.DB) (err error) {

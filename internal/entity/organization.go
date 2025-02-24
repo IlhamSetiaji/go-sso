@@ -15,6 +15,7 @@ type Organization struct {
 	MidsuitID          string    `json:"midsuit_id"`
 	Region             string    `json:"region"`
 
+	Jobs                   []Job                   `json:"jobs" gorm:"foreignKey:OrganizationID;references:ID"`                                                               // Foreign key
 	OrganizationType       OrganizationType        `json:"organization_type" gorm:"foreignKey:OrganizationTypeID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"` // Foreign key
 	OrganizationLocations  []OrganizationLocation  `json:"organization_locations" gorm:"foreignKey:OrganizationID;references:ID"`
 	OrganizationStructures []OrganizationStructure `json:"organization_structures" gorm:"foreignKey:OrganizationID;references:ID"`

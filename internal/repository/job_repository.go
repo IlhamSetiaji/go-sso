@@ -17,6 +17,7 @@ type IJobRepository interface {
 	GetJobsByOrganizationStructureIDs(organizationStructureIDs []uuid.UUID) (*[]entity.Job, error)
 	FindAllChildren(parentID uuid.UUID) ([]entity.Job, error)
 	FindParent(id uuid.UUID) (*entity.Job, error)
+	FindAllByKeys(keys map[string]interface{}) (*[]entity.Job, error)
 }
 
 type JobRepository struct {
@@ -119,6 +120,14 @@ func (r *JobRepository) FindParent(id uuid.UUID) (*entity.Job, error) {
 		}
 	}
 	return &job, nil
+}
+
+func (r *JobRepository) FindAllByKeys(keys map[string]interface{}) (*[]entity.Job, error) {
+	var jobs []entity.Job
+	if err := r.DB.Preload("Organization").Preload("JobLevel").Where(keys).Find(&jobs).Error; err != nil {
+		return nil, err
+	}
+	return &jobs, nil
 }
 
 func JobRepositoryFactory(log *logrus.Logger) IJobRepository {
