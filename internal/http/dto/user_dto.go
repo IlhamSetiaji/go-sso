@@ -59,6 +59,13 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 			}
 			return roles
 		}(),
+		UserProfile: func() map[string]interface{} {
+			if user.UserProfile == nil {
+				return map[string]interface{}{}
+			} else {
+				return user.UserProfile
+			}
+		}(),
 		Employee: func() response.EmployeeResponse {
 			if user.Employee == nil {
 				return response.EmployeeResponse{}

@@ -61,14 +61,19 @@ func (u *MeUseCase) Execute(request *IMeUseCaseRequest) (*IMeUseCaseResponse, er
 	}
 
 	var hasUserProfile bool = true
+	var userProfileData map[string]interface{}
 
 	userProfile, ok := userProfileMessage.UserProfile["user_profile"].(map[string]interface{})
 	if !ok {
 		hasUserProfile = false
+		userProfileData = map[string]interface{}{}
+	} else {
+		userProfileData = userProfile
 	}
 
 	if hasUserProfile {
 		user.VerifiedUserProfile = userProfile["status"].(string)
+		user.UserProfile = userProfileData
 	} else {
 		user.VerifiedUserProfile = "false"
 	}

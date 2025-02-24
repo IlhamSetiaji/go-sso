@@ -49,8 +49,9 @@ type User struct {
 	Address         string      `json:"address" gorm:"type:text;default:null"`
 	// DeletedAt       time.Time  `json:"deleted_at" gorm:"index"`
 
-	ChoosedRole         string `json:"choosed_role" gorm:"-"`
-	VerifiedUserProfile string `json:"verified_user_profile" gorm:"-"`
+	ChoosedRole         string                 `json:"choosed_role" gorm:"-"`
+	VerifiedUserProfile string                 `json:"verified_user_profile" gorm:"-"`
+	UserProfile         map[string]interface{} `json:"user_profile" gorm:"-"`
 }
 
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
