@@ -5,7 +5,9 @@ import (
 	"app/go-sso/internal/http/dto"
 	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
+	"sort"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -59,9 +61,16 @@ func (uc *FindByOrganizationIDUseCase) Execute(req *IFindByOrganizationIDUseCase
 
 	jobLevels := make([]response.JobLevelResponse, 0)
 	for _, jobLevel := range jobLevelMap {
+		if jobLevel == nil || jobLevel.ID == uuid.Nil {
+			continue
+		}
 		jobLevelResponse := dto.ConvertToSingleJobLevelResponse(jobLevel)
 		jobLevels = append(jobLevels, *jobLevelResponse)
 	}
+
+	sort.Slice(jobLevels, func(i, j int) bool {
+		return jobLevels[i].Level < jobLevels[j].Level
+	})
 
 	return &IFindByOrganizationIDUseCaseResponse{
 		JobLevels: &jobLevels,
