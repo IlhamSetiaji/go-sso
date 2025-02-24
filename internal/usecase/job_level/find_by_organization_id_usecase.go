@@ -6,7 +6,6 @@ import (
 	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,47 +25,52 @@ type FindByOrganizationIDUseCase struct {
 	Log                    *logrus.Logger
 	JobLevelRepository     repository.IJobLevelRepository
 	OrgStructureRepository repository.IOrganizationStructureRepository
+	JobRepository          repository.IJobRepository
 }
 
 func NewFindByOrganizationIDUseCase(
 	log *logrus.Logger,
 	jobLevelRepository repository.IJobLevelRepository,
 	orgStructureRepository repository.IOrganizationStructureRepository,
+	jobRepository repository.IJobRepository,
 ) IFindByOrganizationIDUseCase {
 	return &FindByOrganizationIDUseCase{
 		Log:                    log,
 		JobLevelRepository:     jobLevelRepository,
 		OrgStructureRepository: orgStructureRepository,
+		JobRepository:          jobRepository,
 	}
 }
 
 func (uc *FindByOrganizationIDUseCase) Execute(req *IFindByOrganizationIDUseCaseRequest) (*IFindByOrganizationIDUseCaseResponse, error) {
-	orgStructures, err := uc.OrgStructureRepository.FindByOrganizationId(uuid.MustParse(req.OrganizationID))
+	jobs, err := uc.JobRepository.FindAllByKeys(map[string]interface{}{
+		"organization_id": req.OrganizationID,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	var jobLevels []entity.JobLevel
-	var jobLevelIDs []uuid.UUID
-
-	for _, orgStructure := range *orgStructures {
-		jobLevelIDs = append(jobLevelIDs, orgStructure.JobLevelID)
+	// distinct job -> job levels
+	jobLevelMap := make(map[string]*entity.JobLevel)
+	for _, job := range *jobs {
+		jobLevel := job.JobLevel
+		jobLevelMap[jobLevel.ID.String()] = &jobLevel
 	}
 
-	jobLevelPtrs, err := uc.JobLevelRepository.FindByIds(jobLevelIDs)
-	if err != nil {
-		return nil, err
+	jobLevels := make([]response.JobLevelResponse, 0)
+	for _, jobLevel := range jobLevelMap {
+		jobLevelResponse := dto.ConvertToSingleJobLevelResponse(jobLevel)
+		jobLevels = append(jobLevels, *jobLevelResponse)
 	}
-
-	jobLevels = append(jobLevels, *jobLevelPtrs...)
 
 	return &IFindByOrganizationIDUseCaseResponse{
-		JobLevels: dto.ConvertToJobLevelResponse(&jobLevels),
+		JobLevels: &jobLevels,
 	}, nil
 }
 
 func FindByOrganizationIDUseCaseFactory(log *logrus.Logger) IFindByOrganizationIDUseCase {
 	jobLevelRepository := repository.JobLevelRepositoryFactory(log)
 	orgStructureRepository := repository.OrganizationStructureRepositoryFactory(log)
-	return NewFindByOrganizationIDUseCase(log, jobLevelRepository, orgStructureRepository)
+	jobRepository := repository.JobRepositoryFactory(log)
+	return NewFindByOrganizationIDUseCase(log, jobLevelRepository, orgStructureRepository, jobRepository)
 }

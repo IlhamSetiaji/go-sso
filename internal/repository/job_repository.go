@@ -124,7 +124,7 @@ func (r *JobRepository) FindParent(id uuid.UUID) (*entity.Job, error) {
 
 func (r *JobRepository) FindAllByKeys(keys map[string]interface{}) (*[]entity.Job, error) {
 	var jobs []entity.Job
-	if err := r.DB.Preload("Organization").Preload("JobLevel").Where(keys).Find(&jobs).Error; err != nil {
+	if err := r.DB.Preload("Organization").Preload("JobLevel.OrganizationStructures").Where(keys).Find(&jobs).Error; err != nil {
 		return nil, err
 	}
 	return &jobs, nil
