@@ -34,7 +34,7 @@ func NewJobRepository(log *logrus.Logger, db *gorm.DB) IJobRepository {
 
 func (r *JobRepository) GetAll() (*[]entity.Job, error) {
 	var jobs []entity.Job
-	if err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Find(&jobs).Error; err != nil {
+	if err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Preload("JobLevel").Find(&jobs).Error; err != nil {
 		return nil, err
 	}
 
@@ -43,7 +43,7 @@ func (r *JobRepository) GetAll() (*[]entity.Job, error) {
 
 func (r *JobRepository) FindAllJobs(includedIDs []string) (*[]entity.Job, error) {
 	var jobs []entity.Job
-	if err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Where("id IN ?", includedIDs).Find(&jobs).Error; err != nil {
+	if err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Preload("JobLevel").Where("id IN ?", includedIDs).Find(&jobs).Error; err != nil {
 		return nil, err
 	}
 
@@ -54,7 +54,7 @@ func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string, 
 	var jobs []entity.Job
 	var total int64
 
-	query := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel")
+	query := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Preload("JobLevel")
 
 	if search != "" {
 		query = query.Where("name ILIKE ?", "%"+search+"%")
@@ -77,7 +77,7 @@ func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string, 
 
 func (r *JobRepository) FindById(id uuid.UUID) (*entity.Job, error) {
 	var job entity.Job
-	err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Where("id = ?", id).First(&job).Error
+	err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Preload("JobLevel").Where("id = ?", id).First(&job).Error
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (r *JobRepository) FindById(id uuid.UUID) (*entity.Job, error) {
 
 func (r *JobRepository) GetJobsByOrganizationStructureIDs(organizationStructureIDs []uuid.UUID) (*[]entity.Job, error) {
 	var jobs []entity.Job
-	err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Where("organization_structure_id IN ?", organizationStructureIDs).Find(&jobs).Error
+	err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Preload("JobLevel").Where("organization_structure_id IN ?", organizationStructureIDs).Find(&jobs).Error
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (r *JobRepository) GetJobsByOrganizationStructureIDs(organizationStructureI
 
 func (r *JobRepository) FindAllChildren(parentID uuid.UUID) ([]entity.Job, error) {
 	var children []entity.Job
-	if err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Where("parent_id = ?", parentID).Find(&children).Error; err != nil {
+	if err := r.DB.Preload("OrganizationStructure.Organization").Preload("OrganizationStructure.JobLevel").Preload("JobLevel").Where("parent_id = ?", parentID).Find(&children).Error; err != nil {
 		return nil, err
 	}
 
