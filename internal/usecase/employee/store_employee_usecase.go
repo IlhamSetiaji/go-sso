@@ -45,10 +45,14 @@ func StoreEmployeeUsecaseFactory(log *logrus.Logger) IStoreEmployeeUsecase {
 }
 
 func (u *StoreEmployeeUsecase) Execute(request *IStoreEmployeeUsecaseRequest) (*IStoreEmployeeUsecaseResponse, error) {
-	endDate, err := time.Parse("2006-01-02", request.EndDate)
-	if err != nil {
-		u.Log.Error(err)
-		return nil, err
+	var endDate time.Time
+	var err error
+	if request.EndDate != "" {
+		endDate, err = time.Parse("2006-01-02", request.EndDate)
+		if err != nil {
+			u.Log.Error(err)
+			return nil, err
+		}
 	}
 
 	var retirementDate time.Time
