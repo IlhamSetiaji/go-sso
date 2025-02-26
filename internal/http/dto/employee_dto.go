@@ -45,9 +45,14 @@ func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.Employ
 				OrganizationLocationID: employee.EmployeeJob.OrganizationLocationID,
 				EmployeeID:             employee.ID,
 				JobID:                  employee.EmployeeJob.JobID,
-				JobName:                employee.EmployeeJob.Job.Name,
-				JobNameChinese:         chinese,
-				Name:                   employee.EmployeeJob.Name,
+				JobName: func() string {
+					if employee.EmployeeJob.Job == nil {
+						return ""
+					}
+					return employee.EmployeeJob.Job.Name
+				}(),
+				JobNameChinese: chinese,
+				Name:           employee.EmployeeJob.Name,
 				Job: func() *response.JobResponse {
 					if employee.EmployeeJob.Job == nil {
 						return nil
