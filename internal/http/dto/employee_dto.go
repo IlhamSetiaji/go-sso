@@ -30,15 +30,43 @@ func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.Employ
 			},
 			Name: employee.Organization.Name,
 		},
-		EmployeeJob: map[string]interface{}{
-			"id":                       employee.EmployeeJob.ID,
-			"name":                     employee.EmployeeJob.Name,
-			"emp_organization_id":      employee.EmployeeJob.EmpOrganizationID,
-			"job_id":                   employee.EmployeeJob.JobID,
-			"job_name":                 employee.EmployeeJob.Job.Name,
-			"job_name_chinese":         chinese,
-			"employee_id":              employee.EmployeeJob.EmployeeID,
-			"organization_location_id": employee.EmployeeJob.OrganizationLocationID,
-		},
+		EmployeeJob: func() *response.EmployeeJobResponse {
+			if employee.EmployeeJob == nil {
+				return nil
+			}
+			return &response.EmployeeJobResponse{
+				ID:                     employee.EmployeeJob.ID,
+				EmpOrganizationID:      employee.EmployeeJob.EmpOrganizationID,
+				OrganizationLocationID: employee.EmployeeJob.OrganizationLocationID,
+				EmployeeID:             employee.ID,
+				JobID:                  employee.EmployeeJob.JobID,
+				JobName:                employee.EmployeeJob.Job.Name,
+				JobNameChinese:         chinese,
+				Name:                   employee.EmployeeJob.Name,
+				Job: func() *response.JobResponse {
+					if employee.EmployeeJob.Job == nil {
+						return nil
+					}
+					return ConvertToSingleJobResponse(employee.EmployeeJob.Job)
+				}(),
+				EmpOrganization: func() *response.OrganizationMinimalResponse {
+					if employee.EmployeeJob.EmpOrganization == nil {
+						return nil
+					}
+					return &response.OrganizationMinimalResponse{
+						ID:   employee.EmployeeJob.EmpOrganization.ID,
+						Name: employee.EmployeeJob.EmpOrganization.Name,
+					}
+				}(),
+				OrganizationLocation: func() *response.OrganizationLocationResponse {
+					if employee.EmployeeJob.OrganizationLocation == nil {
+						return nil
+					}
+					return ConvertToSingleOrganizationLocationResponse(employee.EmployeeJob.OrganizationLocation)
+				}(),
+				CreatedAt: employee.EmployeeJob.CreatedAt,
+				UpdatedAt: employee.EmployeeJob.UpdatedAt,
+			}
+		}(),
 	}
 }

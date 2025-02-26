@@ -15,6 +15,6 @@ type EmployeeResponse struct {
 	Email          string    `json:"email"`
 	MobilePhone    string    `json:"mobile_phone"`
 
-	Organization OrganizationResponse   `json:"organization"`
-	EmployeeJob  map[string]interface{} `json:"employee_job"`
+	Organization OrganizationResponse `json:"organization"`
+	EmployeeJob  *EmployeeJobResponse `json:"employee_job"`
 }
