@@ -12,10 +12,11 @@ func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.Employ
 	var chinese string
 	var err error
 	if employee.EmployeeJob != nil {
-		chinese, err = gt.Translate(employee.EmployeeJob.Job.Name, "en", "zh")
-		if err != nil {
-			fmt.Println(err)
-			chinese = ""
+		if employee.EmployeeJob.Job != nil {
+			chinese, err = gt.Translate(employee.EmployeeJob.Job.Name, "en", "zh-CN")
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 	return &response.EmployeeResponse{
