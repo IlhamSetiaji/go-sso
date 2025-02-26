@@ -71,6 +71,7 @@ func (u *StoreEmployeeUsecase) Execute(request *IStoreEmployeeUsecaseRequest) (*
 		EndDate:        endDate,
 		RetirementDate: retirementDate,
 		OrganizationID: uuid.MustParse(request.OrganizationID), // Add this line
+		IsOnboarding:   "NO",
 	}
 
 	employee, err = u.EmployeeRepo.Store(employee)
