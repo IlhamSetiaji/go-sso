@@ -78,5 +78,17 @@ func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.Employ
 				UpdatedAt: employee.EmployeeJob.UpdatedAt,
 			}
 		}(),
+		KanbanProgress: func() *response.EmployeeKanbanProgressResponse {
+			if employee.EmployeeKanbanProgress == nil {
+				return nil
+			}
+			return &response.EmployeeKanbanProgressResponse{
+				TotalTask:  employee.EmployeeKanbanProgress.TotalTask,
+				ToDo:       employee.EmployeeKanbanProgress.ToDo,
+				InProgress: employee.EmployeeKanbanProgress.InProgress,
+				NeedReview: employee.EmployeeKanbanProgress.NeedReview,
+				Completed:  employee.EmployeeKanbanProgress.Completed,
+			}
+		}(),
 	}
 }

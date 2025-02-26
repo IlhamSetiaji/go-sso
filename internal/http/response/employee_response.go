@@ -15,6 +15,15 @@ type EmployeeResponse struct {
 	Email          string    `json:"email"`
 	MobilePhone    string    `json:"mobile_phone"`
 
-	Organization OrganizationResponse `json:"organization"`
-	EmployeeJob  *EmployeeJobResponse `json:"employee_job"`
+	Organization   OrganizationResponse            `json:"organization"`
+	EmployeeJob    *EmployeeJobResponse            `json:"employee_job"`
+	KanbanProgress *EmployeeKanbanProgressResponse `json:"kanban_progress"`
+}
+
+type EmployeeKanbanProgressResponse struct {
+	TotalTask  int `json:"total_task"`
+	ToDo       int `json:"to_do"`
+	InProgress int `json:"in_progress"`
+	NeedReview int `json:"need_review"`
+	Completed  int `json:"completed"`
 }

@@ -24,6 +24,8 @@ type Employee struct {
 	Organization Organization `json:"organization" gorm:"foreignKey:OrganizationID;references:ID;constraint:OnDelete:CASCADE"`
 	User         *User        `json:"user" gorm:"foreignKey:EmployeeID;references:ID"`
 	EmployeeJob  *EmployeeJob `json:"employee_job" gorm:"foreignKey:EmployeeID;references:ID"`
+
+	EmployeeKanbanProgress *EmployeeKanbanProgress `json:"employee_kanban_progress" gorm:"-"`
 }
 
 func (employee *Employee) BeforeCreate(tx *gorm.DB) (err error) {

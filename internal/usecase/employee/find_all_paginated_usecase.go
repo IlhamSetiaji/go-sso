@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"app/go-sso/internal/entity"
+	messaging "app/go-sso/internal/messaging/employee"
 	"app/go-sso/internal/repository"
 
 	"github.com/sirupsen/logrus"
@@ -50,6 +51,28 @@ func (uc *FindAllPaginatedUseCase) Execute(req *IFindAllPaginatedUseCaseRequest)
 	employees, total, err := uc.EmployeeRepository.FindAllPaginated(req.Page, req.PageSize, req.Search, isOnboarding)
 	if err != nil {
 		return nil, err
+	}
+
+	countKanbanMessageFactory := messaging.CountKanbanProgressByEmployeeIDMessageFactory(uc.Log)
+
+	for i, employee := range *employees {
+		var employeeKanbanProgress entity.EmployeeKanbanProgress
+
+		resp, err := countKanbanMessageFactory.Execute(&messaging.ICountKanbanProgressByEmployeeIDMessageRequest{
+			EmployeeID: employee.ID.String(),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		employeeKanbanProgress.TotalTask = resp.TotalTask
+		employeeKanbanProgress.ToDo = resp.ToDo
+		employeeKanbanProgress.InProgress = resp.InProgress
+		employeeKanbanProgress.NeedReview = resp.NeedReview
+		employeeKanbanProgress.Completed = resp.Completed
+
+		employee.EmployeeKanbanProgress = &employeeKanbanProgress
+		(*employees)[i] = employee
 	}
 
 	return &IFindAllPaginatedUseCaseResponse{
