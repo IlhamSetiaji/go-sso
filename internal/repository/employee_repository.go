@@ -11,7 +11,7 @@ import (
 )
 
 type IEmployeeRepository interface {
-	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Employee, int64, error)
+	FindAllPaginated(page int, pageSize int, search string, isOnboarding string) (*[]entity.Employee, int64, error)
 	FindAllEmployees() (*[]entity.Employee, error)
 	FindAllEmployeesNotInUsers() (*[]entity.Employee, error)
 	Store(employee *entity.Employee) (*entity.Employee, error)
@@ -35,11 +35,15 @@ func NewEmployeeRepository(log *logrus.Logger, db *gorm.DB) IEmployeeRepository 
 	}
 }
 
-func (r *EmployeeRepository) FindAllPaginated(page int, pageSize int, search string) (*[]entity.Employee, int64, error) {
+func (r *EmployeeRepository) FindAllPaginated(page int, pageSize int, search string, isOnboarding string) (*[]entity.Employee, int64, error) {
 	var employees []entity.Employee
 	var total int64
 
 	query := r.DB.Preload("EmployeeJob").Preload("User").Preload("Organization")
+
+	if isOnboarding != "" {
+		query = query.Where("is_onboarding = ?", isOnboarding)
+	}
 
 	if search != "" {
 		query = query.Where("name ILIKE ?", "%"+search+"%")

@@ -66,12 +66,18 @@ func (h *EmployeeHandler) FindAllPaginated(ctx *gin.Context) {
 		pageSize = 10
 	}
 
+	isOnboarding := ctx.Query("is_onboarding")
+	if isOnboarding != "" && isOnboarding != "YES" && isOnboarding != "NO" {
+		isOnboarding = ""
+	}
+
 	search := ctx.Query("search")
 
 	req := &usecase.IFindAllPaginatedUseCaseRequest{
-		Page:     page,
-		PageSize: pageSize,
-		Search:   search,
+		Page:         page,
+		PageSize:     pageSize,
+		Search:       search,
+		IsOnboarding: isOnboarding,
 	}
 
 	uc := usecase.FindAllPaginatedUseCaseFactory(h.Log)
