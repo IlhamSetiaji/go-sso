@@ -9,10 +9,14 @@ import (
 )
 
 func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.EmployeeResponse {
-	chinese, err := gt.Translate(employee.EmployeeJob.Job.Name, "en", "zh")
-	if err != nil {
-		fmt.Println(err)
-		chinese = ""
+	var chinese string
+	var err error
+	if employee.EmployeeJob != nil {
+		chinese, err = gt.Translate(employee.EmployeeJob.Job.Name, "en", "zh")
+		if err != nil {
+			fmt.Println(err)
+			chinese = ""
+		}
 	}
 	return &response.EmployeeResponse{
 		ID:             employee.ID,
