@@ -88,8 +88,6 @@ func (u *MeUseCase) Execute(request *IMeUseCaseRequest) (*IMeUseCaseResponse, er
 	user.Roles = filteredRoles
 	user.ChoosedRole = request.ChoosedRole
 
-	u.Log.Info("[MeUseCase.Execute] User found", user.Employee.EmployeeJob)
-
 	return &IMeUseCaseResponse{
 		User: dto.ConvertToSingleUserResponse(user),
 	}, nil
