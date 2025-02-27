@@ -897,6 +897,20 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 		msgData = map[string]interface{}{
 			"employee_id": employee.EmployeeID,
 		}
+	case "get_chart_employee_organization_structure":
+		empMessage := empMessaging.ChartEmployeeOrganizationStructureMessageFactory(log)
+		empResponse, err := empMessage.Execute()
+		if err != nil {
+			log.Errorf("Failed to get chart employee organization structure: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"chart": empResponse,
+		}
 	default:
 		log.Printf("Unknown message type, please recheck your type: %s", docMsg.MessageType)
 

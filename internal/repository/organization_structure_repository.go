@@ -13,6 +13,7 @@ type IOrganizationStructureRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error)
 	FindAllOrgStructuresByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindById(id uuid.UUID) (*entity.OrganizationStructure, error)
+	FindByIdOnly(id uuid.UUID) (*entity.OrganizationStructure, error)
 	GetOrganizationSructuresByJobLevelID(jobLevelID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	GetOrganizationSructuresByJobLevelIDAndOrganizationID(jobLevelID uuid.UUID, organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindByOrganizationId(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
@@ -135,6 +136,21 @@ func (r *OrganizationStructureRepository) FindById(id uuid.UUID) (*entity.Organi
 	var organizationStructure entity.OrganizationStructure
 	err := r.DB.Preload("Organization.OrganizationType").Preload("JobLevel").Where("id = ?", id).First(&organizationStructure).Error
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &organizationStructure, nil
+}
+
+func (r *OrganizationStructureRepository) FindByIdOnly(id uuid.UUID) (*entity.OrganizationStructure, error) {
+	var organizationStructure entity.OrganizationStructure
+	err := r.DB.Where("id = ?", id).First(&organizationStructure).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &organizationStructure, nil

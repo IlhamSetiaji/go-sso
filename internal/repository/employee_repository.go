@@ -21,6 +21,8 @@ type IEmployeeRepository interface {
 	UpdateEmployeeJob(employeeJob *entity.EmployeeJob) (*entity.EmployeeJob, error)
 	FindById(id uuid.UUID) (*entity.Employee, error)
 	CountEmployeeRetiredEndByDateRange(startDate string, endDate string) (int64, error)
+	GetOrganizationStructureIdDistinct() ([]uuid.UUID, error)
+	CountByOrganizationStructureID(organizationStructureID uuid.UUID) (int, error)
 }
 
 type EmployeeRepository struct {
@@ -243,6 +245,33 @@ func (r *EmployeeRepository) UpdateEmployeeJob(employeeJob *entity.EmployeeJob) 
 	}
 
 	return employeeJob, nil
+}
+
+func (r *EmployeeRepository) GetOrganizationStructureIdDistinct() ([]uuid.UUID, error) {
+	var organizationIDs []uuid.UUID
+	err := r.DB.Raw(`
+		SELECT DISTINCT organization_structure_id
+		FROM employee_jobs
+	`).Scan(&organizationIDs).Error
+	if err != nil {
+		r.Log.Errorf("[EmployeeRepository.GetOrganizationStructureIdDistinct] error when querying distinct organization structure id: %v", err)
+		return nil, err
+	}
+	return organizationIDs, nil
+}
+
+func (r *EmployeeRepository) CountByOrganizationStructureID(organizationStructureID uuid.UUID) (int, error) {
+	var count int
+	err := r.DB.Raw(`
+		SELECT COUNT(*)
+		FROM employee_jobs
+		WHERE organization_structure_id = ?
+	`, organizationStructureID).Scan(&count).Error
+	if err != nil {
+		r.Log.Errorf("[EmployeeRepository.CountByOrganizationStructureID] error when querying count by job level id: %v", err)
+		return 0, err
+	}
+	return count, nil
 }
 
 func EmployeeRepositoryFactory(log *logrus.Logger) IEmployeeRepository {
