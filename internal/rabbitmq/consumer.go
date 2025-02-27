@@ -845,6 +845,23 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 			break
 		}
 
+		organizationStructureID, ok := docMsg.MessageData["organization_structure_id"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'organization_structure_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'organization_structure_id'").Error(),
+			}
+			break
+		}
+		parsedOrganizationStructureID, err := uuid.Parse(organizationStructureID)
+		if err != nil {
+			log.Errorf("Invalid organization structure id")
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
 		empUseCaseFactory := empUseCase.StoreEmployeeUsecaseFactory(log)
 		employee, err := empUseCaseFactory.Execute(&empUseCase.IStoreEmployeeUsecaseRequest{
 			OrganizationID: parsedOrganizationID.String(),
@@ -862,11 +879,12 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 
 		empJobUseCaseFactory := empUseCase.StoreEmployeeJobUsecaseFactory(log)
 		_, err = empJobUseCaseFactory.Execute(&empUseCase.IStoreEmployeeJobUsecaseRequest{
-			EmployeeID:             employee.EmployeeID,
-			Name:                   name,
-			JobID:                  parsedJobID.String(),
-			EmpOrganizationID:      parsedOrganizationID.String(),
-			OrganizationLocationID: parsedOrganizationLocationID.String(),
+			EmployeeID:              employee.EmployeeID,
+			Name:                    name,
+			JobID:                   parsedJobID.String(),
+			EmpOrganizationID:       parsedOrganizationID.String(),
+			OrganizationLocationID:  parsedOrganizationLocationID.String(),
+			OrganizationStructureID: parsedOrganizationStructureID.String(),
 		})
 		if err != nil {
 			log.Errorf("Failed to create employee job: %v", err)

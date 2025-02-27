@@ -10,11 +10,12 @@ import (
 )
 
 type IStoreEmployeeJobUsecaseRequest struct {
-	EmployeeID             string `form:"employee_id" validate:"required"`
-	Name                   string `form:"name" validate:"omitempty"`
-	JobID                  string `form:"job_id" validate:"required"`
-	EmpOrganizationID      string `form:"emp_organization_id" validate:"required"`
-	OrganizationLocationID string `form:"organization_location_id" validate:"required"`
+	EmployeeID              string `form:"employee_id" validate:"required"`
+	Name                    string `form:"name" validate:"omitempty"`
+	JobID                   string `form:"job_id" validate:"required"`
+	EmpOrganizationID       string `form:"emp_organization_id" validate:"required"`
+	OrganizationLocationID  string `form:"organization_location_id" validate:"required"`
+	OrganizationStructureID string `form:"organization_structure_id" validate:"omitempty"`
 }
 
 type IStoreEmployeeJobUsecaseResponse struct {
@@ -89,11 +90,12 @@ func (u *StoreEmployeeJobUsecase) Execute(request *IStoreEmployeeJobUsecaseReque
 	}
 
 	employeeJob := &entity.EmployeeJob{
-		Name:                   request.Name,
-		EmployeeID:             &employee.ID,
-		JobID:                  uuid.MustParse(request.JobID),
-		EmpOrganizationID:      uuid.MustParse(request.EmpOrganizationID),
-		OrganizationLocationID: uuid.MustParse(request.OrganizationLocationID),
+		Name:                    request.Name,
+		EmployeeID:              &employee.ID,
+		JobID:                   uuid.MustParse(request.JobID),
+		EmpOrganizationID:       uuid.MustParse(request.EmpOrganizationID),
+		OrganizationLocationID:  uuid.MustParse(request.OrganizationLocationID),
+		OrganizationStructureID: uuid.MustParse(request.OrganizationStructureID),
 	}
 
 	_, err = u.EmployeeRepo.StoreEmployeeJob(employeeJob)

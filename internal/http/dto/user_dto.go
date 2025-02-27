@@ -138,6 +138,12 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 							}
 							return ConvertToSingleOrganizationLocationResponse(user.Employee.EmployeeJob.OrganizationLocation)
 						}(),
+						OrganizationStructure: func() *response.OrganizationStructureResponse {
+							if user.Employee.EmployeeJob.OrganizationStructure == nil {
+								return nil
+							}
+							return ConvertToSingleOrganizationStructureResponse(user.Employee.EmployeeJob.OrganizationStructure)
+						}(),
 						CreatedAt: user.Employee.EmployeeJob.CreatedAt,
 						UpdatedAt: user.Employee.EmployeeJob.UpdatedAt,
 					}

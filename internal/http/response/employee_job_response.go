@@ -18,7 +18,8 @@ type EmployeeJobResponse struct {
 	CreatedAt              time.Time `json:"created_at"`
 	UpdatedAt              time.Time `json:"updated_at"`
 
-	EmpOrganization      *OrganizationMinimalResponse  `json:"emp_organization"`
-	Job                  *JobResponse                  `json:"job"`
-	OrganizationLocation *OrganizationLocationResponse `json:"organization_location"`
+	EmpOrganization       *OrganizationMinimalResponse   `json:"emp_organization"`
+	Job                   *JobResponse                   `json:"job"`
+	OrganizationLocation  *OrganizationLocationResponse  `json:"organization_location"`
+	OrganizationStructure *OrganizationStructureResponse `json:"organization_structure"`
 }
