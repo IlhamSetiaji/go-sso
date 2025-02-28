@@ -24,6 +24,8 @@ func ConvertToOrganizationResponse(organizations *[]entity.Organization) *[]resp
 			ID:                 organization.ID,
 			OrganizationTypeID: organization.OrganizationTypeID,
 			Name:               organization.Name,
+			Region:             organization.Region,
+			Address:            organization.Address,
 			OrganizationType: response.OrganizationTypeResponse{
 				ID:   organization.OrganizationType.ID,
 				Name: organization.OrganizationType.Name,
@@ -33,4 +35,3 @@ func ConvertToOrganizationResponse(organizations *[]entity.Organization) *[]resp
 	}
 	return &responseOrganizations
 }
-

@@ -6,6 +6,8 @@ type OrganizationResponse struct {
 	ID                             uuid.UUID `json:"id"`
 	OrganizationTypeID             uuid.UUID `json:"organization_type_id"`
 	Name                           string    `json:"name"`
+	Region                         string    `json:"region"`
+	Address                        string    `json:"address"`
 	OrganizationType               OrganizationTypeResponse
 	OrganizationStructureResponses []OrganizationStructureMinimalResponse `json:"organization_structures"`
 }

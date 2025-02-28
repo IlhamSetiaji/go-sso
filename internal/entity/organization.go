@@ -11,9 +11,10 @@ type Organization struct {
 	gorm.Model         `json:"-"`
 	ID                 uuid.UUID `json:"id" gorm:"type:char(36);primaryKey"`
 	OrganizationTypeID uuid.UUID `json:"organization_type_id" gorm:"type:char(36)"`
-	Name               string    `json:"name"`
-	MidsuitID          string    `json:"midsuit_id"`
-	Region             string    `json:"region"`
+	Name               string    `json:"name" gorm:"type:varchar(255)"`
+	MidsuitID          string    `json:"midsuit_id" gorm:"type:varchar(255)"`
+	Region             string    `json:"region" gorm:"type:text"`
+	Address            string    `json:"address" gorm:"type:text"`
 
 	Jobs                   []Job                   `json:"jobs" gorm:"foreignKey:OrganizationID;references:ID"`                                                               // Foreign key
 	OrganizationType       OrganizationType        `json:"organization_type" gorm:"foreignKey:OrganizationTypeID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"` // Foreign key
