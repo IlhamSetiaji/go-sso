@@ -5,13 +5,15 @@ import (
 	"app/go-sso/internal/http/response"
 	"app/go-sso/internal/repository"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
 type IFindAllPaginatedUseCaseRequest struct {
-	Page     int
-	PageSize int
-	Search   string
+	Page           int
+	PageSize       int
+	Search         string
+	OrganizationID uuid.UUID
 }
 
 type IFindAllPaginatedResponse struct {
@@ -36,7 +38,7 @@ func NewFindAllPaginatedUseCase(log *logrus.Logger, repository repository.IOrgan
 }
 
 func (uc *FindAllPaginatedUseCase) Execute(request *IFindAllPaginatedUseCaseRequest) (*IFindAllPaginatedResponse, error) {
-	organizationStructures, total, err := uc.Repository.FindAllPaginated(request.Page, request.PageSize, request.Search)
+	organizationStructures, total, err := uc.Repository.FindAllPaginatedByOrganizationID(request.OrganizationID, request.Page, request.PageSize, request.Search)
 	if err != nil {
 		return nil, err
 	}

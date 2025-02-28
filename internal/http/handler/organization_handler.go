@@ -6,6 +6,7 @@ import (
 	locationUsecase "app/go-sso/internal/usecase/organization_location"
 	structureUsecase "app/go-sso/internal/usecase/organization_structure"
 	orgTypeUsecase "app/go-sso/internal/usecase/organization_type"
+	userUsecase "app/go-sso/internal/usecase/user"
 	"app/go-sso/utils"
 	"fmt"
 	"net/http"
@@ -175,11 +176,36 @@ func (h *OrganizationHandler) FindOrganizationStructurePaginated(ctx *gin.Contex
 		search = ""
 	}
 
+	user, err := middleware.GetUser(ctx)
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.log.Errorf("Error when getting user: %v", err)
+		return
+	}
+	if user == nil {
+		utils.ErrorResponse(ctx, 404, "error", "User not found")
+		h.log.Errorf("User not found")
+		return
+	}
+
+	userFactory := userUsecase.MeUseCaseFactory(h.log)
+	resp, err := userFactory.Execute(&userUsecase.IMeUseCaseRequest{
+		ID:          uuid.MustParse(user["id"].(string)),
+		ChoosedRole: user["choosed_role"].(string),
+	})
+
+	if err != nil {
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
+		h.log.Errorf("Error when finding user by ID: %v", err)
+		return
+	}
+
 	factory := structureUsecase.FindAllPaginatedUseCaseFactory(h.log)
 	res, err := factory.Execute(&structureUsecase.IFindAllPaginatedUseCaseRequest{
-		Page:     page,
-		PageSize: pageSize,
-		Search:   search,
+		Page:           page,
+		PageSize:       pageSize,
+		Search:         search,
+		OrganizationID: resp.User.Employee.OrganizationID,
 	})
 	if err != nil {
 		h.log.Errorf("Error: %v", err)

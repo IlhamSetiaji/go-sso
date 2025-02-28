@@ -11,6 +11,7 @@ import (
 
 type IOrganizationStructureRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error)
+	FindAllPaginatedByOrganizationID(organizationID uuid.UUID, page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error)
 	FindAllOrgStructuresByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindById(id uuid.UUID) (*entity.OrganizationStructure, error)
 	FindByIdOnly(id uuid.UUID) (*entity.OrganizationStructure, error)
@@ -42,6 +43,27 @@ func (r *OrganizationStructureRepository) FindAllPaginated(page int, pageSize in
 	var total int64
 
 	query := r.DB.Preload("Organization.OrganizationType").Preload("JobLevel")
+
+	if search != "" {
+		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+
+	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&organizationStructures).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err := query.Model(&entity.OrganizationStructure{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return &organizationStructures, total, nil
+}
+
+func (r *OrganizationStructureRepository) FindAllPaginatedByOrganizationID(organizationID uuid.UUID, page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error) {
+	var organizationStructures []entity.OrganizationStructure
+	var total int64
+
+	query := r.DB.Preload("Organization.OrganizationType").Preload("JobLevel").Where("organization_id = ?", organizationID)
 
 	if search != "" {
 		query = query.Where("name ILIKE ?", "%"+search+"%")
