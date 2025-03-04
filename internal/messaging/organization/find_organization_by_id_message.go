@@ -15,6 +15,7 @@ type IFindOrganizationByIDMessageResponse struct {
 	OrganizationID       uuid.UUID `json:"organization_id"`
 	Name                 string    `json:"name"`
 	OrganizationCategory string    `json:"organization_category"`
+	OrganizationType     string    `json:"organization_type"`
 }
 
 type IFindOrganizationByIDMessage interface {
@@ -43,6 +44,7 @@ func (m *FindOrganizationByIDMessage) Execute(request IFindOrganizationByIDMessa
 		OrganizationID:       organization.ID,
 		Name:                 organization.Name,
 		OrganizationCategory: organization.OrganizationType.Category,
+		OrganizationType:     organization.OrganizationType.Name,
 	}, nil
 }
 
