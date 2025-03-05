@@ -489,6 +489,38 @@ func (h *AuthHandler) VerifyEmail(ctx *gin.Context) {
 		return
 	}
 
+	filteredRoles := []entity.Role{}
+	for _, role := range resp.User.Roles {
+		if role.Name == "Applicant" {
+			filteredRoles = append(filteredRoles, role)
+			break
+		}
+	}
+	resp.User.Roles = filteredRoles
+
+	if filteredRoles[0].Name == "Applicant" {
+		data, err := h.loginAsApplication(token, "recruitment", resp.User)
+		if err != nil {
+			session.Set("error", err.Error())
+			session.Save()
+			h.Log.Printf(err.Error())
+			ctx.Redirect(302, ctx.Request.Referer())
+			return
+		}
+
+		application := data["application"].(*entity.Application)
+
+		redirectURL := fmt.Sprintf("%s?token=%s", application.RedirectURI, data["token"])
+		h.Log.Printf("Redirecting to URL: %s", redirectURL)
+
+		if !strings.HasPrefix(redirectURL, "http") {
+			redirectURL = "http://" + redirectURL
+		}
+
+		ctx.Redirect(302, redirectURL)
+		return
+	}
+
 	ctx.Redirect(302, "/portal")
 }
 
