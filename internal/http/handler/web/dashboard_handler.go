@@ -57,6 +57,11 @@ func (h *DashboardHandler) Index(ctx *gin.Context) {
 }
 
 func (h *DashboardHandler) Portal(ctx *gin.Context) {
+	middleware.ExceptRoleMiddleware("Applicant")(ctx)
+	if ctx.IsAborted() {
+		ctx.Redirect(302, "/logout")
+		return
+	}
 	session := sessions.Default(ctx)
 	// token := ctx.Query("token")
 	token, err := utils.GetTokenFromCookie(ctx, "jwt_token")
