@@ -12,6 +12,7 @@ func ConvertToOrganizationForMessageResponse(organizations *[]entity.Organizatio
 			ID:                 organization.ID,
 			OrganizationTypeID: organization.OrganizationTypeID,
 			Name:               organization.Name,
+			Logo:               organization.Logo,
 		})
 	}
 	return &responseOrganizations
@@ -26,6 +27,7 @@ func ConvertToOrganizationResponse(organizations *[]entity.Organization) *[]resp
 			Name:               organization.Name,
 			Region:             organization.Region,
 			Address:            organization.Address,
+			Logo:               organization.Logo,
 			OrganizationType: response.OrganizationTypeResponse{
 				ID:   organization.OrganizationType.ID,
 				Name: organization.OrganizationType.Name,
@@ -34,4 +36,20 @@ func ConvertToOrganizationResponse(organizations *[]entity.Organization) *[]resp
 		})
 	}
 	return &responseOrganizations
+}
+
+func ConvertToSingleOrganizationResponse(organization *entity.Organization) *response.OrganizationResponse {
+	return &response.OrganizationResponse{
+		ID:                 organization.ID,
+		OrganizationTypeID: organization.OrganizationTypeID,
+		Name:               organization.Name,
+		Region:             organization.Region,
+		Address:            organization.Address,
+		Logo:               organization.Logo,
+		OrganizationType: response.OrganizationTypeResponse{
+			ID:   organization.OrganizationType.ID,
+			Name: organization.OrganizationType.Name,
+		},
+		OrganizationStructureResponses: *ConvertToOrganizationStructureMinimalResponse(&organization.OrganizationStructures),
+	}
 }

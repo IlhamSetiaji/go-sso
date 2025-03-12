@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -36,6 +37,7 @@ type IOrganizationHandler interface {
 	FindOrganizationLocationByOrganizationId(ctx *gin.Context)
 	FindOrganizationTypesPaginated(ctx *gin.Context)
 	FindOrganizationTypeById(ctx *gin.Context)
+	UploadLogoOrganization(ctx *gin.Context)
 }
 
 func NewOrganizationHandler(log *logrus.Logger, validate *validator.Validate) IOrganizationHandler {
@@ -393,4 +395,51 @@ func (h *OrganizationHandler) FindOrganizationTypeById(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "success", res.OrganizationType)
+}
+
+func (h *OrganizationHandler) UploadLogoOrganization(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("update-organization")(ctx)
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.log.Errorf("Permission denied")
+		return
+	}
+
+	var req usecase.IUploadLogoOrganizationUseCaseRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		h.log.Error("[OrganizationHandler.UploadLogoOrganization] " + err.Error())
+		utils.BadRequestResponse(ctx, err.Error(), err.Error())
+		return
+	}
+
+	if err := h.Validate.Struct(req); err != nil {
+		h.log.Error("[OrganizationHandler.UploadLogoOrganization] " + err.Error())
+		utils.BadRequestResponse(ctx, err.Error(), err.Error())
+		return
+	}
+
+	// handle logo upload
+	if req.Logo != nil {
+		timestamp := time.Now().UnixNano()
+		filePath := "storage/logo/" + strconv.FormatInt(timestamp, 10) + "_" + req.Logo.Filename
+		if err := ctx.SaveUploadedFile(req.Logo, filePath); err != nil {
+			h.log.Error("failed to save logo file: ", err)
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "failed to save logo file", err.Error())
+			return
+		}
+
+		req.Logo = nil
+		req.LogoPath = filePath
+	}
+
+	factory := usecase.UploadLogoOrganizationUseCaseFactory(h.log)
+	res, err := factory.Execute(&req)
+	if err != nil {
+		h.log.Errorf("Error: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+		return
+	}
+
+	res.Organization.Logo = h.Config.GetString("app.url") + res.Organization.Logo
+
+	utils.SuccessResponse(ctx, http.StatusOK, "success", res.Organization)
 }

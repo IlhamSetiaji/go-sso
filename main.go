@@ -58,6 +58,7 @@ func main() {
 	// setup gin engine
 	app := gin.Default()
 	app.Static("/assets", "./public")
+	app.Static("/storage", "./storage")
 	app.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("App-Name", viperConfig.GetString("app.name"))
 	})

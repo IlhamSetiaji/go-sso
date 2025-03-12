@@ -1,6 +1,10 @@
 package utils
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 type Meta struct {
 	Code    int    `json:"code"`
@@ -32,6 +36,17 @@ func ErrorResponse(c *gin.Context, code int, status string, message string) {
 			Message: message,
 		},
 		Data: nil,
+	})
+}
+
+func BadRequestResponse(c *gin.Context, message string, data interface{}) {
+	c.JSON(http.StatusBadRequest, Response{
+		Meta: Meta{
+			Code:    http.StatusBadRequest,
+			Status:  "bad request",
+			Message: message,
+		},
+		Data: data,
 	})
 }
 

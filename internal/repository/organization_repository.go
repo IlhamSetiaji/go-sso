@@ -12,8 +12,10 @@ import (
 type IOrganizationRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Organization, int64, error)
 	FindById(id uuid.UUID) (*entity.Organization, error)
+	FindByIdOnly(id uuid.UUID) (*entity.Organization, error)
 	FindAllOrganizations() (*[]entity.Organization, error)
 	FindByIDs(ids []uuid.UUID) (*[]entity.Organization, error)
+	UpdateOrganization(ent *entity.Organization) (*entity.Organization, error)
 }
 
 type OrganizationRepository struct {
@@ -53,6 +55,21 @@ func (r *OrganizationRepository) FindById(id uuid.UUID) (*entity.Organization, e
 	var organization entity.Organization
 	err := r.DB.Preload("OrganizationLocations").Preload("OrganizationStructures").Preload("OrganizationType").Where("id = ?", id).First(&organization).Error
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &organization, nil
+}
+
+func (r *OrganizationRepository) FindByIdOnly(id uuid.UUID) (*entity.Organization, error) {
+	var organization entity.Organization
+	err := r.DB.Preload("OrganizationType").Where("id = ?", id).First(&organization).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &organization, nil
@@ -74,6 +91,14 @@ func (r *OrganizationRepository) FindAllOrganizations() (*[]entity.Organization,
 		return nil, err
 	}
 	return &organizations, nil
+}
+
+func (r *OrganizationRepository) UpdateOrganization(ent *entity.Organization) (*entity.Organization, error) {
+	err := r.DB.Where("id = ?", ent.ID).Updates(&ent).Error
+	if err != nil {
+		return nil, err
+	}
+	return ent, nil
 }
 
 func OrganizationRepositoryFactory(log *logrus.Logger) IOrganizationRepository {

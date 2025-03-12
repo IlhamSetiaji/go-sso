@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5501:3000"
+    volumes:
+      - storage_data:/app/storage
     environment:
       - APP_ENV=production
       - APP_URL=https://julong-portal.avolut.com
@@ -41,4 +43,10 @@ services:
       - ZITADEL_KEY=5b3b7b7b7b7b7b
       - ZITADEL_CLIENT_ID=5b3b7b7b7b7b7b
       - ZITADEL_REDIRECT_URL=https://julong-portal.avolut.com/auth/zitadel/callback
-
+volumes:
+  storage_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: "/root/data/julong-sso/storage"
+      o: bind

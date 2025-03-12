@@ -36,6 +36,9 @@ COPY views /app/views
 # Copy the static directory
 COPY public /app/public
 
+# Create the /storage directory
+RUN mkdir -p /storage && chmod -R 777 /storage
+
 # Make the initialization script executable
 RUN chmod +x /app/init-config.sh
 

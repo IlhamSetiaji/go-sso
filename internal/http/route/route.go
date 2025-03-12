@@ -61,6 +61,7 @@ func (c *RouteConfig) SetupApiRoutes() {
 			// Organization routes
 			apiRoute.GET("/organizations", c.OrganizationHandler.FindAllPaginated)
 			apiRoute.GET("/organizations/:id", c.OrganizationHandler.FindById)
+			apiRoute.PUT("/organizations/:id/upload-logo", c.OrganizationHandler.UploadLogoOrganization)
 
 			// Organization structure routes
 			apiRoute.GET("/organization-structures", c.OrganizationHandler.FindOrganizationStructurePaginated)
