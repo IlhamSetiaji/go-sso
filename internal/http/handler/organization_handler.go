@@ -126,6 +126,7 @@ func (h *OrganizationHandler) FindById(ctx *gin.Context) {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
 		return
 	}
+	res.Organization.Logo = h.Config.GetString("app.url") + res.Organization.Logo
 
 	utils.SuccessResponse(ctx, http.StatusOK, "success", res.Organization)
 }
