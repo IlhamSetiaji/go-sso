@@ -168,6 +168,7 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 			"name":                  message.Name,
 			"organization_category": message.OrganizationCategory,
 			"organization_type":     message.OrganizationType,
+			"logo":                  viper.GetString("app.url") + message.Logo,
 		}
 	case "find_job_by_id":
 		jobID, ok := docMsg.MessageData["job_id"].(string)
