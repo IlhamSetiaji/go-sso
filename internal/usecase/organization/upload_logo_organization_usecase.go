@@ -53,8 +53,13 @@ func (uc *UploadLogoOrganizationUseCase) Execute(req *IUploadLogoOrganizationUse
 		return nil, nil
 	}
 
-	organization.Logo = req.LogoPath
-	_, err = uc.OrganizationRepository.UpdateOrganization(organization)
+	// organization.Logo = req.LogoPath
+	// _, err = uc.OrganizationRepository.UpdateOrganization(organization)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	_, err = uc.OrganizationRepository.UpdateLogoOrganization(parsedOrgID, req.LogoPath)
 	if err != nil {
 		return nil, err
 	}

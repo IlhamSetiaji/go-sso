@@ -16,6 +16,7 @@ type IOrganizationRepository interface {
 	FindAllOrganizations() (*[]entity.Organization, error)
 	FindByIDs(ids []uuid.UUID) (*[]entity.Organization, error)
 	UpdateOrganization(ent *entity.Organization) (*entity.Organization, error)
+	UpdateLogoOrganization(organizationID uuid.UUID, filePath string) (*entity.Organization, error)
 }
 
 type OrganizationRepository struct {
@@ -99,6 +100,15 @@ func (r *OrganizationRepository) UpdateOrganization(ent *entity.Organization) (*
 		return nil, err
 	}
 	return ent, nil
+}
+
+func (r *OrganizationRepository) UpdateLogoOrganization(organizationID uuid.UUID, filePath string) (*entity.Organization, error) {
+	var organization entity.Organization
+	err := r.DB.Model(&organization).Where("id = ?", organizationID).Update("logo", filePath).Error
+	if err != nil {
+		return nil, err
+	}
+	return &organization, nil
 }
 
 func OrganizationRepositoryFactory(log *logrus.Logger) IOrganizationRepository {
