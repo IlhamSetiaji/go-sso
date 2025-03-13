@@ -57,6 +57,7 @@ func main() {
 
 	// setup gin engine
 	app := gin.Default()
+	app.MaxMultipartMemory = 50 << 20 // 10 MB
 	app.Static("/assets", "./public")
 	app.Static("/storage", "./storage")
 	app.Use(func(c *gin.Context) {

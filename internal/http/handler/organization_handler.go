@@ -126,7 +126,9 @@ func (h *OrganizationHandler) FindById(ctx *gin.Context) {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
 		return
 	}
-	res.Organization.Logo = h.Config.GetString("app.url") + res.Organization.Logo
+	if res.Organization.Logo != "" {
+		res.Organization.Logo = h.Config.GetString("app.url") + res.Organization.Logo
+	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "success", res.Organization)
 }
@@ -405,6 +407,17 @@ func (h *OrganizationHandler) UploadLogoOrganization(ctx *gin.Context) {
 		return
 	}
 
+	// Set a limit for the maximum file size (e.g., 10 MB)
+	const MaxUploadSize = 50 << 20 // 10 MB
+	ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, MaxUploadSize)
+
+	// Parse the multipart form
+	if err := ctx.Request.ParseMultipartForm(MaxUploadSize); err != nil {
+		h.log.Error("[OrganizationHandler.UploadLogoOrganization] " + err.Error())
+		utils.BadRequestResponse(ctx, "file too large", err.Error())
+		return
+	}
+
 	var req usecase.IUploadLogoOrganizationUseCaseRequest
 	if err := ctx.ShouldBind(&req); err != nil {
 		h.log.Error("[OrganizationHandler.UploadLogoOrganization] " + err.Error())
@@ -440,7 +453,9 @@ func (h *OrganizationHandler) UploadLogoOrganization(ctx *gin.Context) {
 		return
 	}
 
-	res.Organization.Logo = h.Config.GetString("app.url") + res.Organization.Logo
+	if res.Organization.Logo != "" {
+		res.Organization.Logo = h.Config.GetString("app.url") + res.Organization.Logo
+	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "success", res.Organization)
 }
