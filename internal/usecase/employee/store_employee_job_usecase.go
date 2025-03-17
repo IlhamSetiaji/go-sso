@@ -89,11 +89,17 @@ func (u *StoreEmployeeJobUsecase) Execute(request *IStoreEmployeeJobUsecaseReque
 		return nil, errors.New("Organization Location not found")
 	}
 
+	empOrganizationID, err := uuid.Parse(request.EmpOrganizationID)
+	if err != nil {
+		u.Log.Error(err)
+		return nil, err
+	}
+
 	employeeJob := &entity.EmployeeJob{
 		Name:                    request.Name,
 		EmployeeID:              &employee.ID,
 		JobID:                   uuid.MustParse(request.JobID),
-		EmpOrganizationID:       uuid.MustParse(request.EmpOrganizationID),
+		EmpOrganizationID:       &empOrganizationID,
 		OrganizationLocationID:  uuid.MustParse(request.OrganizationLocationID),
 		OrganizationStructureID: uuid.MustParse(request.OrganizationStructureID),
 	}

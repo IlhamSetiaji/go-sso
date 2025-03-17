@@ -112,7 +112,7 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 					}
 					return &response.EmployeeJobResponse{
 						ID:                     user.Employee.EmployeeJob.ID,
-						EmpOrganizationID:      user.Employee.EmployeeJob.EmpOrganizationID,
+						EmpOrganizationID:      *user.Employee.EmployeeJob.EmpOrganizationID,
 						OrganizationLocationID: user.Employee.EmployeeJob.OrganizationLocationID,
 						EmployeeID:             user.Employee.ID,
 						JobID:                  user.Employee.EmployeeJob.JobID,

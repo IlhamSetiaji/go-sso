@@ -10,7 +10,7 @@ import (
 type EmployeeJob struct {
 	gorm.Model              `json:"-"`
 	ID                      uuid.UUID  `json:"id" gorm:"type:char(36);primaryKey"`
-	EmpOrganizationID       uuid.UUID  `json:"emp_organization_id" gorm:"type:char(36)"`
+	EmpOrganizationID       *uuid.UUID `json:"emp_organization_id" gorm:"type:char(36)"`
 	JobID                   uuid.UUID  `json:"job_id" gorm:"type:char(36)"`
 	EmployeeID              *uuid.UUID `json:"employee_id" gorm:"type:char(36); unique"`
 	OrganizationLocationID  uuid.UUID  `json:"organization_location_id" gorm:"type:char(36)"`

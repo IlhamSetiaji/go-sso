@@ -59,11 +59,17 @@ type AuthOneStepResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+type CategoryMidsuitResponse struct {
+	PropertyLabel string `json:"propertyLabel"`
+	ID            string `json:"id"`
+}
+
 type OrganizationTypeMidsuitResponse struct {
-	ID        int    `json:"id"`
-	Category  string `json:"category"`
-	Name      string `json:"name"`
-	ModelName string `json:"model-name"`
+	ID int `json:"id"`
+	// Category  string `json:"category"`
+	Category  CategoryMidsuitResponse `json:"category"`
+	Name      string                  `json:"name"`
+	ModelName string                  `json:"model-name"`
 }
 
 type OrganizationTypeMidsuitAPIResponse struct {
@@ -108,10 +114,16 @@ type JobLevelMidsuitAPIResponse struct {
 	Records     []JobLevelMidsuitResponse `json:"records"`
 }
 
+type AdOrgMidsuitResponse struct {
+	ID            int    `json:"id"`
+	PropertyLabel string `json:"propertyLabel"`
+}
+
 type OrganizationLocationMidsuitResponse struct {
-	ID             int    `json:"id"`
-	Name           string `json:"name"`
-	OrganizationID int    `json:"organization_id"`
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	// OrganizationID int    `json:"organization_id"`
+	AdOrgID AdOrgMidsuitResponse `json:"AD_Org_ID"`
 }
 
 type OrganizationLocationMidsuitAPIResponse struct {
@@ -124,11 +136,12 @@ type OrganizationLocationMidsuitAPIResponse struct {
 }
 
 type OrganizationStructureMidsuitResponse struct {
-	ID             int    `json:"id"`
-	JobLevelID     int    `json:"job_level_id"`
-	Name           string `json:"name"`
-	OrganizationID int    `json:"organization_id"`
-	ParentID       int    `json:"parent_id"`
+	ID         int    `json:"id"`
+	JobLevelID int    `json:"job_level_id"`
+	Name       string `json:"name"`
+	// OrganizationID int    `json:"organization_id"`
+	AdOrgID  AdOrgMidsuitResponse `json:"Ad_Org_ID"`
+	ParentID int                  `json:"Parent_ID"`
 }
 
 type OrganizationStructureMidsuitAPIResponse struct {
@@ -146,7 +159,7 @@ type JobMidsuitResponse struct {
 	OrganizationStructureID int    `json:"organization_structure_id"`
 	ParentID                int    `json:"parent_id"`
 	JobLevelID              int    `json:"job_level_id"`
-	Existing                int    `json:"existing"`
+	Existing                string `json:"existing"`
 	Promotion               int    `json:"promotion"`
 	OrganizationID          int    `json:"organization_id"`
 }
@@ -161,12 +174,13 @@ type JobMidsuitAPIResponse struct {
 }
 
 type EmployeeMidsuitResponse struct {
-	ID             int    `json:"id"`
-	Email          string `json:"email"`
-	EndDate        string `json:"end_date"`
-	MobilePhone    string `json:"mobile_phone"`
-	Name           string `json:"name"`
-	OrganizationID int    `json:"organization_id"`
+	ID          int    `json:"id"`
+	Email       string `json:"email"`
+	EndDate     string `json:"end_date"`
+	MobilePhone string `json:"mobile_phone"`
+	Name        string `json:"name"`
+	// OrganizationID int    `json:"organization_id"`
+	ADOrgID AdOrgMidsuitResponse `json:"AD_Org_ID"`
 }
 
 type EmployeeMidsuitAPIResponse struct {
@@ -201,7 +215,8 @@ type EmployeeJobMidsuitAPIResponse struct {
 func (s *SyncMidsuitScheduler) AuthOneStep() (*AuthOneStepResponse, error) {
 	payload := map[string]interface{}{
 		"userName": s.Viper.GetString("midsuit.username"),
-		"password": s.Viper.GetString("midsuit.username") + "321!",
+		// "password": s.Viper.GetString("midsuit.username") + "321!",
+		"password": "JgiMidsuit123!",
 		"parameters": map[string]interface{}{
 			"clientId":       s.Viper.GetString("midsuit.client_id"),
 			"roleId":         s.Viper.GetString("midsuit.role_id"),
@@ -301,7 +316,7 @@ func (s *SyncMidsuitScheduler) SyncOrganizationType(jwtToken string) error {
 		orgType := &entity.OrganizationType{
 			MidsuitID: strconv.Itoa(record.ID),
 			Name:      record.Name,
-			Category:  record.Category,
+			Category:  record.Category.ID,
 		}
 
 		// Check if the record already exists
@@ -547,9 +562,9 @@ func (s *SyncMidsuitScheduler) SyncOrganizationLocation(jwtToken string) error {
 		s.Log.Infof("Processing record: %+v", record)
 
 		var org entity.Organization
-		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationID)).First(&org).Error; err != nil {
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.AdOrgID.ID)).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				s.Log.Errorf("Organization with ID %d not found", record.OrganizationID)
+				s.Log.Errorf("Organization with ID %d not found", record.AdOrgID.ID)
 				continue
 			}
 			s.Log.Error(err)
@@ -641,9 +656,9 @@ func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error 
 		s.Log.Infof("Processing record: %+v", record)
 
 		var org entity.Organization
-		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationID)).First(&org).Error; err != nil {
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.AdOrgID.ID)).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				s.Log.Errorf("Organization with ID %d not found", record.OrganizationID)
+				s.Log.Errorf("Organization with ID %d not found", record.AdOrgID.ID)
 				continue
 			}
 			s.Log.Error(err)
@@ -809,10 +824,17 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 			Name:                    record.Name,
 			OrganizationStructureID: orgStructure.ID,
 			ParentID:                parentID,
-			Existing:                record.Existing,
-			Promotion:               record.Promotion,
-			JobLevelID:              jobLevel.ID,
-			OrganizationID:          org.ID,
+			Existing: func() int {
+				existing, err := strconv.Atoi(record.Existing)
+				if err != nil {
+					s.Log.Error(err)
+					return 0
+				}
+				return existing
+			}(),
+			Promotion:      record.Promotion,
+			JobLevelID:     jobLevel.ID,
+			OrganizationID: org.ID,
 		}
 
 		// Check if the record already exists
@@ -889,9 +911,9 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 		s.Log.Infof("Processing record: %+v", record)
 
 		var org entity.Organization
-		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationID)).First(&org).Error; err != nil {
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.ADOrgID.ID)).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				s.Log.Errorf("Organization with ID %d not found", record.OrganizationID)
+				s.Log.Errorf("Organization with ID %d not found", record.ADOrgID.ID)
 				continue
 			}
 			s.Log.Error(err)
@@ -1060,8 +1082,9 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 				}
 				s.Log.Error(err)
 				empOrganizationID = nil
+			} else {
+				empOrganizationID = &org.ID
 			}
-			empOrganizationID = &org.ID
 		}
 
 		var orgLocationID *uuid.UUID
@@ -1088,15 +1111,21 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 				}
 				s.Log.Error(err)
 				orgStructureID = nil
+			} else {
+				orgStructureID = &orgStructure.ID
 			}
-			orgStructureID = &orgStructure.ID
 		}
 
 		employeeJob := &entity.EmployeeJob{
-			MidsuitID:               strconv.Itoa(record.ID),
-			EmployeeID:              &employee.ID,
-			JobID:                   job.ID,
-			EmpOrganizationID:       *empOrganizationID,
+			MidsuitID:  strconv.Itoa(record.ID),
+			EmployeeID: &employee.ID,
+			JobID:      job.ID,
+			EmpOrganizationID: func() *uuid.UUID {
+				if empOrganizationID != nil {
+					return empOrganizationID
+				}
+				return nil
+			}(),
 			OrganizationLocationID:  *orgLocationID,
 			OrganizationStructureID: *orgStructureID,
 		}

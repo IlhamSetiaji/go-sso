@@ -41,7 +41,7 @@ func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.Employ
 			}
 			return &response.EmployeeJobResponse{
 				ID:                     employee.EmployeeJob.ID,
-				EmpOrganizationID:      employee.EmployeeJob.EmpOrganizationID,
+				EmpOrganizationID:      *employee.EmployeeJob.EmpOrganizationID,
 				OrganizationLocationID: employee.EmployeeJob.OrganizationLocationID,
 				EmployeeID:             employee.ID,
 				JobID:                  employee.EmployeeJob.JobID,
