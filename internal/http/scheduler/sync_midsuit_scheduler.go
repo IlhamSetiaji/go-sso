@@ -9,8 +9,10 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"sort"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -22,6 +24,7 @@ type ISyncMidsuitScheduler interface {
 	SyncOrganization(jwtToken string) error
 	SyncJobLevel(jwtToken string) error
 	SyncOrganizationLocation(jwtToken string) error
+	SyncOrganizationStructure(jwtToken string) error
 }
 
 type SyncMidsuitScheduler struct {
@@ -113,6 +116,23 @@ type OrganizationLocationMidsuitAPIResponse struct {
 	RowCount    int                                   `json:"row-count"`
 	ArrayCount  int                                   `json:"array-count"`
 	Records     []OrganizationLocationMidsuitResponse `json:"records"`
+}
+
+type OrganizationStructureMidsuitResponse struct {
+	ID             int    `json:"id"`
+	JobLevelID     int    `json:"job_level_id"`
+	Name           string `json:"name"`
+	OrganizationID int    `json:"organization_id"`
+	ParentID       int    `json:"parent_id"`
+}
+
+type OrganizationStructureMidsuitAPIResponse struct {
+	PageCount   int                                    `json:"page-count"`
+	RecordsSize int                                    `json:"records-size"`
+	SkipRecords int                                    `json:"skip-records"`
+	RowCount    int                                    `json:"row-count"`
+	ArrayCount  int                                    `json:"array-count"`
+	Records     []OrganizationStructureMidsuitResponse `json:"records"`
 }
 
 func (s *SyncMidsuitScheduler) AuthOneStep() (*AuthOneStepResponse, error) {
@@ -500,6 +520,126 @@ func (s *SyncMidsuitScheduler) SyncOrganizationLocation(jwtToken string) error {
 				return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingOrgLocation)
+		}
+	}
+
+	return nil
+}
+
+func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error {
+	url := s.Viper.GetString("midsuit.url") + s.Viper.GetString("midsuit.api_endpoint") + "/views/org-structure"
+	method := "GET"
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when creating request: " + err.Error())
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+jwtToken)
+
+	res, err := client.Do(req)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when fetching response: " + err.Error())
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(res.Body)
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when fetching response: " + string(bodyBytes))
+	}
+
+	bodyBytes, _ := io.ReadAll(res.Body)
+	var apiResponse OrganizationStructureMidsuitAPIResponse
+	if err := json.Unmarshal(bodyBytes, &apiResponse); err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when unmarshalling response: " + err.Error())
+	}
+
+	// Sort records: parents first, then children
+	sort.Slice(apiResponse.Records, func(i, j int) bool {
+		return apiResponse.Records[i].ParentID < apiResponse.Records[j].ParentID
+	})
+
+	// Process the records
+	for _, record := range apiResponse.Records {
+		// Process each record as needed
+		s.Log.Infof("Processing record: %+v", record)
+
+		var org entity.Organization
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationID)).First(&org).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				s.Log.Errorf("Organization with ID %d not found", record.OrganizationID)
+				continue
+			}
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying organization: " + err.Error())
+		}
+
+		var jobLevel entity.JobLevel
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.JobLevelID)).First(&jobLevel).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				s.Log.Errorf("Job level with ID %d not found", record.JobLevelID)
+				continue
+			}
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying job level: " + err.Error())
+		}
+
+		var parentID *uuid.UUID
+		if record.ParentID != 0 {
+			var parentOrgStructure entity.OrganizationStructure
+			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.ParentID)).First(&parentOrgStructure).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					s.Log.Errorf("Parent organization structure with ID %d not found", record.ParentID)
+					continue
+				}
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying parent organization structure: " + err.Error())
+			}
+			parentID = &parentOrgStructure.ID
+		}
+
+		orgStructure := &entity.OrganizationStructure{
+			MidsuitID:      strconv.Itoa(record.ID),
+			Name:           record.Name, // Assuming Name is a string, no need to convert to int
+			OrganizationID: org.ID,
+			JobLevelID:     jobLevel.ID,
+			ParentID:       parentID,
+		}
+
+		// Check if the record already exists
+		var existingOrgStructure entity.OrganizationStructure
+		if err := s.DB.Where("midsuit_id = ?", orgStructure.MidsuitID).First(&existingOrgStructure).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Create the record if it doesn't exist
+				if err := s.DB.Create(orgStructure).Error; err != nil {
+					s.Log.Error(err)
+					return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when creating record: " + err.Error())
+				}
+				s.Log.Infof("Created record: %+v", orgStructure)
+			} else {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying record: " + err.Error())
+			}
+		} else {
+			// Update the record if it exists
+			if err := s.DB.Model(&existingOrgStructure).Updates(orgStructure).Error; err != nil {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when updating record: " + err.Error())
+			}
+			s.Log.Infof("Updated record: %+v", existingOrgStructure)
 		}
 	}
 

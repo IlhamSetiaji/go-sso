@@ -38,5 +38,10 @@ func main() {
 		log.Fatalf("Failed to sync organization location: %v", err)
 	}
 
+	err = syncScheduler.SyncOrganizationStructure(authResp.Token)
+	if err != nil {
+		log.Fatalf("Failed to sync organization structure: %v", err)
+	}
+
 	log.Printf("Successfully synced data")
 }
