@@ -28,5 +28,10 @@ func main() {
 		log.Fatalf("Failed to sync organization: %v", err)
 	}
 
-	log.Printf("Successfully synced organization type")
+	err = syncScheduler.SyncJobLevel(authResp.Token)
+	if err != nil {
+		log.Fatalf("Failed to sync job level: %v", err)
+	}
+
+	log.Printf("Successfully synced data")
 }

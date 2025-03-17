@@ -20,6 +20,7 @@ type ISyncMidsuitScheduler interface {
 	AuthOneStep() (*AuthOneStepResponse, error)
 	SyncOrganizationType(jwtToken string) error
 	SyncOrganization(jwtToken string) error
+	SyncJobLevel(jwtToken string) error
 }
 
 type SyncMidsuitScheduler struct {
@@ -80,6 +81,22 @@ type OrganizationMidsuitAPIResponse struct {
 	RowCount    int                           `json:"row-count"`
 	ArrayCount  int                           `json:"array-count"`
 	Records     []OrganizationMidsuitResponse `json:"records"`
+}
+
+type JobLevelMidsuitResponse struct {
+	ID    int    `json:"id"`
+	UID   string `json:"uid"`
+	Level int    `json:"level"`
+	Name  string `json:"name"`
+}
+
+type JobLevelMidsuitAPIResponse struct {
+	PageCount   int                       `json:"page-count"`
+	RecordsSize int                       `json:"records-size"`
+	SkipRecords int                       `json:"skip-records"`
+	RowCount    int                       `json:"row-count"`
+	ArrayCount  int                       `json:"array-count"`
+	Records     []JobLevelMidsuitResponse `json:"records"`
 }
 
 func (s *SyncMidsuitScheduler) AuthOneStep() (*AuthOneStepResponse, error) {
@@ -300,6 +317,84 @@ func (s *SyncMidsuitScheduler) SyncOrganization(jwtToken string) error {
 				return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingOrg)
+		}
+	}
+
+	return nil
+}
+
+func (s *SyncMidsuitScheduler) SyncJobLevel(jwtToken string) error {
+	url := s.Viper.GetString("midsuit.url") + s.Viper.GetString("midsuit.api_endpoint") + "/views/job-level"
+	method := "GET"
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when creating request: " + err.Error())
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+jwtToken)
+
+	res, err := client.Do(req)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when fetching response: " + err.Error())
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(res.Body)
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when fetching response: " + string(bodyBytes))
+	}
+
+	bodyBytes, _ := io.ReadAll(res.Body)
+	var apiResponse JobLevelMidsuitAPIResponse
+	if err := json.Unmarshal(bodyBytes, &apiResponse); err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when unmarshalling response: " + err.Error())
+	}
+
+	// Process the records
+	for _, record := range apiResponse.Records {
+		// Process each record as needed
+		s.Log.Infof("Processing record: %+v", record)
+		jobLevel := &entity.JobLevel{
+			MidsuitID: strconv.Itoa(record.ID),
+			Level:     strconv.Itoa(record.Level),
+			Name:      record.Name,
+		}
+
+		// Check if the record already exists
+		var existingJobLevel entity.JobLevel
+		if err := s.DB.Where("midsuit_id = ?", jobLevel.MidsuitID).First(&existingJobLevel).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Create the record if it doesn't exist
+				if err := s.DB.Create(jobLevel).Error; err != nil {
+					s.Log.Error(err)
+					return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when creating record: " + err.Error())
+				}
+				s.Log.Infof("Created record: %+v", jobLevel)
+			} else {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when querying record: " + err.Error())
+			}
+		} else {
+			// Update the record if it exists
+			if err := s.DB.Model(&existingJobLevel).Updates(jobLevel).Error; err != nil {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when updating record: " + err.Error())
+			}
+			s.Log.Infof("Updated record: %+v", existingJobLevel)
 		}
 	}
 
