@@ -54,5 +54,11 @@ func main() {
 	}
 	log.Infof("Successfully synced job")
 
+	err = syncScheduler.SyncEmployee(authResp.Token)
+	if err != nil {
+		log.Fatalf("Failed to sync employee: %v", err)
+	}
+	log.Infof("Successfully synced employee")
+
 	log.Printf("Successfully synced data")
 }

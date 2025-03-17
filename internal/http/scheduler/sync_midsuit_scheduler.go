@@ -11,10 +11,12 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -26,6 +28,7 @@ type ISyncMidsuitScheduler interface {
 	SyncOrganizationLocation(jwtToken string) error
 	SyncOrganizationStructure(jwtToken string) error
 	SyncJob(jwtToken string) error
+	SyncEmployee(jwtToken string) error
 }
 
 type SyncMidsuitScheduler struct {
@@ -154,6 +157,24 @@ type JobMidsuitAPIResponse struct {
 	RowCount    int                  `json:"row-count"`
 	ArrayCount  int                  `json:"array-count"`
 	Records     []JobMidsuitResponse `json:"records"`
+}
+
+type EmployeeMidsuitResponse struct {
+	ID             int    `json:"id"`
+	Email          string `json:"email"`
+	EndDate        string `json:"end_date"`
+	MobilePhone    string `json:"mobile_phone"`
+	Name           string `json:"name"`
+	OrganizationID int    `json:"organization_id"`
+}
+
+type EmployeeMidsuitAPIResponse struct {
+	PageCount   int                       `json:"page-count"`
+	RecordsSize int                       `json:"records-size"`
+	SkipRecords int                       `json:"skip-records"`
+	RowCount    int                       `json:"row-count"`
+	ArrayCount  int                       `json:"array-count"`
+	Records     []EmployeeMidsuitResponse `json:"records"`
 }
 
 func (s *SyncMidsuitScheduler) AuthOneStep() (*AuthOneStepResponse, error) {
@@ -794,6 +815,148 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 				return errors.New("[SyncMidsuitScheduler.SyncJob] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingJob)
+		}
+	}
+
+	return nil
+}
+
+func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
+	url := s.Viper.GetString("midsuit.url") + s.Viper.GetString("midsuit.api_endpoint") + "/views/employee"
+	method := "GET"
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when creating request: " + err.Error())
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+jwtToken)
+
+	res, err := client.Do(req)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when fetching response: " + err.Error())
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(res.Body)
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when fetching response: " + string(bodyBytes))
+	}
+
+	bodyBytes, _ := io.ReadAll(res.Body)
+	var apiResponse EmployeeMidsuitAPIResponse
+	if err := json.Unmarshal(bodyBytes, &apiResponse); err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when unmarshalling response: " + err.Error())
+	}
+
+	// Process the records
+	for _, record := range apiResponse.Records {
+		// Process each record as needed
+		s.Log.Infof("Processing record: %+v", record)
+
+		var org entity.Organization
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationID)).First(&org).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				s.Log.Errorf("Organization with ID %d not found", record.OrganizationID)
+				continue
+			}
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when querying organization: " + err.Error())
+		}
+
+		var endDate time.Time
+
+		if record.EndDate != "" {
+			parsedEndDate, err := time.Parse(time.RFC3339, record.EndDate)
+			if err != nil {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when parsing end date: " + err.Error())
+			}
+			endDate = parsedEndDate
+		}
+
+		employee := &entity.Employee{
+			MidsuitID:      strconv.Itoa(record.ID),
+			Email:          record.Email,
+			EndDate:        endDate,
+			MobilePhone:    record.MobilePhone,
+			Name:           record.Name,
+			OrganizationID: org.ID,
+		}
+
+		// Check if the record already exists
+		var existingEmployee entity.Employee
+		if err := s.DB.Where("midsuit_id = ?", employee.MidsuitID).First(&existingEmployee).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Create the record if it doesn't exist
+				if err := s.DB.Create(employee).Error; err != nil {
+					s.Log.Error(err)
+					return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when creating record: " + err.Error())
+				}
+				s.Log.Infof("Created record: %+v", employee)
+			} else {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when querying record: " + err.Error())
+			}
+		} else {
+			// Update the record if it exists
+			if err := s.DB.Model(&existingEmployee).Updates(employee).Error; err != nil {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when updating record: " + err.Error())
+			}
+			s.Log.Infof("Updated record: %+v", existingEmployee)
+		}
+
+		// create or update user
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("changeme"), bcrypt.DefaultCost)
+		if err != nil {
+			s.Log.Error("[UserUseCase.Register] " + err.Error())
+			return err
+		}
+		user := &entity.User{
+			Email:    employee.Email,
+			Username: employee.Email,
+			Password: string(hashedPassword),
+			Name:     employee.Name,
+			EmployeeID: func() *uuid.UUID {
+				if existingEmployee.ID != uuid.Nil {
+					return &existingEmployee.ID
+				}
+				return nil
+			}(),
+		}
+
+		var existingUser entity.User
+		if err := s.DB.Where("email = ?", user.Email).First(&existingUser).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if err := s.DB.Create(user).Error; err != nil {
+					s.Log.Error(err)
+					return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when creating user: " + err.Error())
+				}
+				s.Log.Infof("Created user: %+v", user)
+			} else {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when querying user: " + err.Error())
+			}
+		} else {
+			if err := s.DB.Model(&existingUser).Updates(user).Error; err != nil {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when updating user: " + err.Error())
+			}
+			s.Log.Infof("Updated user: %+v", existingUser)
 		}
 	}
 
