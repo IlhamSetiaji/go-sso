@@ -29,6 +29,7 @@ type ISyncMidsuitScheduler interface {
 	SyncOrganizationStructure(jwtToken string) error
 	SyncJob(jwtToken string) error
 	SyncEmployee(jwtToken string) error
+	SyncEmployeeJob(jwtToken string) error
 }
 
 type SyncMidsuitScheduler struct {
@@ -175,6 +176,26 @@ type EmployeeMidsuitAPIResponse struct {
 	RowCount    int                       `json:"row-count"`
 	ArrayCount  int                       `json:"array-count"`
 	Records     []EmployeeMidsuitResponse `json:"records"`
+}
+
+type EmployeeJobMidsuitResponse struct {
+	ID                      int `json:"id"`
+	EmployeeID              int `json:"employee_id"`
+	EmpOrganizationID       int `json:"emp_organization_id"`
+	JobID                   int `json:"job_id"`
+	JobLevelID              int `json:"job_level_id"`
+	OrganizationID          int `json:"organization_id"`
+	OrganizationStructureID int `json:"organization_structure_id"`
+	OrganizationLocationID  int `json:"organization_location_id"`
+}
+
+type EmployeeJobMidsuitAPIResponse struct {
+	PageCount   int                          `json:"page-count"`
+	RecordsSize int                          `json:"records-size"`
+	SkipRecords int                          `json:"skip-records"`
+	RowCount    int                          `json:"row-count"`
+	ArrayCount  int                          `json:"array-count"`
+	Records     []EmployeeJobMidsuitResponse `json:"records"`
 }
 
 func (s *SyncMidsuitScheduler) AuthOneStep() (*AuthOneStepResponse, error) {
@@ -957,6 +978,150 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when updating user: " + err.Error())
 			}
 			s.Log.Infof("Updated user: %+v", existingUser)
+		}
+	}
+
+	return nil
+}
+
+func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
+	url := s.Viper.GetString("midsuit.url") + s.Viper.GetString("midsuit.api_endpoint") + "/views/employee-job"
+	method := "GET"
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when creating request: " + err.Error())
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+jwtToken)
+
+	res, err := client.Do(req)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when fetching response: " + err.Error())
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(res.Body)
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when fetching response: " + string(bodyBytes))
+	}
+
+	bodyBytes, _ := io.ReadAll(res.Body)
+	var apiResponse EmployeeJobMidsuitAPIResponse
+	if err := json.Unmarshal(bodyBytes, &apiResponse); err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when unmarshalling response: " + err.Error())
+	}
+
+	// Process the records
+	for _, record := range apiResponse.Records {
+		// Process each record as needed
+		s.Log.Infof("Processing record: %+v", record)
+
+		var employee entity.Employee
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.EmployeeID)).First(&employee).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				s.Log.Errorf("Employee with ID %d not found", record.EmployeeID)
+				continue
+			}
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when querying employee: " + err.Error())
+		}
+
+		var job entity.Job
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.JobID)).First(&job).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				s.Log.Errorf("Job with ID %d not found", record.JobID)
+				continue
+			}
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when querying job: " + err.Error())
+		}
+
+		var empOrganizationID *uuid.UUID
+		if record.EmpOrganizationID != 0 {
+			var org entity.Organization
+			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.EmpOrganizationID)).First(&org).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					s.Log.Errorf("Organization with ID %d not found", record.EmpOrganizationID)
+					empOrganizationID = nil
+				}
+				s.Log.Error(err)
+				empOrganizationID = nil
+			}
+			empOrganizationID = &org.ID
+		}
+
+		var orgLocationID *uuid.UUID
+		if record.OrganizationLocationID != 0 {
+			var orgLocation entity.OrganizationLocation
+			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationLocationID)).First(&orgLocation).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					s.Log.Errorf("Organization location with ID %d not found", record.OrganizationLocationID)
+					orgLocationID = nil
+				}
+				s.Log.Error(err)
+				orgLocationID = nil
+			}
+			orgLocationID = &orgLocation.ID
+		}
+
+		var orgStructureID *uuid.UUID
+		if record.OrganizationStructureID != 0 {
+			var orgStructure entity.OrganizationStructure
+			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationStructureID)).First(&orgStructure).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					s.Log.Errorf("Organization structure with ID %d not found", record.OrganizationStructureID)
+					orgStructureID = nil
+				}
+				s.Log.Error(err)
+				orgStructureID = nil
+			}
+			orgStructureID = &orgStructure.ID
+		}
+
+		employeeJob := &entity.EmployeeJob{
+			MidsuitID:               strconv.Itoa(record.ID),
+			EmployeeID:              &employee.ID,
+			JobID:                   job.ID,
+			EmpOrganizationID:       *empOrganizationID,
+			OrganizationLocationID:  *orgLocationID,
+			OrganizationStructureID: *orgStructureID,
+		}
+
+		// Check if the record already exists
+		var existingEmployeeJob entity.EmployeeJob
+		if err := s.DB.Where("midsuit_id = ?", employeeJob.MidsuitID).First(&existingEmployeeJob).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Create the record if it doesn't exist
+				if err := s.DB.Create(employeeJob).Error; err != nil {
+					s.Log.Error(err)
+					return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when creating record: " + err.Error())
+				}
+				s.Log.Infof("Created record: %+v", employeeJob)
+			} else {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when querying record: " + err.Error())
+			}
+		} else {
+			// Update the record if it exists
+			if err := s.DB.Model(&existingEmployeeJob).Updates(employeeJob).Error; err != nil {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when updating record: " + err.Error())
+			}
+			s.Log.Infof("Updated record: %+v", existingEmployeeJob)
 		}
 	}
 

@@ -16,6 +16,7 @@ type EmployeeJob struct {
 	OrganizationLocationID  uuid.UUID  `json:"organization_location_id" gorm:"type:char(36)"`
 	OrganizationStructureID uuid.UUID  `json:"organization_structure_id" gorm:"type:char(36)"`
 	Name                    string     `json:"name" gorm:"type:varchar(255)"`
+	MidsuitID               string     `json:"midsuit_id" gorm:"type:varchar(255);default:null"`
 
 	EmpOrganization       *Organization          `json:"emp_organization" gorm:"foreignKey:EmpOrganizationID;references:ID;constraint:OnDelete:CASCADE"`
 	Job                   *Job                   `json:"job" gorm:"foreignKey:JobID;references:ID;constraint:OnDelete:CASCADE"`

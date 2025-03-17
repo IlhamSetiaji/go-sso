@@ -15,6 +15,7 @@ type EmployeeJobResponse struct {
 	EmployeeID             uuid.UUID `json:"employee_id"`
 	OrganizationLocationID uuid.UUID `json:"organization_location_id"`
 	Name                   string    `json:"name"`
+	MidsuitID              string    `json:"midsuit_id"`
 	CreatedAt              time.Time `json:"created_at"`
 	UpdatedAt              time.Time `json:"updated_at"`
 
