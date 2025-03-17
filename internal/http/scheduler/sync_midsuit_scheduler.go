@@ -21,6 +21,7 @@ type ISyncMidsuitScheduler interface {
 	SyncOrganizationType(jwtToken string) error
 	SyncOrganization(jwtToken string) error
 	SyncJobLevel(jwtToken string) error
+	SyncOrganizationLocation(jwtToken string) error
 }
 
 type SyncMidsuitScheduler struct {
@@ -97,6 +98,21 @@ type JobLevelMidsuitAPIResponse struct {
 	RowCount    int                       `json:"row-count"`
 	ArrayCount  int                       `json:"array-count"`
 	Records     []JobLevelMidsuitResponse `json:"records"`
+}
+
+type OrganizationLocationMidsuitResponse struct {
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	OrganizationID int    `json:"organization_id"`
+}
+
+type OrganizationLocationMidsuitAPIResponse struct {
+	PageCount   int                                   `json:"page-count"`
+	RecordsSize int                                   `json:"records-size"`
+	SkipRecords int                                   `json:"skip-records"`
+	RowCount    int                                   `json:"row-count"`
+	ArrayCount  int                                   `json:"array-count"`
+	Records     []OrganizationLocationMidsuitResponse `json:"records"`
 }
 
 func (s *SyncMidsuitScheduler) AuthOneStep() (*AuthOneStepResponse, error) {
@@ -395,6 +411,95 @@ func (s *SyncMidsuitScheduler) SyncJobLevel(jwtToken string) error {
 				return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingJobLevel)
+		}
+	}
+
+	return nil
+}
+
+func (s *SyncMidsuitScheduler) SyncOrganizationLocation(jwtToken string) error {
+	url := s.Viper.GetString("midsuit.url") + s.Viper.GetString("midsuit.api_endpoint") + "/views/org-location"
+	method := "GET"
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when creating request: " + err.Error())
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+jwtToken)
+
+	res, err := client.Do(req)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when fetching response: " + err.Error())
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(res.Body)
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when fetching response: " + string(bodyBytes))
+	}
+
+	bodyBytes, _ := io.ReadAll(res.Body)
+	var apiResponse OrganizationLocationMidsuitAPIResponse
+	if err := json.Unmarshal(bodyBytes, &apiResponse); err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when unmarshalling response: " + err.Error())
+	}
+
+	// Process the records
+	for _, record := range apiResponse.Records {
+		// Process each record as needed
+		s.Log.Infof("Processing record: %+v", record)
+
+		var org entity.Organization
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationID)).First(&org).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				s.Log.Errorf("Organization with ID %d not found", record.OrganizationID)
+				continue
+			}
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when querying organization: " + err.Error())
+		}
+
+		orgLocation := &entity.OrganizationLocation{
+			MidsuitID:      strconv.Itoa(record.ID),
+			Name:           record.Name,
+			OrganizationID: org.ID,
+		}
+
+		// Check if the record already exists
+		var existingOrgLocation entity.OrganizationLocation
+		if err := s.DB.Where("midsuit_id = ?", orgLocation.MidsuitID).First(&existingOrgLocation).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Create the record if it doesn't exist
+				if err := s.DB.Create(orgLocation).Error; err != nil {
+					s.Log.Error(err)
+					return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when creating record: " + err.Error())
+				}
+				s.Log.Infof("Created record: %+v", orgLocation)
+			} else {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when querying record: " + err.Error())
+			}
+		} else {
+			// Update the record if it exists
+			if err := s.DB.Model(&existingOrgLocation).Updates(orgLocation).Error; err != nil {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when updating record: " + err.Error())
+			}
+			s.Log.Infof("Updated record: %+v", existingOrgLocation)
 		}
 	}
 
