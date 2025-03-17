@@ -14,7 +14,7 @@ func main() {
 	db := config.NewDatabase()
 
 	// Migrate the schema
-	err := db.AutoMigrate(&entity.Application{}, &entity.Role{}, &entity.Permission{}, &entity.RolePermission{}, &entity.AuthToken{}, &entity.Organization{},
+	err := db.AutoMigrate(&entity.Application{}, &entity.Role{}, &entity.Permission{}, &entity.RolePermission{}, &entity.AuthToken{}, &entity.OrganizationType{}, &entity.Organization{},
 		&entity.OrganizationLocation{}, &entity.JobLevel{}, &entity.OrganizationStructure{}, &entity.Job{}, &entity.Employee{}, &entity.EmployeeJob{}, &entity.User{}, &entity.UserRole{}, &entity.UserToken{})
 
 	if err != nil {
@@ -175,26 +175,36 @@ func main() {
 			Name:                    "Kage",
 			OrganizationStructureID: createdStructures["Kage Department"].ID,
 			Existing:                30,
+			JobLevelID:              jobLevels[0].ID,
+			OrganizationID:          organizations[0].ID,
 		},
 		{
 			Name:                    "Jounin",
 			OrganizationStructureID: createdStructures["Jounin Department"].ID,
 			Existing:                30,
+			JobLevelID:              jobLevels[1].ID,
+			OrganizationID:          organizations[0].ID,
 		},
 		{
 			Name:                    "Chunin",
 			OrganizationStructureID: createdStructures["Chunin Department"].ID,
 			Existing:                30,
+			JobLevelID:              jobLevels[2].ID,
+			OrganizationID:          organizations[0].ID,
 		},
 		{
 			Name:                    "Genin",
 			OrganizationStructureID: createdStructures["Genin Department"].ID,
 			Existing:                30,
+			JobLevelID:              jobLevels[3].ID,
+			OrganizationID:          organizations[0].ID,
 		},
 		{
 			Name:                    "Academy",
 			OrganizationStructureID: createdStructures["Academy Department"].ID,
 			Existing:                30,
+			JobLevelID:              jobLevels[4].ID,
+			OrganizationID:          organizations[0].ID,
 		},
 	}
 
@@ -597,11 +607,12 @@ func main() {
 	}
 
 	employeeJob := &entity.EmployeeJob{
-		Name:                   "Employee Admin Job",
-		EmpOrganizationID:      organizations[0].ID,
-		OrganizationLocationID: organizations[0].OrganizationLocations[0].ID,
-		EmployeeID:             &user.Employee.ID,
-		JobID:                  createdJobs["Kage"].ID,
+		Name:                    "Employee Admin Job",
+		EmpOrganizationID:       organizations[0].ID,
+		OrganizationLocationID:  organizations[0].OrganizationLocations[0].ID,
+		EmployeeID:              &user.Employee.ID,
+		JobID:                   createdJobs["Kage"].ID,
+		OrganizationStructureID: createdStructures["Kage Department"].ID,
 	}
 
 	err = db.Create(&employeeJob).Error
@@ -654,11 +665,12 @@ func main() {
 	}
 
 	employeeGoogleJob := &entity.EmployeeJob{
-		Name:                   "Ilham Setiaji Job",
-		EmpOrganizationID:      organizations[0].ID,
-		OrganizationLocationID: organizations[0].OrganizationLocations[0].ID,
-		EmployeeID:             &googleAccount.Employee.ID,
-		JobID:                  createdJobs["Kage"].ID,
+		Name:                    "Ilham Setiaji Job",
+		EmpOrganizationID:       organizations[0].ID,
+		OrganizationLocationID:  organizations[0].OrganizationLocations[0].ID,
+		EmployeeID:              &googleAccount.Employee.ID,
+		JobID:                   createdJobs["Kage"].ID,
+		OrganizationStructureID: createdStructures["Kage Department"].ID,
 	}
 
 	err = db.Create(&employeeGoogleJob).Error
