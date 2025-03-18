@@ -3,6 +3,7 @@ package scheduler
 import (
 	"app/go-sso/internal/config"
 	"app/go-sso/internal/entity"
+	messaging "app/go-sso/internal/messaging/user"
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
@@ -11,6 +12,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,6 +32,7 @@ type ISyncMidsuitScheduler interface {
 	SyncJob(jwtToken string) error
 	SyncEmployee(jwtToken string) error
 	SyncEmployeeJob(jwtToken string) error
+	SyncUserProfile(jwtToken string) error
 }
 
 type SyncMidsuitScheduler struct {
@@ -115,6 +118,11 @@ type JobLevelMidsuitAPIResponse struct {
 }
 
 type AdOrgMidsuitResponse struct {
+	ID            int    `json:"id"`
+	PropertyLabel string `json:"propertyLabel"`
+}
+
+type HcEmployeeMidSuitResponse struct {
 	ID            int    `json:"id"`
 	PropertyLabel string `json:"propertyLabel"`
 }
@@ -211,6 +219,27 @@ type EmployeeJobMidsuitAPIResponse struct {
 	RowCount    int                          `json:"row-count"`
 	ArrayCount  int                          `json:"array-count"`
 	Records     []EmployeeJobMidsuitResponse `json:"records"`
+}
+
+type UserProfileMidsuitResponse struct {
+	ID            int                       `json:"id"`
+	ADOrgID       AdOrgMidsuitResponse      `json:"AD_Org_ID"`
+	HCEmployeeID  HcEmployeeMidSuitResponse `json:"HC_Employee_ID"`
+	Age           int                       `json:"age"`
+	Name          string                    `json:"name"`
+	BirthDate     string                    `json:"birth_date"`
+	BirthPlace    string                    `json:"birth_place"`
+	MaritalStatus string                    `json:"marital_status"`
+	PhoneNumber   string                    `json:"phone_number"`
+}
+
+type UserProfileMidsuitAPIResponse struct {
+	PageCount   int                          `json:"page-count"`
+	RecordsSize int                          `json:"records-size"`
+	SkipRecords int                          `json:"skip-records"`
+	RowCount    int                          `json:"row-count"`
+	ArrayCount  int                          `json:"array-count"`
+	Records     []UserProfileMidsuitResponse `json:"records"`
 }
 
 func (s *SyncMidsuitScheduler) AuthOneStep() (*AuthOneStepResponse, error) {
@@ -1301,6 +1330,97 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 		if err := s.DB.Delete(&existingEmployeeJob).Error; err != nil {
 			s.Log.Error(err)
 			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when deleting employee job: " + err.Error())
+		}
+	}
+
+	return nil
+}
+
+func (s *SyncMidsuitScheduler) SyncUserProfile(jwtToken string) error {
+	url := s.Viper.GetString("midsuit.url") + s.Viper.GetString("midsuit.api_endpoint") + "/views/user-profile"
+	method := "GET"
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when creating request: " + err.Error())
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+jwtToken)
+
+	res, err := client.Do(req)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when fetching response: " + err.Error())
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(res.Body)
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when fetching response: " + string(bodyBytes))
+	}
+
+	bodyBytes, _ := io.ReadAll(res.Body)
+	var apiResponse UserProfileMidsuitAPIResponse
+	if err := json.Unmarshal(bodyBytes, &apiResponse); err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when unmarshalling response: " + err.Error())
+	}
+
+	// Process the records
+	for _, record := range apiResponse.Records {
+		// Process each record as needed
+		s.Log.Infof("Processing record: %+v", record)
+
+		var employee entity.Employee
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.HCEmployeeID.ID)).First(&employee).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				s.Log.Errorf("Employee with ID %d not found", record.HCEmployeeID.ID)
+				continue
+			}
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when querying employee: " + err.Error())
+		}
+
+		var user entity.User
+		if err := s.DB.Where("employee_id = ?", employee.ID).First(&user).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				s.Log.Errorf("User with employee_id %s not found", employee.ID)
+				continue
+			}
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when querying user: " + err.Error())
+		}
+
+		parsedBirthDate, err := time.Parse(time.RFC3339, record.BirthDate)
+		if err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when parsing birth date: " + err.Error())
+		}
+
+		userProfileMessageFactory := messaging.SendSyncUserProfileMessageFactory(s.Log)
+		_, err = userProfileMessageFactory.Execute(&messaging.ISendSyncUserProfileMessageRequest{
+			UserID:        user.ID.String(),
+			Name:          record.Name,
+			Age:           record.Age,
+			BirthDate:     parsedBirthDate.String(),
+			BirthPlace:    record.BirthPlace,
+			MaritalStatus: strings.ToLower(record.MaritalStatus),
+			PhoneNumber:   record.PhoneNumber,
+		})
+		if err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when sending message: " + err.Error())
 		}
 	}
 

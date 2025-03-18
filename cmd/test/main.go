@@ -3,11 +3,15 @@ package main
 import (
 	"app/go-sso/internal/config"
 	"app/go-sso/internal/http/scheduler"
+	"app/go-sso/internal/rabbitmq"
 )
 
 func main() {
 	viperConfig := config.NewViper()
 	log := config.NewLogrus(viperConfig)
+
+	go rabbitmq.InitProducer(viperConfig, log)
+	go rabbitmq.InitConsumer(viperConfig, log)
 
 	// scheduler factory
 	syncScheduler := scheduler.SyncMidsuitSchedulerFactory(viperConfig, log)
@@ -65,6 +69,12 @@ func main() {
 		log.Fatalf("Failed to sync employee job: %v", err)
 	}
 	log.Infof("Successfully synced employee job")
+
+	err = syncScheduler.SyncUserProfile(authResp.Token)
+	if err != nil {
+		log.Fatalf("Failed to sync user profile: %v", err)
+	}
+	log.Infof("Successfully synced user profile")
 
 	log.Printf("Successfully synced data")
 }
