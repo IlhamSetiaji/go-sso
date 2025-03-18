@@ -7,6 +7,7 @@ import (
 	"app/go-sso/internal/http/handler/web"
 	"app/go-sso/internal/http/middleware"
 	"app/go-sso/internal/http/route"
+	"app/go-sso/internal/http/scheduler"
 	"app/go-sso/internal/rabbitmq"
 	"encoding/gob"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 	csrf "github.com/utrack/gin-csrf"
 )
 
@@ -132,6 +134,85 @@ func main() {
 		EmailVerifiedMiddleware: emailVerifiedMiddleware,
 	}
 	routeConfig.SetupRoutes()
+
+	// setup cron job
+	if viperConfig.GetString("midsuit.sync") == "ACTIVE" {
+		jakartaTime, _ := time.LoadLocation("Asia/Jakarta")
+		sch := cron.New(cron.WithLocation(jakartaTime))
+
+		syncScheduler := scheduler.SyncMidsuitSchedulerFactory(viperConfig, log)
+		_, err = sch.AddFunc("1 0 * * *", func() {
+			authResp, err := syncScheduler.AuthOneStep()
+			if err != nil {
+				log.Fatalf("Failed to authenticate: %v", err)
+			}
+
+			log.Printf("Auth response: %v", authResp)
+
+			err = syncScheduler.SyncOrganizationType(authResp.Token)
+			if err != nil {
+				log.Fatalf("Failed to sync organization type: %v", err)
+			}
+			log.Infof("Successfully synced organization type")
+
+			err = syncScheduler.SyncOrganization(authResp.Token)
+			if err != nil {
+				log.Fatalf("Failed to sync organization: %v", err)
+			}
+			log.Infof("Successfully synced organization")
+
+			err = syncScheduler.SyncJobLevel(authResp.Token)
+			if err != nil {
+				log.Fatalf("Failed to sync job level: %v", err)
+			}
+			log.Infof("Successfully synced job level")
+
+			err = syncScheduler.SyncOrganizationLocation(authResp.Token)
+			if err != nil {
+				log.Fatalf("Failed to sync organization location: %v", err)
+			}
+			log.Infof("Successfully synced organization location")
+
+			err = syncScheduler.SyncOrganizationStructure(authResp.Token)
+			if err != nil {
+				log.Fatalf("Failed to sync organization structure: %v", err)
+			}
+			log.Infof("Successfully synced organization structure")
+
+			err = syncScheduler.SyncJob(authResp.Token)
+			if err != nil {
+				log.Fatalf("Failed to sync job: %v", err)
+			}
+			log.Infof("Successfully synced job")
+
+			err = syncScheduler.SyncEmployee(authResp.Token)
+			if err != nil {
+				log.Fatalf("Failed to sync employee: %v", err)
+			}
+			log.Infof("Successfully synced employee")
+
+			err = syncScheduler.SyncEmployeeJob(authResp.Token)
+			if err != nil {
+				log.Fatalf("Failed to sync employee job: %v", err)
+			}
+			log.Infof("Successfully synced employee job")
+
+			err = syncScheduler.SyncUserProfile(authResp.Token)
+			if err != nil {
+				log.Fatalf("Failed to sync user profile: %v", err)
+			}
+			log.Infof("Successfully synced user profile")
+
+			log.Printf("Successfully synced data")
+		})
+		if err != nil {
+			log.Fatalf("failed to add cron job: %v", err)
+		}
+
+		sch.Start()
+		log.Infof("Started cron job")
+		defer sch.Stop()
+	}
 
 	// run server
 	webPort := strconv.Itoa(viperConfig.GetInt("web.port"))
