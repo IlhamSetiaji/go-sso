@@ -174,11 +174,12 @@ type JobMidsuitAPIResponse struct {
 }
 
 type EmployeeMidsuitResponse struct {
-	ID          int    `json:"id"`
-	Email       string `json:"email"`
-	EndDate     string `json:"end_date"`
-	MobilePhone string `json:"mobile_phone"`
-	Name        string `json:"name"`
+	ID             int    `json:"id"`
+	Email          string `json:"email"`
+	EndDate        string `json:"end_date"`
+	RetirementDate string `json:"retirement_date"`
+	MobilePhone    string `json:"mobile_phone"`
+	Name           string `json:"name"`
 	// OrganizationID int    `json:"organization_id"`
 	ADOrgID AdOrgMidsuitResponse `json:"AD_Org_ID"`
 }
@@ -309,9 +310,13 @@ func (s *SyncMidsuitScheduler) SyncOrganizationType(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when unmarshalling response: " + err.Error())
 	}
 
+	var orgTypeMidsuitIDs []string
+
 	// Process the records
 	for _, record := range apiResponse.Records {
 		// Process each record as needed
+		orgTypeMidsuitIDs = append(orgTypeMidsuitIDs, strconv.Itoa(record.ID))
+
 		s.Log.Infof("Processing record: %+v", record)
 		orgType := &entity.OrganizationType{
 			MidsuitID: strconv.Itoa(record.ID),
@@ -340,6 +345,20 @@ func (s *SyncMidsuitScheduler) SyncOrganizationType(jwtToken string) error {
 				return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingOrgType)
+		}
+	}
+
+	// Delete organization types that are not in the response
+	var existingOrgTypes []entity.OrganizationType
+	if err := s.DB.Where("midsuit_id NOT IN ?", orgTypeMidsuitIDs).Find(&existingOrgTypes).Error; err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when querying organization types: " + err.Error())
+	}
+
+	for _, existingOrgType := range existingOrgTypes {
+		if err := s.DB.Delete(&existingOrgType).Error; err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when deleting organization type: " + err.Error())
 		}
 	}
 
@@ -387,9 +406,12 @@ func (s *SyncMidsuitScheduler) SyncOrganization(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when unmarshalling response: " + err.Error())
 	}
 
+	var orgMidsuitIDs []string
 	// Process the records
 	for _, record := range apiResponse.Records {
 		// Process each record as needed
+		orgMidsuitIDs = append(orgMidsuitIDs, strconv.Itoa(record.ID))
+
 		s.Log.Infof("Processing record: %+v", record)
 
 		var orgType entity.OrganizationType
@@ -431,6 +453,20 @@ func (s *SyncMidsuitScheduler) SyncOrganization(jwtToken string) error {
 				return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingOrg)
+		}
+	}
+
+	// Delete organizations that are not in the response
+	var existingOrgs []entity.Organization
+	if err := s.DB.Where("midsuit_id NOT IN ?", orgMidsuitIDs).Find(&existingOrgs).Error; err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when querying organizations: " + err.Error())
+	}
+
+	for _, existingOrg := range existingOrgs {
+		if err := s.DB.Delete(&existingOrg).Error; err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when deleting organization: " + err.Error())
 		}
 	}
 
@@ -478,9 +514,12 @@ func (s *SyncMidsuitScheduler) SyncJobLevel(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when unmarshalling response: " + err.Error())
 	}
 
+	var jobLevelMidsuitIDs []string
 	// Process the records
 	for _, record := range apiResponse.Records {
 		// Process each record as needed
+		jobLevelMidsuitIDs = append(jobLevelMidsuitIDs, strconv.Itoa(record.ID))
+
 		s.Log.Infof("Processing record: %+v", record)
 		jobLevel := &entity.JobLevel{
 			MidsuitID: strconv.Itoa(record.ID),
@@ -509,6 +548,20 @@ func (s *SyncMidsuitScheduler) SyncJobLevel(jwtToken string) error {
 				return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingJobLevel)
+		}
+	}
+
+	// Delete job levels that are not in the response
+	var existingJobLevels []entity.JobLevel
+	if err := s.DB.Where("midsuit_id NOT IN ?", jobLevelMidsuitIDs).Find(&existingJobLevels).Error; err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when querying job levels: " + err.Error())
+	}
+
+	for _, existingJobLevel := range existingJobLevels {
+		if err := s.DB.Delete(&existingJobLevel).Error; err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when deleting job level: " + err.Error())
 		}
 	}
 
@@ -556,9 +609,12 @@ func (s *SyncMidsuitScheduler) SyncOrganizationLocation(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when unmarshalling response: " + err.Error())
 	}
 
+	var orgLocationMidsuitIDs []string
 	// Process the records
 	for _, record := range apiResponse.Records {
 		// Process each record as needed
+		orgLocationMidsuitIDs = append(orgLocationMidsuitIDs, strconv.Itoa(record.ID))
+
 		s.Log.Infof("Processing record: %+v", record)
 
 		var org entity.Organization
@@ -598,6 +654,20 @@ func (s *SyncMidsuitScheduler) SyncOrganizationLocation(jwtToken string) error {
 				return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingOrgLocation)
+		}
+	}
+
+	// Delete organization locations that are not in the response
+	var existingOrgLocations []entity.OrganizationLocation
+	if err := s.DB.Where("midsuit_id NOT IN ?", orgLocationMidsuitIDs).Find(&existingOrgLocations).Error; err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when querying organization locations: " + err.Error())
+	}
+
+	for _, existingOrgLocation := range existingOrgLocations {
+		if err := s.DB.Delete(&existingOrgLocation).Error; err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when deleting organization location: " + err.Error())
 		}
 	}
 
@@ -650,9 +720,12 @@ func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error 
 		return apiResponse.Records[i].ParentID < apiResponse.Records[j].ParentID
 	})
 
+	var orgStructureMidsuitIDs []string
 	// Process the records
 	for _, record := range apiResponse.Records {
 		// Process each record as needed
+		orgStructureMidsuitIDs = append(orgStructureMidsuitIDs, strconv.Itoa(record.ID))
+
 		s.Log.Infof("Processing record: %+v", record)
 
 		var org entity.Organization
@@ -721,6 +794,20 @@ func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error 
 		}
 	}
 
+	// Delete organization structures that are not in the response
+	var existingOrgStructures []entity.OrganizationStructure
+	if err := s.DB.Where("midsuit_id NOT IN ?", orgStructureMidsuitIDs).Find(&existingOrgStructures).Error; err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying organization structures: " + err.Error())
+	}
+
+	for _, existingOrgStructure := range existingOrgStructures {
+		if err := s.DB.Delete(&existingOrgStructure).Error; err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when deleting organization structure: " + err.Error())
+		}
+	}
+
 	return nil
 }
 
@@ -770,9 +857,12 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 		return apiResponse.Records[i].ParentID < apiResponse.Records[j].ParentID
 	})
 
+	var jobMidsuitIDs []string
 	// Process the records
 	for _, record := range apiResponse.Records {
 		// Process each record as needed
+		jobMidsuitIDs = append(jobMidsuitIDs, strconv.Itoa(record.ID))
+
 		s.Log.Infof("Processing record: %+v", record)
 
 		var jobLevel entity.JobLevel
@@ -861,6 +951,20 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 		}
 	}
 
+	// Delete jobs that are not in the response
+	var existingJobs []entity.Job
+	if err := s.DB.Where("midsuit_id NOT IN ?", jobMidsuitIDs).Find(&existingJobs).Error; err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncJob] Error when querying jobs: " + err.Error())
+	}
+
+	for _, existingJob := range existingJobs {
+		if err := s.DB.Delete(&existingJob).Error; err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncJob] Error when deleting job: " + err.Error())
+		}
+	}
+
 	return nil
 }
 
@@ -905,9 +1009,12 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when unmarshalling response: " + err.Error())
 	}
 
+	var employeeMidsuitIDs []string
 	// Process the records
 	for _, record := range apiResponse.Records {
 		// Process each record as needed
+		employeeMidsuitIDs = append(employeeMidsuitIDs, strconv.Itoa(record.ID))
+
 		s.Log.Infof("Processing record: %+v", record)
 
 		var org entity.Organization
@@ -931,10 +1038,22 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 			endDate = parsedEndDate
 		}
 
+		var retirementDate time.Time
+
+		if record.RetirementDate != "" {
+			parsedRetirementDate, err := time.Parse(time.RFC3339, record.RetirementDate)
+			if err != nil {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when parsing retirement date: " + err.Error())
+			}
+			retirementDate = parsedRetirementDate
+		}
+
 		employee := &entity.Employee{
 			MidsuitID:      strconv.Itoa(record.ID),
 			Email:          record.Email,
 			EndDate:        endDate,
+			RetirementDate: retirementDate,
 			MobilePhone:    record.MobilePhone,
 			Name:           record.Name,
 			OrganizationID: org.ID,
@@ -1003,6 +1122,20 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 		}
 	}
 
+	// Delete employees that are not in the response
+	var existingEmployees []entity.Employee
+	if err := s.DB.Where("midsuit_id NOT IN ?", employeeMidsuitIDs).Find(&existingEmployees).Error; err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when querying employees: " + err.Error())
+	}
+
+	for _, existingEmployee := range existingEmployees {
+		if err := s.DB.Delete(&existingEmployee).Error; err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when deleting employee: " + err.Error())
+		}
+	}
+
 	return nil
 }
 
@@ -1047,9 +1180,12 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when unmarshalling response: " + err.Error())
 	}
 
+	var employeeJobMidsuitIDs []string
 	// Process the records
 	for _, record := range apiResponse.Records {
 		// Process each record as needed
+		employeeJobMidsuitIDs = append(employeeJobMidsuitIDs, strconv.Itoa(record.ID))
+
 		s.Log.Infof("Processing record: %+v", record)
 
 		var employee entity.Employee
@@ -1151,6 +1287,20 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 				return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingEmployeeJob)
+		}
+	}
+
+	// Delete employee jobs that are not in the response
+	var existingEmployeeJobs []entity.EmployeeJob
+	if err := s.DB.Where("midsuit_id NOT IN ?", employeeJobMidsuitIDs).Find(&existingEmployeeJobs).Error; err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when querying employee jobs: " + err.Error())
+	}
+
+	for _, existingEmployeeJob := range existingEmployeeJobs {
+		if err := s.DB.Delete(&existingEmployeeJob).Error; err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when deleting employee job: " + err.Error())
 		}
 	}
 
