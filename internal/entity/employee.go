@@ -14,8 +14,8 @@ type Employee struct {
 	Name           string    `json:"name"`
 	EndDate        time.Time `json:"end_date" gorm:"type:date"`
 	RetirementDate time.Time `json:"retirement_date" gorm:"type:date"`
-	Email          string    `json:"email" gorm:"unique"`
-	MobilePhone    string    `json:"mobile_phone" gorm:"unique"`
+	Email          string    `json:"email" gorm:"default:null"`
+	MobilePhone    string    `json:"mobile_phone" gorm:"default:null"`
 	MidsuitID      string    `json:"midsuit_id"`
 	SignaturePath  string    `json:"signature_path" gorm:"type:text"`
 	IsCeoPic       bool      `json:"is_ceo_pic" gorm:"type:boolean;default:null"`

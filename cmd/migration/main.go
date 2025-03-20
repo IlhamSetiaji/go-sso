@@ -608,7 +608,7 @@ func main() {
 
 	employeeJob := &entity.EmployeeJob{
 		Name:                    "Employee Admin Job",
-		EmpOrganizationID:       organizations[0].ID,
+		EmpOrganizationID:       &organizations[0].ID,
 		OrganizationLocationID:  organizations[0].OrganizationLocations[0].ID,
 		EmployeeID:              &user.Employee.ID,
 		JobID:                   createdJobs["Kage"].ID,
@@ -666,7 +666,7 @@ func main() {
 
 	employeeGoogleJob := &entity.EmployeeJob{
 		Name:                    "Ilham Setiaji Job",
-		EmpOrganizationID:       organizations[0].ID,
+		EmpOrganizationID:       &organizations[0].ID,
 		OrganizationLocationID:  organizations[0].OrganizationLocations[0].ID,
 		EmployeeID:              &googleAccount.Employee.ID,
 		JobID:                   createdJobs["Kage"].ID,
