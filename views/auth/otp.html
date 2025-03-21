@@ -82,8 +82,8 @@
         width: 140px;
       }
     </style>
-    <div class="grid grid-cols-2 w-full h-full">
-      <div class="container flex flex-row p-8 gap-x-4">
+    <div class="grid md:grid-cols-2 w-full h-full">
+      <div class="container flex flex-row md:p-8 gap-x-4">
         <div class="flex flex-row justify-center">
           <div class="flex flex-row">
             <div id="auth-center" class="flex flex-col gap-y-6">
@@ -100,7 +100,7 @@
                 action="/verify-email"
                 method="POST"
                 enctype="multipart/form-data"
-                class="w-full p-8 flex-col gap-y-8 flex-grow items-center"
+                class="w-full md:p-8 flex-col gap-y-8 flex-grow items-center"
               >
                 <input type="hidden" name="_csrf" value="{{ .CsrfToken }}" />
                 <input type="hidden" name="email" value="{{ .Profile.Email }}" />
@@ -189,7 +189,7 @@
             </div>
           </div>
         </div>
-        <div class="h-full w-full flex flex-row flex-grow justify-center p-6">
+        <div class="h-full w-full hidden md:flex flex-row flex-grow justify-center p-6">
           <div class="flex-grow flex flex-row justify-center items-center">
             <div class="w-96">
               <img
