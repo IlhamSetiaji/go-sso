@@ -1,13 +1,16 @@
 {{define "content"}}
 <div class="flex flex-col items-center gap-y-4">
   <div class="flex flex-col justify-start w-full">
-    <h1 class="flex flex-row text-black">
+    <h1 class="hidden md:flex flex-row text-black">
       Welcome to <span class="text-gray-500 ml-2">Julong Site</span>
+    </h1>
+    <h1 class="flex md:hidden flex-row text-black">
+      Welcome to Julong Site</span>
     </h1>
     <div class="text-gray-500">Please Choose One of the options below</div>
   </div>
   <div class="w-full flex">
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid md:grid-cols-3 gap-4">
       {{ if .Profile.IsEmployee }} {{ range .Applications }} {{ if ne .Name
       "authenticator" }}
       <div
