@@ -1111,6 +1111,17 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 			s.Log.Infof("Updated record: %+v", existingEmployee)
 		}
 
+		var employeeExist entity.Employee
+		if err := s.DB.Where("midsuit_id = ?", employee.MidsuitID).First(&employeeExist).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				s.Log.Errorf("Employee with ID %d not found", record.ID)
+				employeeExist.ID = uuid.Nil
+			} else {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when querying employee: " + err.Error())
+			}
+		}
+
 		// create or update user
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("changeme"), bcrypt.DefaultCost)
 		if err != nil {
@@ -1123,8 +1134,8 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 			Password: string(hashedPassword),
 			Name:     employee.Name,
 			EmployeeID: func() *uuid.UUID {
-				if existingEmployee.ID != uuid.Nil {
-					return &existingEmployee.ID
+				if employeeExist.ID != uuid.Nil {
+					return &employeeExist.ID
 				}
 				return nil
 			}(),
