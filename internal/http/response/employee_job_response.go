@@ -23,4 +23,5 @@ type EmployeeJobResponse struct {
 	Job                   *JobResponse                   `json:"job"`
 	OrganizationLocation  *OrganizationLocationResponse  `json:"organization_location"`
 	OrganizationStructure *OrganizationStructureResponse `json:"organization_structure"`
+	Grade                 *GradeResponse                 `json:"grade"`
 }

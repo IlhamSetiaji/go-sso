@@ -80,6 +80,12 @@ func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.Employ
 					}
 					return ConvertToSingleOrganizationStructureResponse(employee.EmployeeJob.OrganizationStructure)
 				}(),
+				Grade: func() *response.GradeResponse {
+					if employee.EmployeeJob.Grade == nil {
+						return nil
+					}
+					return ConvertToSingleGradeResponse(employee.EmployeeJob.Grade)
+				}(),
 				CreatedAt: employee.EmployeeJob.CreatedAt,
 				UpdatedAt: employee.EmployeeJob.UpdatedAt,
 			}
