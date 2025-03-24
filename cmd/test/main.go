@@ -40,6 +40,12 @@ func main() {
 	}
 	log.Infof("Successfully synced job level")
 
+	err = syncScheduler.SyncGrade(authResp.Token)
+	if err != nil {
+		log.Fatalf("Failed to sync grade: %v", err)
+	}
+	log.Infof("Successfully synced grade")
+
 	err = syncScheduler.SyncOrganizationLocation(authResp.Token)
 	if err != nil {
 		log.Fatalf("Failed to sync organization location: %v", err)

@@ -12,6 +12,7 @@ type Grade struct {
 	ID         uuid.UUID `json:"id" gorm:"type:char(36);primaryKey"`
 	JobLevelID uuid.UUID `json:"job_level_id" gorm:"type:char(36)"`
 	Name       string    `json:"name" gorm:"type:varchar(255)"`
+	MidsuitID  string    `json:"midsuit_id" gorm:"type:varchar(255)"`
 
 	JobLevel     *JobLevel     `json:"job_level" gorm:"foreignKey:JobLevelID;references:ID;constraint:OnDelete:CASCADE"`
 	EmployeeJobs []EmployeeJob `json:"employee_jobs" gorm:"foreignKey:GradeID;references:ID;constraint:OnDelete:CASCADE"`

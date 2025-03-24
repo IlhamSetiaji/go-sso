@@ -33,6 +33,7 @@ type ISyncMidsuitScheduler interface {
 	SyncEmployee(jwtToken string) error
 	SyncEmployeeJob(jwtToken string) error
 	SyncUserProfile(jwtToken string) error
+	SyncGrade(jwtToken string) error
 }
 
 type SyncMidsuitScheduler struct {
@@ -201,15 +202,23 @@ type EmployeeMidsuitAPIResponse struct {
 	Records     []EmployeeMidsuitResponse `json:"records"`
 }
 
+type HcEmployeeGradeIDResponse struct {
+	PropertyLabel string `json:"propertyLabel"`
+	ID            int    `json:"id"`
+	Identifier    string `json:"identifier"`
+	ModelName     string `json:"model-name"`
+}
+
 type EmployeeJobMidsuitResponse struct {
-	ID                      int `json:"id"`
-	EmployeeID              int `json:"employee_id"`
-	EmpOrganizationID       int `json:"emp_organization_id"`
-	JobID                   int `json:"job_id"`
-	JobLevelID              int `json:"job_level_id"`
-	OrganizationID          int `json:"organization_id"`
-	OrganizationStructureID int `json:"organization_structure_id"`
-	OrganizationLocationID  int `json:"organization_location_id"`
+	ID                      int                       `json:"id"`
+	EmployeeID              int                       `json:"employee_id"`
+	EmpOrganizationID       int                       `json:"emp_organization_id"`
+	JobID                   int                       `json:"job_id"`
+	JobLevelID              int                       `json:"job_level_id"`
+	OrganizationID          int                       `json:"organization_id"`
+	OrganizationStructureID int                       `json:"organization_structure_id"`
+	OrganizationLocationID  int                       `json:"organization_location_id"`
+	HCEmployeeGradeID       HcEmployeeGradeIDResponse `json:"HC_EmployeeGrade_ID"`
 }
 
 type EmployeeJobMidsuitAPIResponse struct {
@@ -240,6 +249,30 @@ type UserProfileMidsuitAPIResponse struct {
 	RowCount    int                          `json:"row-count"`
 	ArrayCount  int                          `json:"array-count"`
 	Records     []UserProfileMidsuitResponse `json:"records"`
+}
+
+type HcJobLevelIDResponse struct {
+	PropertyLabel string `json:"propertyLabel"`
+	ID            int    `json:"id"`
+	Identifier    string `json:"identifier"`
+	ModelName     string `json:"model-name"`
+}
+
+type GradeMidsuitResponse struct {
+	ID           int                  `json:"id"`
+	UID          string               `json:"uid"`
+	HcJobLevelID HcJobLevelIDResponse `json:"HC_JobLevel_ID"`
+	Name         string               `json:"name"`
+	ModelName    string               `json:"model-name"`
+}
+
+type GradeMidsuitAPIResponse struct {
+	PageCount   int                    `json:"page-count"`
+	RecordsSize int                    `json:"records-size"`
+	SkipRecords int                    `json:"skip-records"`
+	RowCount    int                    `json:"row-count"`
+	ArrayCount  int                    `json:"array-count"`
+	Records     []GradeMidsuitResponse `json:"records"`
 }
 
 func (s *SyncMidsuitScheduler) AuthOneStep() (*AuthOneStepResponse, error) {
@@ -1292,6 +1325,21 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 			}
 		}
 
+		var gradeID *uuid.UUID
+		if record.HCEmployeeGradeID.ID != 0 {
+			var grade entity.Grade
+			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.HCEmployeeGradeID.ID)).First(&grade).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					s.Log.Errorf("Grade with ID %d not found", record.HCEmployeeGradeID.ID)
+					gradeID = nil
+				}
+				s.Log.Error(err)
+				gradeID = nil
+			} else {
+				gradeID = &grade.ID
+			}
+		}
+
 		employeeJob := &entity.EmployeeJob{
 			MidsuitID:  strconv.Itoa(record.ID),
 			EmployeeID: &employee.ID,
@@ -1304,6 +1352,7 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 			}(),
 			OrganizationLocationID:  *orgLocationID,
 			OrganizationStructureID: *orgStructureID,
+			GradeID:                 gradeID,
 		}
 
 		// Check if the record already exists
@@ -1432,6 +1481,114 @@ func (s *SyncMidsuitScheduler) SyncUserProfile(jwtToken string) error {
 		if err != nil {
 			s.Log.Error(err)
 			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when sending message: " + err.Error())
+		}
+	}
+
+	return nil
+}
+
+func (s *SyncMidsuitScheduler) SyncGrade(jwtToken string) error {
+	url := s.Viper.GetString("midsuit.url") + s.Viper.GetString("midsuit.api_endpoint") + "/views/employee-grade"
+	method := "GET"
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when creating request: " + err.Error())
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+jwtToken)
+
+	res, err := client.Do(req)
+	if err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when fetching response: " + err.Error())
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(res.Body)
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when fetching response: " + string(bodyBytes))
+	}
+
+	bodyBytes, _ := io.ReadAll(res.Body)
+	var apiResponse GradeMidsuitAPIResponse
+	if err := json.Unmarshal(bodyBytes, &apiResponse); err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when unmarshalling response: " + err.Error())
+	}
+
+	var gradeMidsuitIDs []string
+	// Process the records
+	for _, record := range apiResponse.Records {
+		// Process each record as needed
+		gradeMidsuitIDs = append(gradeMidsuitIDs, strconv.Itoa(record.ID))
+
+		s.Log.Infof("Processing record: %+v", record)
+
+		// find job level by midsuit id
+		var jobLevel entity.JobLevel
+		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.HcJobLevelID.ID)).First(&jobLevel).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				s.Log.Errorf("Job level with ID %d not found", record.HcJobLevelID.ID)
+				continue
+			}
+
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when querying job level: " + err.Error())
+		}
+
+		grade := &entity.Grade{
+			MidsuitID:  strconv.Itoa(record.ID),
+			Name:       record.Name,
+			JobLevelID: jobLevel.ID,
+		}
+
+		// Check if the record already exists
+		var existingGrade entity.Grade
+		if err := s.DB.Where("midsuit_id = ?", grade.MidsuitID).First(&existingGrade).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Create the record if it doesn't exist
+				if err := s.DB.Create(grade).Error; err != nil {
+					s.Log.Error(err)
+					return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when creating record: " + err.Error())
+				}
+				s.Log.Infof("Created record: %+v", grade)
+			} else {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when querying record: " + err.Error())
+			}
+		} else {
+			// Update the record if it exists
+			if err := s.DB.Model(&existingGrade).Updates(grade).Error; err != nil {
+				s.Log.Error(err)
+				return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when updating record: " + err.Error())
+			}
+			s.Log.Infof("Updated record: %+v", existingGrade)
+		}
+	}
+
+	// Delete grades that are not in the response
+	var existingGrades []entity.Grade
+	if err := s.DB.Where("midsuit_id NOT IN ?", gradeMidsuitIDs).Find(&existingGrades).Error; err != nil {
+		s.Log.Error(err)
+		return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when querying grades: " + err.Error())
+	}
+
+	for _, existingGrade := range existingGrades {
+		if err := s.DB.Delete(&existingGrade).Error; err != nil {
+			s.Log.Error(err)
+			return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when deleting grade: " + err.Error())
 		}
 	}
 
