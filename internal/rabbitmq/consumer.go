@@ -169,6 +169,7 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 			"organization_category": message.OrganizationCategory,
 			"organization_type":     message.OrganizationType,
 			"logo":                  viper.GetString("app.url") + message.Logo,
+			"midsuit_id":            message.MidsuitID,
 		}
 	case "find_job_by_id":
 		jobID, ok := docMsg.MessageData["job_id"].(string)
@@ -194,8 +195,9 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 		}
 
 		msgData = map[string]interface{}{
-			"job_id": jobID,
-			"name":   message.Name,
+			"job_id":     jobID,
+			"name":       message.Name,
+			"midsuit_id": message.MidsuitID,
 		}
 	case "find_user_by_id":
 		userID, ok := docMsg.MessageData["user_id"].(string)
@@ -250,6 +252,7 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 		msgData = map[string]interface{}{
 			"organization_location_id": organizationLocationID,
 			"name":                     message.Name,
+			"midsuit_id":               message.MidsuitID,
 		}
 	case "find_job_level_by_id":
 		jobLevelID, ok := docMsg.MessageData["job_level_id"].(string)
@@ -278,6 +281,7 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 			"job_level_id": jobLevelID,
 			"name":         message.Name,
 			"level":        message.Level,
+			"midsuit_id":   message.MidsuitID,
 		}
 	case "check_job_by_job_level":
 		jobID, ok := docMsg.MessageData["job_id"].(string)
@@ -343,6 +347,7 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 		msgData = map[string]interface{}{
 			"organization_structure_id": organizationStructureID,
 			"name":                      message.Name,
+			"midsuit_id":                message.MidsuitID,
 		}
 	case "get_user_me":
 		userID, ok := docMsg.MessageData["user_id"].(string)

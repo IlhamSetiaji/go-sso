@@ -14,6 +14,7 @@ type IFindOrganizationLocationByIDMessageRequest struct {
 type IFindOrganizationLocationByIDMessageResponse struct {
 	OrganizationLocationID string `json:"organization_location_id"`
 	Name                   string `json:"name"`
+	MidsuitID              string `json:"midsuit_id"`
 }
 
 type IFindOrganizationLocationByIDMessage interface {
@@ -41,6 +42,7 @@ func (m *FindOrganizationLocationByIDMessage) Execute(request IFindOrganizationL
 	return &IFindOrganizationLocationByIDMessageResponse{
 		OrganizationLocationID: organizationLocation.ID.String(),
 		Name:                   organizationLocation.Name,
+		MidsuitID:              organizationLocation.MidsuitID,
 	}, nil
 }
 

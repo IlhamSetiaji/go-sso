@@ -16,6 +16,7 @@ type IFindJobLevelByIDMessageResponse struct {
 	JobLevelID string `json:"job_level_id"`
 	Name       string `json:"name"`
 	Level      int    `json:"level"`
+	MidsuitID  string `json:"midsuit_id"`
 }
 
 type IFindJobLevelByIDMessage interface {
@@ -49,6 +50,7 @@ func (m *FindJobLevelByIDMessage) Execute(request IFindJobLevelByIDMessageReques
 		JobLevelID: jobLevel.ID.String(),
 		Name:       jobLevel.Name,
 		Level:      level,
+		MidsuitID:  jobLevel.MidsuitID,
 	}, nil
 }
 

@@ -12,8 +12,9 @@ type IFindJobByIDMessageRequest struct {
 }
 
 type IFindJobByIDMessageResponse struct {
-	JobID uuid.UUID `json:"job_id"`
-	Name  string    `json:"name"`
+	JobID     uuid.UUID `json:"job_id"`
+	Name      string    `json:"name"`
+	MidsuitID string    `json:"midsuit_id"`
 }
 
 type IFindJobByIDMessage interface {
@@ -39,8 +40,9 @@ func (m *FindJobByIDMessage) Execute(request IFindJobByIDMessageRequest) (*IFind
 	}
 
 	return &IFindJobByIDMessageResponse{
-		JobID: job.ID,
-		Name:  job.Name,
+		JobID:     job.ID,
+		Name:      job.Name,
+		MidsuitID: job.MidsuitID,
 	}, nil
 }
 
