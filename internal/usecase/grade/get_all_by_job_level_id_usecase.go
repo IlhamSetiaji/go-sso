@@ -1,4 +1,4 @@
-package messaging
+package usecase
 
 import (
 	"app/go-sso/internal/http/dto"
@@ -10,37 +10,37 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type IGetAllByJobLevelIDMessageRequest struct {
+type IGetAllByJobLevelIDUseCaseRequest struct {
 	JobLevelID string `json:"job_level_id"`
 }
 
-type IGetAllByJobLevelIDMessageResponse struct {
+type IGetAllByJobLevelIDUseCaseResponse struct {
 	Grade []response.GradeResponse `json:"grade"`
 }
 
-type IGetAllByJobLevelIDMessage interface {
-	Execute(req *IGetAllByJobLevelIDMessageRequest) (*IGetAllByJobLevelIDMessageResponse, error)
+type IGetAllByJobLevelIDUseCase interface {
+	Execute(req *IGetAllByJobLevelIDUseCaseRequest) (*IGetAllByJobLevelIDUseCaseResponse, error)
 }
 
-type GetAllByJobLevelIDMessage struct {
+type GetAllByJobLevelIDUseCase struct {
 	Log                *logrus.Logger
 	JobLevelRepository repository.IJobLevelRepository
 	GradeRepository    repository.IGradeRepository
 }
 
-func NewGetAllByJobLevelIDMessage(
+func NewGetAllByJobLevelIDUseCase(
 	log *logrus.Logger,
 	jobLevelRepository repository.IJobLevelRepository,
 	gradeRepository repository.IGradeRepository,
-) IGetAllByJobLevelIDMessage {
-	return &GetAllByJobLevelIDMessage{
+) IGetAllByJobLevelIDUseCase {
+	return &GetAllByJobLevelIDUseCase{
 		Log:                log,
 		JobLevelRepository: jobLevelRepository,
 		GradeRepository:    gradeRepository,
 	}
 }
 
-func (uc *GetAllByJobLevelIDMessage) Execute(req *IGetAllByJobLevelIDMessageRequest) (*IGetAllByJobLevelIDMessageResponse, error) {
+func (uc *GetAllByJobLevelIDUseCase) Execute(req *IGetAllByJobLevelIDUseCaseRequest) (*IGetAllByJobLevelIDUseCaseResponse, error) {
 	jobLevelID, err := uuid.Parse(req.JobLevelID)
 	if err != nil {
 		return nil, err
@@ -66,15 +66,15 @@ func (uc *GetAllByJobLevelIDMessage) Execute(req *IGetAllByJobLevelIDMessageRequ
 
 	}
 
-	return &IGetAllByJobLevelIDMessageResponse{
+	return &IGetAllByJobLevelIDUseCaseResponse{
 		Grade: gradeResps,
 	}, nil
 }
 
-func GetAllByJobLevelIDMessageFactory(
+func GetAllByJobLevelIDUseCaseFactory(
 	log *logrus.Logger,
-	jobLevelRepository repository.IJobLevelRepository,
-	gradeRepository repository.IGradeRepository,
-) IGetAllByJobLevelIDMessage {
-	return NewGetAllByJobLevelIDMessage(log, jobLevelRepository, gradeRepository)
+) IGetAllByJobLevelIDUseCase {
+	jobLevelRepository := repository.JobLevelRepositoryFactory(log)
+	gradeRepository := repository.GradeRepositoryFactory(log)
+	return NewGetAllByJobLevelIDUseCase(log, jobLevelRepository, gradeRepository)
 }

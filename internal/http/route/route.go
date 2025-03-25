@@ -25,6 +25,7 @@ type RouteConfig struct {
 	JobHandler              handler.IJobHandler
 	EmployeeHandler         handler.IEmployeeHandler
 	EmployeeWebHandler      web.EmployeeHandlerInterface
+	GradeHandler            handler.IGradeHandler
 }
 
 func (c *RouteConfig) SetupRoutes() {
@@ -92,6 +93,9 @@ func (c *RouteConfig) SetupApiRoutes() {
 			apiRoute.GET("/employees", c.EmployeeHandler.FindAllPaginated)
 			apiRoute.GET("/employees/turnover", c.EmployeeHandler.CountEmployeeRetiredEndByDateRange)
 			apiRoute.GET("/employees/:id", c.EmployeeHandler.FindById)
+
+			// Grade routes
+			apiRoute.GET("/grades/job-level/:job_level_id", c.GradeHandler.FindAllByJobLevelID)
 		}
 	}
 }

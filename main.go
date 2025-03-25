@@ -101,6 +101,7 @@ func main() {
 	organizationHandler := handler.OrganizationHandlerFactory(log, validate)
 	jobHandler := handler.JobHandlerFactory(log, validate)
 	employeeHandler := handler.EmployeeHandlerFactory(log, validate)
+	gradeHandler := handler.GradeHandlerFactory(viperConfig, log, validate)
 
 	// handle web handler
 	dashboardHandler := web.DashboardHandlerFactory(log, validate)
@@ -132,6 +133,7 @@ func main() {
 		EmployeeHandler:         employeeHandler,
 		EmployeeWebHandler:      employeeWebHandler,
 		EmailVerifiedMiddleware: emailVerifiedMiddleware,
+		GradeHandler:            gradeHandler,
 	}
 	routeConfig.SetupRoutes()
 
