@@ -11,6 +11,7 @@ import (
 
 type IGradeRepository interface {
 	FindAllByJobLevelID(jobLevelID uuid.UUID) (*[]entity.Grade, error)
+	FindByKeys(keys map[string]interface{}) (*entity.Grade, error)
 }
 
 type GradeRepository struct {
@@ -35,9 +36,21 @@ func GradeRepositoryFactory(log *logrus.Logger) *GradeRepository {
 
 func (g *GradeRepository) FindAllByJobLevelID(jobLevelID uuid.UUID) (*[]entity.Grade, error) {
 	var grades []entity.Grade
-	if err := g.DB.Where("job_level_id = ?", jobLevelID).Find(&grades).Error; err != nil {
+	if err := g.DB.Preload("JobLevel").Where("job_level_id = ?", jobLevelID).Find(&grades).Error; err != nil {
 		return nil, err
 	}
 
 	return &grades, nil
+}
+
+func (g *GradeRepository) FindByKeys(keys map[string]interface{}) (*entity.Grade, error) {
+	var grade entity.Grade
+	if err := g.DB.Preload("JobLevel").Where(keys).First(&grade).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &grade, nil
 }

@@ -4,6 +4,7 @@ import (
 	"app/go-sso/internal/http/request"
 	"app/go-sso/internal/http/response"
 	empMessaging "app/go-sso/internal/messaging/employee"
+	gradeMessaging "app/go-sso/internal/messaging/grade"
 	messaging "app/go-sso/internal/messaging/job"
 	orgMessaging "app/go-sso/internal/messaging/organization"
 	userMessaging "app/go-sso/internal/messaging/user"
@@ -903,6 +904,34 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 
 		msgData = map[string]interface{}{
 			"employee_id": employee.EmployeeID,
+		}
+	case "find_grade_by_id":
+		id, ok := docMsg.MessageData["id"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'id'").Error(),
+			}
+			break
+		}
+
+		gradeMessage := gradeMessaging.FindGradeByIDMessageFactory(log)
+		gradeResponse, err := gradeMessage.Execute(&gradeMessaging.IFindGradeByIDMessageRequest{
+			ID: id,
+		})
+		if err != nil {
+			log.Errorf("Failed to find grade by id: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"id":             gradeResponse.Grade.ID,
+			"job_level_id":   gradeResponse.Grade.JobLevelID,
+			"name":           gradeResponse.Grade.Name,
+			"job_level_name": gradeResponse.Grade.JobLevel.Name,
 		}
 	case "get_chart_employee_organization_structure":
 		empMessage := empMessaging.ChartEmployeeOrganizationStructureMessageFactory(log)

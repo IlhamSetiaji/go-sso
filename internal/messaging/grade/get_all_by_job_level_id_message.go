@@ -73,8 +73,8 @@ func (uc *GetAllByJobLevelIDMessage) Execute(req *IGetAllByJobLevelIDMessageRequ
 
 func GetAllByJobLevelIDMessageFactory(
 	log *logrus.Logger,
-	jobLevelRepository repository.IJobLevelRepository,
-	gradeRepository repository.IGradeRepository,
 ) IGetAllByJobLevelIDMessage {
+	jobLevelRepository := repository.JobLevelRepositoryFactory(log)
+	gradeRepository := repository.GradeRepositoryFactory(log)
 	return NewGetAllByJobLevelIDMessage(log, jobLevelRepository, gradeRepository)
 }
