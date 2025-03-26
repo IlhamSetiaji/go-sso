@@ -1217,6 +1217,7 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 				}
 				return nil
 			}(),
+			Status: entity.USER_ACTIVE,
 		}
 
 		var existingUser entity.User
