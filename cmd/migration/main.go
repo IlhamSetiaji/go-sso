@@ -43,10 +43,10 @@ func main() {
 	// create organization types
 	organizationTypes := []entity.OrganizationType{
 		{
-			Name: "Office",
+			Name: "Anjing",
 		},
 		{
-			Name: "Gatau Ntar Isi Sendiri",
+			Name: "Kucing",
 		},
 	}
 

@@ -20,6 +20,7 @@ type Employee struct {
 	SignaturePath  string    `json:"signature_path" gorm:"type:text"`
 	IsCeoPic       bool      `json:"is_ceo_pic" gorm:"type:boolean;default:null"`
 	IsOnboarding   string    `json:"is_onboarding" gorm:"type:boolean;default:YES"`
+	NIK            string    `json:"nik" gorm:"type:varchar(50);default:null"`
 
 	Organization Organization `json:"organization" gorm:"foreignKey:OrganizationID;references:ID;constraint:OnDelete:CASCADE"`
 	User         *User        `json:"user" gorm:"foreignKey:EmployeeID;references:ID"`

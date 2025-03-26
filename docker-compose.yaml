@@ -22,7 +22,7 @@ services:
       - DB_PORT=8741
       - DB_USER=postgres
       - DB_PASSWORD=gEJIfovgvDAroHhqRiKhYVvrkn2OqXfF3tw8xJmnvw7JhrZgN24pTD9iWMIUIUL6
-      - DB_NAME=julong-portal
+      - DB_NAME=julong-sync-portal
       - RABBITMQ_URL=amqp://julong:HR9hWL5jxSD09XeLIIccOyt1863WvIsy@prasi.avolut.com:5672/
       - RABBITMQ_QUEUE=julong_queue
       - JWT_SECRET=jancok

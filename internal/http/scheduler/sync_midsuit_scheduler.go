@@ -189,6 +189,7 @@ type EmployeeMidsuitResponse struct {
 	RetirementDate string `json:"retirement_date"`
 	MobilePhone    string `json:"mobile_phone"`
 	Name           string `json:"name"`
+	HcNik          string `json:"HC_NIK"`
 	// OrganizationID int    `json:"organization_id"`
 	ADOrgID AdOrgMidsuitResponse `json:"AD_Org_ID"`
 }
@@ -417,8 +418,13 @@ func (s *SyncMidsuitScheduler) SyncOrganizationType(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when querying organization types: " + err.Error())
 	}
 
+	exceptionName := []string{
+		"Anjing",
+		"Kucing",
+	}
+
 	for _, existingOrgType := range existingOrgTypes {
-		if err := s.DB.Delete(&existingOrgType).Error; err != nil {
+		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingOrgType).Error; err != nil {
 			s.Log.Error(err)
 			return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when deleting organization type: " + err.Error())
 		}
@@ -525,8 +531,13 @@ func (s *SyncMidsuitScheduler) SyncOrganization(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when querying organizations: " + err.Error())
 	}
 
+	nameExceptions := []string{
+		"Organization 1",
+		"Organization 2",
+	}
+
 	for _, existingOrg := range existingOrgs {
-		if err := s.DB.Delete(&existingOrg).Error; err != nil {
+		if err := s.DB.Where("name NOT IN (?)", nameExceptions).Delete(&existingOrg).Error; err != nil {
 			s.Log.Error(err)
 			return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when deleting organization: " + err.Error())
 		}
@@ -620,8 +631,16 @@ func (s *SyncMidsuitScheduler) SyncJobLevel(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when querying job levels: " + err.Error())
 	}
 
+	exceptionName := []string{
+		"Kage",
+		"Jounin",
+		"Chunin",
+		"Genin",
+		"Academy",
+	}
+
 	for _, existingJobLevel := range existingJobLevels {
-		if err := s.DB.Delete(&existingJobLevel).Error; err != nil {
+		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingJobLevel).Error; err != nil {
 			s.Log.Error(err)
 			return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when deleting job level: " + err.Error())
 		}
@@ -726,8 +745,17 @@ func (s *SyncMidsuitScheduler) SyncOrganizationLocation(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when querying organization locations: " + err.Error())
 	}
 
+	exceptionName := []string{
+		"Location A1",
+		"Location A2",
+		"Location A3",
+		"Location B1",
+		"Location B2",
+		"Location B3",
+	}
+
 	for _, existingOrgLocation := range existingOrgLocations {
-		if err := s.DB.Delete(&existingOrgLocation).Error; err != nil {
+		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingOrgLocation).Error; err != nil {
 			s.Log.Error(err)
 			return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when deleting organization location: " + err.Error())
 		}
@@ -863,8 +891,16 @@ func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error 
 		return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying organization structures: " + err.Error())
 	}
 
+	exceptionName := []string{
+		"Kage Department",
+		"Jounin Department",
+		"Chunin Department",
+		"Genin Department",
+		"Academy Department",
+	}
+
 	for _, existingOrgStructure := range existingOrgStructures {
-		if err := s.DB.Delete(&existingOrgStructure).Error; err != nil {
+		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingOrgStructure).Error; err != nil {
 			s.Log.Error(err)
 			return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when deleting organization structure: " + err.Error())
 		}
@@ -1020,8 +1056,16 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncJob] Error when querying jobs: " + err.Error())
 	}
 
+	exceptionName := []string{
+		"Kage",
+		"Jounin",
+		"Chunin",
+		"Genin",
+		"Academy",
+	}
+
 	for _, existingJob := range existingJobs {
-		if err := s.DB.Delete(&existingJob).Error; err != nil {
+		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingJob).Error; err != nil {
 			s.Log.Error(err)
 			return errors.New("[SyncMidsuitScheduler.SyncJob] Error when deleting job: " + err.Error())
 		}
@@ -1119,11 +1163,12 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 			MobilePhone:    record.MobilePhone,
 			Name:           record.Name,
 			OrganizationID: org.ID,
+			NIK:            record.HcNik,
 		}
 
 		// Check if the record already exists
 		var existingEmployee entity.Employee
-		if err := s.DB.Where("midsuit_id = ?", employee.MidsuitID).First(&existingEmployee).Error; err != nil {
+		if err := s.DB.Where("midsuit_id = ? OR email = ?", employee.MidsuitID, record.Email).First(&existingEmployee).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(employee).Error; err != nil {
@@ -1202,8 +1247,13 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when querying employees: " + err.Error())
 	}
 
+	exceptionName := []string{
+		"Employee Admin",
+		"Ilham Setiaji",
+	}
+
 	for _, existingEmployee := range existingEmployees {
-		if err := s.DB.Delete(&existingEmployee).Error; err != nil {
+		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingEmployee).Error; err != nil {
 			s.Log.Error(err)
 			return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when deleting employee: " + err.Error())
 		}
@@ -1362,7 +1412,8 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(employeeJob).Error; err != nil {
 					s.Log.Error(err)
-					return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when creating record: " + err.Error())
+					continue
+					// return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when creating record: " + err.Error())
 				}
 				s.Log.Infof("Created record: %+v", employeeJob)
 			} else {
@@ -1386,8 +1437,13 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when querying employee jobs: " + err.Error())
 	}
 
+	exceptionName := []string{
+		"Employee Admin Job",
+		"Ilham Setiaji Job",
+	}
+
 	for _, existingEmployeeJob := range existingEmployeeJobs {
-		if err := s.DB.Delete(&existingEmployeeJob).Error; err != nil {
+		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingEmployeeJob).Error; err != nil {
 			s.Log.Error(err)
 			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when deleting employee job: " + err.Error())
 		}

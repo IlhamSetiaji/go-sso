@@ -27,6 +27,7 @@ func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.Employ
 		MobilePhone:    employee.MobilePhone,
 		EndDate:        employee.EndDate,
 		RetirementDate: employee.RetirementDate,
+		NIK:            employee.NIK,
 		Organization: response.OrganizationResponse{
 			ID: employee.Organization.ID,
 			OrganizationType: response.OrganizationTypeResponse{

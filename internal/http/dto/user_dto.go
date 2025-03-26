@@ -78,6 +78,7 @@ func ConvertToSingleUserResponse(user *entity.User) *response.UserResponse {
 				RetirementDate: user.Employee.RetirementDate,
 				Email:          user.Employee.Email,
 				MobilePhone:    user.Employee.MobilePhone,
+				NIK:            user.Employee.NIK,
 				Organization: response.OrganizationResponse{
 					ID:                 user.Employee.Organization.ID,
 					Name:               user.Employee.Organization.Name,

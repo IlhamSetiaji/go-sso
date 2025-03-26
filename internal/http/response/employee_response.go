@@ -14,6 +14,7 @@ type EmployeeResponse struct {
 	RetirementDate time.Time `json:"retirement_date"`
 	Email          string    `json:"email"`
 	MobilePhone    string    `json:"mobile_phone"`
+	NIK            string    `json:"nik"`
 
 	Organization   OrganizationResponse            `json:"organization"`
 	EmployeeJob    *EmployeeJobResponse            `json:"employee_job"`
