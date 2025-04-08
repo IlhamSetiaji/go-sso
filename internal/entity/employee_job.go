@@ -12,6 +12,7 @@ type EmployeeJob struct {
 	ID                      uuid.UUID  `json:"id" gorm:"type:char(36);primaryKey"`
 	EmpOrganizationID       *uuid.UUID `json:"emp_organization_id" gorm:"type:char(36)"`
 	JobID                   uuid.UUID  `json:"job_id" gorm:"type:char(36)"`
+	JobLevelID              string     `json:"job_level_id" gorm:"type:varchar(255);default:null"`
 	EmployeeID              *uuid.UUID `json:"employee_id" gorm:"type:char(36); unique"`
 	OrganizationLocationID  uuid.UUID  `json:"organization_location_id" gorm:"type:char(36)"`
 	OrganizationStructureID uuid.UUID  `json:"organization_structure_id" gorm:"type:char(36)"`
@@ -25,6 +26,7 @@ type EmployeeJob struct {
 	OrganizationLocation  *OrganizationLocation  `json:"organization_location" gorm:"foreignKey:OrganizationLocationID;references:ID;constraint:OnDelete:CASCADE"`
 	OrganizationStructure *OrganizationStructure `json:"organization_structure" gorm:"foreignKey:OrganizationStructureID;references:ID;constraint:OnDelete:CASCADE"`
 	Grade                 *Grade                 `json:"grade" gorm:"foreignKey:GradeID;references:ID;constraint:OnDelete:CASCADE"`
+	JobLevel              *JobLevel              `json:"job_level" gorm:"foreignKey:JobLevelID;references:ID;constraint:OnDelete:CASCADE"`
 }
 
 func (e *EmployeeJob) BeforeCreate(tx *gorm.DB) (err error) {

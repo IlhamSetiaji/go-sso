@@ -28,6 +28,7 @@ func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.Employ
 		EndDate:        employee.EndDate,
 		RetirementDate: employee.RetirementDate,
 		NIK:            employee.NIK,
+		MidsuitID:      employee.MidsuitID,
 		Organization: response.OrganizationResponse{
 			ID: employee.Organization.ID,
 			OrganizationType: response.OrganizationTypeResponse{
@@ -52,8 +53,10 @@ func ConvertToSingleEmployeeResponse(employee *entity.Employee) *response.Employ
 					}
 					return employee.EmployeeJob.Job.Name
 				}(),
-				JobNameChinese: chinese,
-				Name:           employee.EmployeeJob.Name,
+				JobNameChinese:          chinese,
+				Name:                    employee.EmployeeJob.Name,
+				JobLevelID:              employee.EmployeeJob.JobLevelID,
+				OrganizationStructureID: employee.EmployeeJob.OrganizationStructureID,
 				Job: func() *response.JobResponse {
 					if employee.EmployeeJob.Job == nil {
 						return nil

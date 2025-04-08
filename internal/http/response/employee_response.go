@@ -15,6 +15,7 @@ type EmployeeResponse struct {
 	Email          string    `json:"email"`
 	MobilePhone    string    `json:"mobile_phone"`
 	NIK            string    `json:"nik"`
+	MidsuitID      string    `json:"midsuit_id"`
 
 	Organization   OrganizationResponse            `json:"organization"`
 	EmployeeJob    *EmployeeJobResponse            `json:"employee_job"`
