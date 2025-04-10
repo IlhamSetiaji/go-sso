@@ -20,6 +20,7 @@ type IEmployeeRepository interface {
 	StoreEmployeeJob(employeeJob *entity.EmployeeJob) (*entity.EmployeeJob, error)
 	UpdateEmployeeJob(employeeJob *entity.EmployeeJob) (*entity.EmployeeJob, error)
 	FindById(id uuid.UUID) (*entity.Employee, error)
+	FindByMidsuitID(midsuitID string) (*entity.Employee, error)
 	CountEmployeeRetiredEndByDateRange(startDate string, endDate string) (int64, error)
 	GetOrganizationStructureIdDistinct() ([]uuid.UUID, error)
 	CountByOrganizationStructureID(organizationStructureID uuid.UUID) (int, error)
@@ -272,6 +273,15 @@ func (r *EmployeeRepository) CountByOrganizationStructureID(organizationStructur
 		return 0, err
 	}
 	return count, nil
+}
+
+func (r *EmployeeRepository) FindByMidsuitID(midsuitID string) (*entity.Employee, error) {
+	var employee entity.Employee
+	err := r.DB.Preload("EmployeeJob.Job").Preload("User").Preload("Organization").Where("midsuit_id = ?", midsuitID).First(&employee).Error
+	if err != nil {
+		return nil, err
+	}
+	return &employee, nil
 }
 
 func EmployeeRepositoryFactory(log *logrus.Logger) IEmployeeRepository {

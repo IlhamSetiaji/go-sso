@@ -430,6 +430,33 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 			"employee_id": employeeID,
 			"employee":    message.Employee,
 		}
+	case "find_employee_by_midsuit_id":
+		midsuitID, ok := docMsg.MessageData["midsuit_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'midsuit_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'midsuit_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := empMessaging.FindEmployeeByMidsuitIDMessageFactory(log)
+		message, err := messageFactory.Execute(empMessaging.IFindEmployeeByMidsuitIDMessageRequest{
+			MidsuitID: midsuitID,
+		})
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"employee_id": message.EmployeeID,
+			"employee":    message.Employee,
+		}
 	case "find_organization_locations_paginated":
 		page, ok := docMsg.MessageData["page"].(float64)
 		if !ok {
