@@ -13,11 +13,11 @@ services:
       - APP_ENV=production
       - APP_URL=https://julong-portal.avolut.com/
       - APP_DOMAIN=avolut.com
-      - APP_SECRET=jancok
+      - APP_SECRET=wanhasib
       - FRONTEND_URL=http://localhost:3000,https://julong-mpp.avolut.com,https://julong-recruitment.avolut.com,https://julong-onboarding.avolut.com,https://mobile-dev.junior-dev.my.id
-      - COOKIE_SECRET=jancok
+      - COOKIE_SECRET=wanhasib
       - SESSION_NAME=julong-portal
-      - CSRF_SECRET=jancok
+      - CSRF_SECRET=wanhasib
       - DB_HOST=prasi.avolut.com
       - DB_PORT=8741
       - DB_USER=postgres
@@ -25,7 +25,7 @@ services:
       - DB_NAME=julong-portal
       - RABBITMQ_URL=amqp://julong:HR9hWL5jxSD09XeLIIccOyt1863WvIsy@prasi.avolut.com:5672/
       - RABBITMQ_QUEUE=julong_queue
-      - JWT_SECRET=jancok
+      - JWT_SECRET=wanhasib
       - MAIL_HOST=smtp.gmail.com
       - MAIL_PORT=587
       - MAIL_USERNAME=ilham.signals99@gmail.com
