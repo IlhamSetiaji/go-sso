@@ -17,7 +17,7 @@
               <th>Email</th>
               <th>Organization Name</th>
               <th>Retirement Date</th>
-              <th>Grade</th>
+              <!-- <th>Grade</th> -->
               <th>Actions</th>
             </tr>
           </thead>
@@ -32,7 +32,7 @@
               <td>{{.Email}}</td>
               <td>{{.Organization.Name}}</td>
               <td>{{call $.DateFormatter .RetirementDate}}</td>
-              <td>{{.EmployeeJob.Grade.Name}}</td>
+              <!-- <td>{{.EmployeeJob.Grade.Name}}</td> -->
               <td>
                 <a href="/employees/{{ .ID }}/job" class="btn btn-outline-info"
                   ><i class="fas fa-briefcase"></i
