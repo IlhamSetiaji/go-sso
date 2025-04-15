@@ -954,11 +954,20 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 			break
 		}
 
+		if gradeResponse.Grade == nil {
+			log.Errorf("Grade not found")
+			msgData = map[string]interface{}{
+				"error": errors.New("grade not found").Error(),
+			}
+			break
+		}
+
 		msgData = map[string]interface{}{
 			"id":             gradeResponse.Grade.ID,
 			"job_level_id":   gradeResponse.Grade.JobLevelID,
 			"name":           gradeResponse.Grade.Name,
 			"job_level_name": gradeResponse.Grade.JobLevel.Name,
+			"midsuit_id":     gradeResponse.Grade.MidsuitID,
 		}
 	case "get_chart_employee_organization_structure":
 		empMessage := empMessaging.ChartEmployeeOrganizationStructureMessageFactory(log)

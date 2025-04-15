@@ -10,6 +10,7 @@ func ConvertToSingleGradeResponse(grade *entity.Grade) *response.GradeResponse {
 		ID:         grade.ID,
 		JobLevelID: grade.JobLevelID,
 		Name:       grade.Name,
+		MidsuitID:  grade.MidsuitID,
 		CreatedAt:  grade.CreatedAt,
 		UpdatedAt:  grade.UpdatedAt,
 		JobLevel: func() *response.JobLevelResponse {

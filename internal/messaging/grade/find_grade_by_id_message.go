@@ -13,7 +13,7 @@ type IFindGradeByIDMessageRequest struct {
 }
 
 type IFindGradeByIDMessageResponse struct {
-	Grade response.GradeResponse `json:"grade"`
+	Grade *response.GradeResponse `json:"grade"`
 }
 
 type IFindGradeByIDMessage interface {
@@ -52,7 +52,7 @@ func (uc *FindGradeByIDMessage) Execute(req *IFindGradeByIDMessageRequest) (*IFi
 	gradeResp := dto.ConvertToSingleGradeResponse(grade)
 
 	return &IFindGradeByIDMessageResponse{
-		Grade: *gradeResp,
+		Grade: gradeResp,
 	}, nil
 }
 
