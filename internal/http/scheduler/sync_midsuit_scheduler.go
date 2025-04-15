@@ -10,6 +10,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -276,6 +277,21 @@ type GradeMidsuitAPIResponse struct {
 	Records     []GradeMidsuitResponse `json:"records"`
 }
 
+func (s *SyncMidsuitScheduler) createLogTxt(message string, path string) {
+	fileName := time.Now().Format("2006-01-02") + ".txt"
+	filePath := path + fileName
+	f, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		s.Log.Error(err)
+		return
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString(message + "\n"); err != nil {
+		s.Log.Error(err)
+	}
+}
+
 func (s *SyncMidsuitScheduler) AuthOneStep() (*AuthOneStepResponse, error) {
 	payload := map[string]interface{}{
 		"userName": s.Viper.GetString("midsuit.username"),
@@ -394,17 +410,20 @@ func (s *SyncMidsuitScheduler) SyncOrganizationType(jwtToken string) error {
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(orgType).Error; err != nil {
 					s.Log.Error(err)
+					s.createLogTxt("Error when creating record: "+err.Error(), "storage/logs/sync_organization_types/")
 					return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when creating record: " + err.Error())
 				}
 				s.Log.Infof("Created record: %+v", orgType)
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying record: "+err.Error(), "storage/logs/sync_organization_types/")
 				return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when querying record: " + err.Error())
 			}
 		} else {
 			// Update the record if it exists
 			if err := s.DB.Model(&existingOrgType).Updates(orgType).Error; err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when updating record: "+err.Error(), "storage/logs/sync_organization_types/")
 				return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingOrgType)
@@ -415,6 +434,7 @@ func (s *SyncMidsuitScheduler) SyncOrganizationType(jwtToken string) error {
 	var existingOrgTypes []entity.OrganizationType
 	if err := s.DB.Where("midsuit_id NOT IN ?", orgTypeMidsuitIDs).Find(&existingOrgTypes).Error; err != nil {
 		s.Log.Error(err)
+		s.createLogTxt("Error when querying organization types: "+err.Error(), "storage/logs/sync_organization_types/")
 		return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when querying organization types: " + err.Error())
 	}
 
@@ -426,6 +446,7 @@ func (s *SyncMidsuitScheduler) SyncOrganizationType(jwtToken string) error {
 	for _, existingOrgType := range existingOrgTypes {
 		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingOrgType).Error; err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when deleting organization type: "+err.Error(), "storage/logs/sync_organization_types/")
 			return errors.New("[SyncMidsuitScheduler.SyncOrganizationType] Error when deleting organization type: " + err.Error())
 		}
 	}
@@ -486,9 +507,11 @@ func (s *SyncMidsuitScheduler) SyncOrganization(jwtToken string) error {
 		if err := s.DB.Where("name = ?", record.OrgType).First(&orgType).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Organization type with ID %d not found", record.OrgType)
+				s.createLogTxt("Organization type with ID %d not found", "storage/logs/sync_organizations/")
 				continue
 			}
 			s.Log.Error(err)
+			s.createLogTxt("Error when querying organization type: "+err.Error(), "storage/logs/sync_organizations/")
 			return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when querying organization type: " + err.Error())
 		}
 
@@ -507,17 +530,20 @@ func (s *SyncMidsuitScheduler) SyncOrganization(jwtToken string) error {
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(org).Error; err != nil {
 					s.Log.Error(err)
+					s.createLogTxt("Error when creating record: "+err.Error(), "storage/logs/sync_organizations/")
 					return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when creating record: " + err.Error())
 				}
 				s.Log.Infof("Created record: %+v", org)
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying record: "+err.Error(), "storage/logs/sync_organizations/")
 				return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when querying record: " + err.Error())
 			}
 		} else {
 			// Update the record if it exists
 			if err := s.DB.Model(&existingOrg).Updates(org).Error; err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when updating record: "+err.Error(), "storage/logs/sync_organizations/")
 				return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingOrg)
@@ -528,6 +554,7 @@ func (s *SyncMidsuitScheduler) SyncOrganization(jwtToken string) error {
 	var existingOrgs []entity.Organization
 	if err := s.DB.Where("midsuit_id NOT IN ?", orgMidsuitIDs).Find(&existingOrgs).Error; err != nil {
 		s.Log.Error(err)
+		s.createLogTxt("Error when querying organizations: "+err.Error(), "storage/logs/sync_organizations/")
 		return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when querying organizations: " + err.Error())
 	}
 
@@ -539,6 +566,7 @@ func (s *SyncMidsuitScheduler) SyncOrganization(jwtToken string) error {
 	for _, existingOrg := range existingOrgs {
 		if err := s.DB.Where("name NOT IN (?)", nameExceptions).Delete(&existingOrg).Error; err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when deleting organization: "+err.Error(), "storage/logs/sync_organizations/")
 			return errors.New("[SyncMidsuitScheduler.SyncOrganization] Error when deleting organization: " + err.Error())
 		}
 	}
@@ -607,17 +635,20 @@ func (s *SyncMidsuitScheduler) SyncJobLevel(jwtToken string) error {
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(jobLevel).Error; err != nil {
 					s.Log.Error(err)
+					s.createLogTxt("Error when creating record: "+err.Error(), "storage/logs/sync_job_levels/")
 					return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when creating record: " + err.Error())
 				}
 				s.Log.Infof("Created record: %+v", jobLevel)
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying record: "+err.Error(), "storage/logs/sync_job_levels/")
 				return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when querying record: " + err.Error())
 			}
 		} else {
 			// Update the record if it exists
 			if err := s.DB.Model(&existingJobLevel).Updates(jobLevel).Error; err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when updating record: "+err.Error(), "storage/logs/sync_job_levels/")
 				return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingJobLevel)
@@ -628,6 +659,7 @@ func (s *SyncMidsuitScheduler) SyncJobLevel(jwtToken string) error {
 	var existingJobLevels []entity.JobLevel
 	if err := s.DB.Where("midsuit_id NOT IN ?", jobLevelMidsuitIDs).Find(&existingJobLevels).Error; err != nil {
 		s.Log.Error(err)
+		s.createLogTxt("Error when querying job levels: "+err.Error(), "storage/logs/sync_job_levels/")
 		return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when querying job levels: " + err.Error())
 	}
 
@@ -642,6 +674,7 @@ func (s *SyncMidsuitScheduler) SyncJobLevel(jwtToken string) error {
 	for _, existingJobLevel := range existingJobLevels {
 		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingJobLevel).Error; err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when deleting job level: "+err.Error(), "storage/logs/sync_job_levels/")
 			return errors.New("[SyncMidsuitScheduler.SyncJobLevel] Error when deleting job level: " + err.Error())
 		}
 	}
@@ -702,6 +735,7 @@ func (s *SyncMidsuitScheduler) SyncOrganizationLocation(jwtToken string) error {
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.AdOrgID.ID)).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Organization with ID %d not found", record.AdOrgID.ID)
+				s.createLogTxt("Organization with ID %d not found", "storage/logs/sync_organization_locations/")
 				continue
 			}
 			s.Log.Error(err)
@@ -721,17 +755,20 @@ func (s *SyncMidsuitScheduler) SyncOrganizationLocation(jwtToken string) error {
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(orgLocation).Error; err != nil {
 					s.Log.Error(err)
+					s.createLogTxt("Error when creating record: "+err.Error(), "storage/logs/sync_organization_locations/")
 					return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when creating record: " + err.Error())
 				}
 				s.Log.Infof("Created record: %+v", orgLocation)
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying record: "+err.Error(), "storage/logs/sync_organization_locations/")
 				return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when querying record: " + err.Error())
 			}
 		} else {
 			// Update the record if it exists
 			if err := s.DB.Model(&existingOrgLocation).Updates(orgLocation).Error; err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when updating record: "+err.Error(), "storage/logs/sync_organization_locations/")
 				return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingOrgLocation)
@@ -742,6 +779,7 @@ func (s *SyncMidsuitScheduler) SyncOrganizationLocation(jwtToken string) error {
 	var existingOrgLocations []entity.OrganizationLocation
 	if err := s.DB.Where("midsuit_id NOT IN ?", orgLocationMidsuitIDs).Find(&existingOrgLocations).Error; err != nil {
 		s.Log.Error(err)
+		s.createLogTxt("Error when querying organization locations: "+err.Error(), "storage/logs/sync_organization_locations/")
 		return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when querying organization locations: " + err.Error())
 	}
 
@@ -757,6 +795,7 @@ func (s *SyncMidsuitScheduler) SyncOrganizationLocation(jwtToken string) error {
 	for _, existingOrgLocation := range existingOrgLocations {
 		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingOrgLocation).Error; err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when deleting organization location: "+err.Error(), "storage/logs/sync_organization_locations/")
 			return errors.New("[SyncMidsuitScheduler.SyncOrganizationLocation] Error when deleting organization location: " + err.Error())
 		}
 	}
@@ -822,9 +861,11 @@ func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error 
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.AdOrgID.ID)).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Organization with ID %d not found", record.AdOrgID.ID)
+				s.createLogTxt("Organization with ID %d not found", "storage/logs/sync_organization_structures/")
 				continue
 			}
 			s.Log.Error(err)
+			s.createLogTxt("Error when querying organization: "+err.Error(), "storage/logs/sync_organization_structures/")
 			return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying organization: " + err.Error())
 		}
 
@@ -832,9 +873,11 @@ func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error 
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.JobLevelID)).First(&jobLevel).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Job level with ID %d not found", record.JobLevelID)
+				s.createLogTxt("Job level with ID %d not found", "storage/logs/sync_organization_structures/")
 				continue
 			}
 			s.Log.Error(err)
+			s.createLogTxt("Error when querying job level: "+err.Error(), "storage/logs/sync_organization_structures/")
 			return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying job level: " + err.Error())
 		}
 
@@ -844,9 +887,11 @@ func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error 
 			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.ParentID)).First(&parentOrgStructure).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					s.Log.Errorf("Parent organization structure with ID %d not found", record.ParentID)
+					s.createLogTxt("Parent organization structure with ID %d not found", "storage/logs/sync_organization_structures/")
 					continue
 				}
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying parent organization structure: "+err.Error(), "storage/logs/sync_organization_structures/")
 				return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying parent organization structure: " + err.Error())
 			}
 			parentID = &parentOrgStructure.ID
@@ -867,17 +912,20 @@ func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error 
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(orgStructure).Error; err != nil {
 					s.Log.Error(err)
+					s.createLogTxt("Error when creating record: "+err.Error(), "storage/logs/sync_organization_structures/")
 					return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when creating record: " + err.Error())
 				}
 				s.Log.Infof("Created record: %+v", orgStructure)
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying record: "+err.Error(), "storage/logs/sync_organization_structures/")
 				return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying record: " + err.Error())
 			}
 		} else {
 			// Update the record if it exists
 			if err := s.DB.Model(&existingOrgStructure).Updates(orgStructure).Error; err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when updating record: "+err.Error(), "storage/logs/sync_organization_structures/")
 				return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingOrgStructure)
@@ -888,6 +936,7 @@ func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error 
 	var existingOrgStructures []entity.OrganizationStructure
 	if err := s.DB.Where("midsuit_id NOT IN ?", orgStructureMidsuitIDs).Find(&existingOrgStructures).Error; err != nil {
 		s.Log.Error(err)
+		s.createLogTxt("Error when querying organization structures: "+err.Error(), "storage/logs/sync_organization_structures/")
 		return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when querying organization structures: " + err.Error())
 	}
 
@@ -902,6 +951,7 @@ func (s *SyncMidsuitScheduler) SyncOrganizationStructure(jwtToken string) error 
 	for _, existingOrgStructure := range existingOrgStructures {
 		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingOrgStructure).Error; err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when deleting organization structure: "+err.Error(), "storage/logs/sync_organization_structures/")
 			return errors.New("[SyncMidsuitScheduler.SyncOrganizationStructure] Error when deleting organization structure: " + err.Error())
 		}
 	}
@@ -967,9 +1017,11 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.JobLevelID)).First(&jobLevel).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Job level with ID %d not found", record.JobLevelID)
+				s.createLogTxt("Job level with ID %d not found", "storage/logs/sync_jobs/")
 				continue
 			}
 			s.Log.Error(err)
+			s.createLogTxt("Error when querying job level: "+err.Error(), "storage/logs/sync_jobs/")
 			return errors.New("[SyncMidsuitScheduler.SyncJob] Error when querying job level: " + err.Error())
 		}
 
@@ -977,6 +1029,7 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationStructureID)).First(&orgStructure).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Organization structure with ID %d not found", record.OrganizationStructureID)
+				s.createLogTxt("Organization structure with ID %d not found", "storage/logs/sync_jobs/")
 				continue
 			}
 			s.Log.Error(err)
@@ -987,6 +1040,7 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationID)).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Organization with ID %d not found", orgStructure.OrganizationID)
+				s.createLogTxt("Organization with ID %d not found", "storage/logs/sync_jobs/")
 				continue
 			}
 			s.Log.Error(err)
@@ -999,9 +1053,11 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.ParentID)).First(&parentJob).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					s.Log.Errorf("Parent job with ID %d not found", record.ParentID)
+					s.createLogTxt("Parent job with ID %d not found", "storage/logs/sync_jobs/")
 					continue
 				}
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying parent job: "+err.Error(), "storage/logs/sync_jobs/")
 				return errors.New("[SyncMidsuitScheduler.SyncJob] Error when querying parent job: " + err.Error())
 			}
 			parentID = &parentJob.ID
@@ -1032,17 +1088,20 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(job).Error; err != nil {
 					s.Log.Error(err)
+					s.createLogTxt("Error when creating record: "+err.Error(), "storage/logs/sync_jobs/")
 					return errors.New("[SyncMidsuitScheduler.SyncJob] Error when creating record: " + err.Error())
 				}
 				s.Log.Infof("Created record: %+v", job)
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying record: "+err.Error(), "storage/logs/sync_jobs/")
 				return errors.New("[SyncMidsuitScheduler.SyncJob] Error when querying record: " + err.Error())
 			}
 		} else {
 			// Update the record if it exists
 			if err := s.DB.Model(&existingJob).Updates(job).Error; err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when updating record: "+err.Error(), "storage/logs/sync_jobs/")
 				return errors.New("[SyncMidsuitScheduler.SyncJob] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingJob)
@@ -1053,6 +1112,7 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 	var existingJobs []entity.Job
 	if err := s.DB.Where("midsuit_id NOT IN ?", jobMidsuitIDs).Find(&existingJobs).Error; err != nil {
 		s.Log.Error(err)
+		s.createLogTxt("Error when querying jobs: "+err.Error(), "storage/logs/sync_jobs/")
 		return errors.New("[SyncMidsuitScheduler.SyncJob] Error when querying jobs: " + err.Error())
 	}
 
@@ -1067,6 +1127,7 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 	for _, existingJob := range existingJobs {
 		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingJob).Error; err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when deleting job: "+err.Error(), "storage/logs/sync_jobs/")
 			return errors.New("[SyncMidsuitScheduler.SyncJob] Error when deleting job: " + err.Error())
 		}
 	}
@@ -1127,6 +1188,7 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.ADOrgID.ID)).First(&org).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Organization with ID %d not found", record.ADOrgID.ID)
+				s.createLogTxt("Organization with ID %d not found", "storage/logs/sync_employees/")
 				continue
 			}
 			s.Log.Error(err)
@@ -1139,6 +1201,7 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 			parsedEndDate, err := time.Parse(time.RFC3339, record.EndDate)
 			if err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when parsing end date: "+err.Error(), "storage/logs/sync_employees/")
 				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when parsing end date: " + err.Error())
 			}
 			endDate = parsedEndDate
@@ -1150,6 +1213,7 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 			parsedRetirementDate, err := time.Parse(time.RFC3339, record.RetirementDate)
 			if err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when parsing retirement date: "+err.Error(), "storage/logs/sync_employees/")
 				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when parsing retirement date: " + err.Error())
 			}
 			retirementDate = parsedRetirementDate
@@ -1173,17 +1237,20 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(employee).Error; err != nil {
 					s.Log.Error(err)
+					s.createLogTxt("Error when creating record: "+err.Error(), "storage/logs/sync_employees/")
 					return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when creating record: " + err.Error())
 				}
 				s.Log.Infof("Created record: %+v", employee)
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying record: "+err.Error(), "storage/logs/sync_employees/")
 				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when querying record: " + err.Error())
 			}
 		} else {
 			// Update the record if it exists
 			if err := s.DB.Model(&existingEmployee).Updates(employee).Error; err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when updating record: "+err.Error(), "storage/logs/sync_employees/")
 				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingEmployee)
@@ -1193,9 +1260,11 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 		if err := s.DB.Where("midsuit_id = ?", employee.MidsuitID).First(&employeeExist).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Employee with ID %d not found", record.ID)
+				s.createLogTxt("Employee with ID %d not found", "storage/logs/sync_employees/")
 				employeeExist.ID = uuid.Nil
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying employee: "+err.Error(), "storage/logs/sync_employees/")
 				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when querying employee: " + err.Error())
 			}
 		}
@@ -1204,6 +1273,7 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("changeme"), bcrypt.DefaultCost)
 		if err != nil {
 			s.Log.Error("[UserUseCase.Register] " + err.Error())
+			s.createLogTxt("Error when hashing password: "+err.Error(), "storage/logs/sync_employees/")
 			return err
 		}
 		user := &entity.User{
@@ -1225,16 +1295,19 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				if err := s.DB.Create(user).Error; err != nil {
 					s.Log.Error(err)
+					s.createLogTxt("Error when creating user: "+err.Error(), "storage/logs/sync_employees/")
 					return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when creating user: " + err.Error())
 				}
 				s.Log.Infof("Created user: %+v", user)
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying user: "+err.Error(), "storage/logs/sync_employees/")
 				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when querying user: " + err.Error())
 			}
 		} else {
 			if err := s.DB.Model(&existingUser).Updates(user).Error; err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when updating user: "+err.Error(), "storage/logs/sync_employees/")
 				return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when updating user: " + err.Error())
 			}
 			s.Log.Infof("Updated user: %+v", existingUser)
@@ -1245,6 +1318,7 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 	var existingEmployees []entity.Employee
 	if err := s.DB.Where("midsuit_id NOT IN ?", employeeMidsuitIDs).Find(&existingEmployees).Error; err != nil {
 		s.Log.Error(err)
+		s.createLogTxt("Error when querying employees: "+err.Error(), "storage/logs/sync_employees/")
 		return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when querying employees: " + err.Error())
 	}
 
@@ -1256,6 +1330,7 @@ func (s *SyncMidsuitScheduler) SyncEmployee(jwtToken string) error {
 	for _, existingEmployee := range existingEmployees {
 		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingEmployee).Error; err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when deleting employee: "+err.Error(), "storage/logs/sync_employees/")
 			return errors.New("[SyncMidsuitScheduler.SyncEmployee] Error when deleting employee: " + err.Error())
 		}
 	}
@@ -1316,9 +1391,11 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.EmployeeID)).First(&employee).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Employee with ID %d not found", record.EmployeeID)
+				s.createLogTxt("Employee with ID %d not found", "storage/logs/sync_employee_jobs/")
 				continue
 			}
 			s.Log.Error(err)
+			s.createLogTxt("Error when querying employee: "+err.Error(), "storage/logs/sync_employee_jobs/")
 			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when querying employee: " + err.Error())
 		}
 
@@ -1326,9 +1403,11 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.JobID)).First(&job).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Job with ID %d not found", record.JobID)
+				s.createLogTxt("Job with ID %d not found", "storage/logs/sync_employee_jobs/")
 				continue
 			}
 			s.Log.Error(err)
+			s.createLogTxt("Error when querying job: "+err.Error(), "storage/logs/sync_employee_jobs/")
 			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when querying job: " + err.Error())
 		}
 
@@ -1338,6 +1417,7 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.EmpOrganizationID)).First(&org).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					s.Log.Errorf("Organization with ID %d not found", record.EmpOrganizationID)
+					s.createLogTxt("Organization with ID %d not found", "storage/logs/sync_employee_jobs/")
 					empOrganizationID = nil
 				}
 				s.Log.Error(err)
@@ -1353,9 +1433,11 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationLocationID)).First(&orgLocation).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					s.Log.Errorf("Organization location with ID %d not found", record.OrganizationLocationID)
+					s.createLogTxt("Organization location with ID %d not found", "storage/logs/sync_employee_jobs/")
 					orgLocationID = nil
 				}
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying organization location: "+err.Error(), "storage/logs/sync_employee_jobs/")
 				orgLocationID = nil
 			}
 			orgLocationID = &orgLocation.ID
@@ -1367,9 +1449,11 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.OrganizationStructureID)).First(&orgStructure).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					s.Log.Errorf("Organization structure with ID %d not found", record.OrganizationStructureID)
+					s.createLogTxt("Organization structure with ID %d not found", "storage/logs/sync_employee_jobs/")
 					orgStructureID = nil
 				}
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying organization structure: "+err.Error(), "storage/logs/sync_employee_jobs/")
 				orgStructureID = nil
 			} else {
 				orgStructureID = &orgStructure.ID
@@ -1382,9 +1466,11 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.HCEmployeeGradeID.ID)).First(&grade).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					s.Log.Errorf("Grade with ID %d not found", record.HCEmployeeGradeID.ID)
+					s.createLogTxt("Grade with ID %d not found", "storage/logs/sync_employee_jobs/")
 					gradeID = nil
 				}
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying grade: "+err.Error(), "storage/logs/sync_employee_jobs/")
 				gradeID = nil
 			} else {
 				gradeID = &grade.ID
@@ -1413,18 +1499,21 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(employeeJob).Error; err != nil {
 					s.Log.Error(err)
+					s.createLogTxt("Error when creating record: "+err.Error(), "storage/logs/sync_employee_jobs/")
 					continue
 					// return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when creating record: " + err.Error())
 				}
 				s.Log.Infof("Created record: %+v", employeeJob)
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying record: "+err.Error(), "storage/logs/sync_employee_jobs/")
 				return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when querying record: " + err.Error())
 			}
 		} else {
 			// Update the record if it exists
 			if err := s.DB.Model(&existingEmployeeJob).Updates(employeeJob).Error; err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when updating record: "+err.Error(), "storage/logs/sync_employee_jobs/")
 				return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingEmployeeJob)
@@ -1435,6 +1524,7 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 	var existingEmployeeJobs []entity.EmployeeJob
 	if err := s.DB.Where("midsuit_id NOT IN ?", employeeJobMidsuitIDs).Find(&existingEmployeeJobs).Error; err != nil {
 		s.Log.Error(err)
+		s.createLogTxt("Error when querying employee jobs: "+err.Error(), "storage/logs/sync_employee_jobs/")
 		return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when querying employee jobs: " + err.Error())
 	}
 
@@ -1446,6 +1536,7 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 	for _, existingEmployeeJob := range existingEmployeeJobs {
 		if err := s.DB.Where("name NOT IN (?)", exceptionName).Delete(&existingEmployeeJob).Error; err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when deleting employee job: "+err.Error(), "storage/logs/sync_employee_jobs/")
 			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJob] Error when deleting employee job: " + err.Error())
 		}
 	}
@@ -1503,9 +1594,11 @@ func (s *SyncMidsuitScheduler) SyncUserProfile(jwtToken string) error {
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.HCEmployeeID.ID)).First(&employee).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Employee with ID %d not found", record.HCEmployeeID.ID)
+				s.createLogTxt("Employee with ID %d not found", "storage/logs/sync_employee_jobs/")
 				continue
 			}
 			s.Log.Error(err)
+			s.createLogTxt("Error when querying employee: "+err.Error(), "storage/logs/sync_employee_jobs/")
 			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when querying employee: " + err.Error())
 		}
 
@@ -1513,15 +1606,18 @@ func (s *SyncMidsuitScheduler) SyncUserProfile(jwtToken string) error {
 		if err := s.DB.Where("employee_id = ?", employee.ID).First(&user).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("User with employee_id %s not found", employee.ID)
+				s.createLogTxt("User with employee_id %s not found", "storage/logs/sync_employee_jobs/")
 				continue
 			}
 			s.Log.Error(err)
+			s.createLogTxt("Error when querying user: "+err.Error(), "storage/logs/sync_employee_jobs/")
 			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when querying user: " + err.Error())
 		}
 
 		parsedBirthDate, err := time.Parse(time.RFC3339, record.BirthDate)
 		if err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when parsing birth date: "+err.Error(), "storage/logs/sync_employee_jobs/")
 			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when parsing birth date: " + err.Error())
 		}
 
@@ -1537,6 +1633,7 @@ func (s *SyncMidsuitScheduler) SyncUserProfile(jwtToken string) error {
 		})
 		if err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when sending message: "+err.Error(), "storage/logs/sync_employee_jobs/")
 			return errors.New("[SyncMidsuitScheduler.SyncEmployeeJobHistory] Error when sending message: " + err.Error())
 		}
 	}
@@ -1598,6 +1695,7 @@ func (s *SyncMidsuitScheduler) SyncGrade(jwtToken string) error {
 		if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.HcJobLevelID.ID)).First(&jobLevel).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				s.Log.Errorf("Job level with ID %d not found", record.HcJobLevelID.ID)
+				s.createLogTxt("Job level with ID %d not found", "storage/logs/sync_grades/")
 				continue
 			}
 
@@ -1618,17 +1716,20 @@ func (s *SyncMidsuitScheduler) SyncGrade(jwtToken string) error {
 				// Create the record if it doesn't exist
 				if err := s.DB.Create(grade).Error; err != nil {
 					s.Log.Error(err)
+					s.createLogTxt("Error when creating record: "+err.Error(), "storage/logs/sync_grades/")
 					return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when creating record: " + err.Error())
 				}
 				s.Log.Infof("Created record: %+v", grade)
 			} else {
 				s.Log.Error(err)
+				s.createLogTxt("Error when querying record: "+err.Error(), "storage/logs/sync_grades/")
 				return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when querying record: " + err.Error())
 			}
 		} else {
 			// Update the record if it exists
 			if err := s.DB.Model(&existingGrade).Updates(grade).Error; err != nil {
 				s.Log.Error(err)
+				s.createLogTxt("Error when updating record: "+err.Error(), "storage/logs/sync_grades/")
 				return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when updating record: " + err.Error())
 			}
 			s.Log.Infof("Updated record: %+v", existingGrade)
@@ -1639,12 +1740,14 @@ func (s *SyncMidsuitScheduler) SyncGrade(jwtToken string) error {
 	var existingGrades []entity.Grade
 	if err := s.DB.Where("midsuit_id NOT IN ?", gradeMidsuitIDs).Find(&existingGrades).Error; err != nil {
 		s.Log.Error(err)
+		s.createLogTxt("Error when querying grades: "+err.Error(), "storage/logs/sync_grades/")
 		return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when querying grades: " + err.Error())
 	}
 
 	for _, existingGrade := range existingGrades {
 		if err := s.DB.Delete(&existingGrade).Error; err != nil {
 			s.Log.Error(err)
+			s.createLogTxt("Error when deleting grade: "+err.Error(), "storage/logs/sync_grades/")
 			return errors.New("[SyncMidsuitScheduler.SyncGrade] Error when deleting grade: " + err.Error())
 		}
 	}
