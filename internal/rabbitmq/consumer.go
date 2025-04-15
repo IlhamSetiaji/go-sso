@@ -265,9 +265,18 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 			break
 		}
 
+		parsedJobLevelID, err := uuid.Parse(jobLevelID)
+		if err != nil {
+			log.Printf("Invalid UUID format for 'job_level_id': %s", err.Error())
+			msgData = map[string]interface{}{
+				"error": errors.New("invalid 'job_level_id' format").Error(),
+			}
+			break
+		}
+
 		messageFactory := messaging.FindJobLevelByIDMessageFactory(log)
 		message, err := messageFactory.Execute(messaging.IFindJobLevelByIDMessageRequest{
-			JobLevelID: uuid.MustParse(jobLevelID),
+			JobLevelID: parsedJobLevelID,
 		})
 
 		if err != nil {
@@ -846,6 +855,23 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 			break
 		}
 
+		jobLevelID, ok := docMsg.MessageData["job_level_id"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'job_level_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'job_level_id'").Error(),
+			}
+			break
+		}
+		parsedJobLevelID, err := uuid.Parse(jobLevelID)
+		if err != nil {
+			log.Errorf("Invalid job level id")
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
 		organizationID, ok := docMsg.MessageData["organization_id"].(string)
 		if !ok {
 			log.Errorf("Invalid request format: missing 'organization_id'")
@@ -917,6 +943,7 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 			EmployeeID:              employee.EmployeeID,
 			Name:                    name,
 			JobID:                   parsedJobID.String(),
+			JobLevelID:              parsedJobLevelID.String(),
 			EmpOrganizationID:       parsedOrganizationID.String(),
 			OrganizationLocationID:  parsedOrganizationLocationID.String(),
 			OrganizationStructureID: parsedOrganizationStructureID.String(),

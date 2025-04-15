@@ -13,6 +13,7 @@ type IStoreEmployeeJobUsecaseRequest struct {
 	EmployeeID              string `form:"employee_id" validate:"required"`
 	Name                    string `form:"name" validate:"omitempty"`
 	JobID                   string `form:"job_id" validate:"required"`
+	JobLevelID              string `form:"job_level_id" validate:"required"`
 	EmpOrganizationID       string `form:"emp_organization_id" validate:"required"`
 	OrganizationLocationID  string `form:"organization_location_id" validate:"required"`
 	OrganizationStructureID string `form:"organization_structure_id" validate:"omitempty"`
@@ -32,6 +33,7 @@ type StoreEmployeeJobUsecase struct {
 	JobRepo         repository.IJobRepository
 	OrgRepo         repository.IOrganizationRepository
 	OrgLocationRepo repository.IOrganizationLocationRepository
+	JobLevelRepo    repository.IJobLevelRepository
 }
 
 func StoreEmployeeJobUsecaseFactory(log *logrus.Logger) IStoreEmployeeJobUsecase {
@@ -39,12 +41,14 @@ func StoreEmployeeJobUsecaseFactory(log *logrus.Logger) IStoreEmployeeJobUsecase
 	jobRepo := repository.JobRepositoryFactory(log)
 	orgRepo := repository.OrganizationRepositoryFactory(log)
 	orgLocationRepo := repository.OrganizationLocationRepositoryFactory(log)
+	jobLevelRepo := repository.JobLevelRepositoryFactory(log)
 	return &StoreEmployeeJobUsecase{
 		Log:             log,
 		EmployeeRepo:    employeeRepo,
 		JobRepo:         jobRepo,
 		OrgRepo:         orgRepo,
 		OrgLocationRepo: orgLocationRepo,
+		JobLevelRepo:    jobLevelRepo,
 	}
 }
 
@@ -67,6 +71,16 @@ func (u *StoreEmployeeJobUsecase) Execute(request *IStoreEmployeeJobUsecaseReque
 
 	if job == nil {
 		return nil, errors.New("Job not found")
+	}
+
+	jobLevel, err := u.JobLevelRepo.FindById(uuid.MustParse(request.JobLevelID))
+	if err != nil {
+		u.Log.Error(err)
+		return nil, err
+	}
+
+	if jobLevel == nil {
+		return nil, errors.New("Job Level not found")
 	}
 
 	org, err := u.OrgRepo.FindById(uuid.MustParse(request.EmpOrganizationID))
@@ -99,6 +113,7 @@ func (u *StoreEmployeeJobUsecase) Execute(request *IStoreEmployeeJobUsecaseReque
 		Name:                    request.Name,
 		EmployeeID:              &employee.ID,
 		JobID:                   uuid.MustParse(request.JobID),
+		JobLevelID:              request.JobLevelID,
 		EmpOrganizationID:       &empOrganizationID,
 		OrganizationLocationID:  uuid.MustParse(request.OrganizationLocationID),
 		OrganizationStructureID: uuid.MustParse(request.OrganizationStructureID),
