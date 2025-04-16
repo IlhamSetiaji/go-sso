@@ -802,6 +802,38 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 		msgData = map[string]interface{}{
 			"message": "success",
 		}
+	case "update_employee_midsuit":
+		employeeID, ok := docMsg.MessageData["employee_id"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'employee_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'employee_id'").Error(),
+			}
+			break
+		}
+		midsuitID, ok := docMsg.MessageData["midsuit_id"].(string)
+		if !ok {
+			log.Errorf("Invalid request format: missing 'midsuit_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'midsuit_id'").Error(),
+			}
+		}
+
+		employeeUseCase := empUseCase.UpdateEmployeeMidsuitUsecaseFactory(log)
+		_, err := employeeUseCase.Execute(&empUseCase.IUpdateEmployeeMidsuitUsecaseRequest{
+			ID:        employeeID,
+			MidsuitID: midsuitID,
+		})
+		if err != nil {
+			log.Errorf("Failed to update employee midsuit: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+		msgData = map[string]interface{}{
+			"message": "success",
+		}
 	case "create_employee":
 		name, ok := docMsg.MessageData["name"].(string)
 		if !ok {

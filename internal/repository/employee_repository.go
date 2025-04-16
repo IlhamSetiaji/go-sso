@@ -24,6 +24,7 @@ type IEmployeeRepository interface {
 	CountEmployeeRetiredEndByDateRange(startDate string, endDate string) (int64, error)
 	GetOrganizationStructureIdDistinct() ([]uuid.UUID, error)
 	CountByOrganizationStructureID(organizationStructureID uuid.UUID) (int, error)
+	UpdateEmployeeMidsuitID(id uuid.UUID, midsuitID string) (*entity.Employee, error)
 }
 
 type EmployeeRepository struct {
@@ -281,6 +282,34 @@ func (r *EmployeeRepository) FindByMidsuitID(midsuitID string) (*entity.Employee
 	if err != nil {
 		return nil, err
 	}
+	return &employee, nil
+}
+
+func (r *EmployeeRepository) UpdateEmployeeMidsuitID(id uuid.UUID, midsuitID string) (*entity.Employee, error) {
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	var employee entity.Employee
+
+	if err := tx.Where("id = ?", id).First(&employee).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	employee.MidsuitID = midsuitID
+
+	if err := tx.Save(&employee).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
 	return &employee, nil
 }
 
