@@ -92,6 +92,7 @@ func (c *RouteConfig) SetupApiRoutes() {
 			// Employee routes
 			apiRoute.GET("/employees", c.EmployeeHandler.FindAllPaginated)
 			apiRoute.GET("/employees/turnover", c.EmployeeHandler.CountEmployeeRetiredEndByDateRange)
+			apiRoute.GET("/employees/recruitment-manager", c.EmployeeHandler.FindEmployeeRecruitmentManager)
 			apiRoute.GET("/employees/:id", c.EmployeeHandler.FindById)
 
 			// Grade routes

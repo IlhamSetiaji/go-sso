@@ -25,6 +25,7 @@ type IEmployeeRepository interface {
 	GetOrganizationStructureIdDistinct() ([]uuid.UUID, error)
 	CountByOrganizationStructureID(organizationStructureID uuid.UUID) (int, error)
 	UpdateEmployeeMidsuitID(id uuid.UUID, midsuitID string) (*entity.Employee, error)
+	FindEmployeeRecruitmentManager() (*[]entity.Employee, error)
 }
 
 type EmployeeRepository struct {
@@ -311,6 +312,29 @@ func (r *EmployeeRepository) UpdateEmployeeMidsuitID(id uuid.UUID, midsuitID str
 	}
 
 	return &employee, nil
+}
+
+func (r *EmployeeRepository) FindEmployeeRecruitmentManager() (*[]entity.Employee, error) {
+	var employees []entity.Employee
+	err := r.DB.Raw(`
+			SELECT 
+					e.*
+			FROM 
+					employees e
+			JOIN 
+					employee_jobs ej ON e.id = ej.employee_id
+			JOIN 
+					jobs j ON ej.job_id = j.id
+			JOIN 
+					organizations o ON e.organization_id = o.id
+			WHERE 
+					j.name = 'Recruitment Manager' 
+					AND o.name = 'Head Office'
+	`).Scan(&employees).Error
+	if err != nil {
+		return nil, err
+	}
+	return &employees, nil
 }
 
 func EmployeeRepositoryFactory(log *logrus.Logger) IEmployeeRepository {

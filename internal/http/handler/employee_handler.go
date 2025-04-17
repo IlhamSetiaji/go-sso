@@ -19,6 +19,7 @@ type IEmployeeHandler interface {
 	FindAllPaginated(ctx *gin.Context)
 	FindById(ctx *gin.Context)
 	CountEmployeeRetiredEndByDateRange(ctx *gin.Context)
+	FindEmployeeRecruitmentManager(ctx *gin.Context)
 }
 
 type EmployeeHandler struct {
@@ -144,4 +145,22 @@ func (h *EmployeeHandler) CountEmployeeRetiredEndByDateRange(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "success", res)
+}
+
+func (h *EmployeeHandler) FindEmployeeRecruitmentManager(ctx *gin.Context) {
+	middleware.PermissionApiMiddleware("read-employee")(ctx)
+	if denied, exists := ctx.Get("permission_denied"); exists && denied.(bool) {
+		h.Log.Errorf("Permission denied")
+		return
+	}
+
+	uc := usecase.FindEmployeeRecruitmentManagerUsecaseFactory(h.Log)
+	res, err := uc.Execute()
+	if err != nil {
+		h.Log.Errorf("Error FindEmployeeRecruitmentManagerUsecaseFactory: %v", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "error", err.Error())
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "success", res.Employee)
 }
