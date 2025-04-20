@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"app/go-sso/internal/entity"
+	"log"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -17,6 +18,8 @@ import (
 // }
 
 func WebAuthMiddleware() gin.HandlerFunc {
+	// add logs to check if the middleware is being called
+	log.Println("WebAuthMiddleware called")
 	return func(c *gin.Context) {
 		if len(c.Request.URL.Path) >= 4 && c.Request.URL.Path[:4] == "/api" {
 			c.Next()

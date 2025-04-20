@@ -109,8 +109,8 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		Password: payload.Password,
 	})
 	if err != nil {
-		utils.ErrorResponse(ctx, 500, "error", err.Error())
 		h.Log.Errorf("Error when login: %v", err)
+		utils.ErrorResponse(ctx, 500, "error", err.Error())
 		return
 	}
 
