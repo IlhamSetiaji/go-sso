@@ -227,6 +227,31 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 			"user_id": userID,
 			"name":    message.Name,
 		}
+	case "find_user_by_employee_id":
+		employeeID, ok := docMsg.MessageData["employee_id"].(string)
+		if !ok {
+			log.Printf("Invalid request format: missing 'employee_id'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'employee_id'").Error(),
+			}
+			break
+		}
+
+		messageFactory := userMessaging.FindUserByIDMessageFactory(log)
+		message, err := messageFactory.ExecuteEmployeeID(employeeID)
+
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+
+		msgData = map[string]interface{}{
+			"user_id": message.UserID,
+			"name":    message.Name,
+		}
 	case "find_organization_location_by_id":
 		organizationLocationID, ok := docMsg.MessageData["organization_location_id"].(string)
 		if !ok {

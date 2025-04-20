@@ -19,6 +19,7 @@ type IFindUserByIDMessageResponse struct {
 
 type IFindUserByIDMessage interface {
 	Execute(request IFindUserByIDMessageRequest) (*IFindUserByIDMessageResponse, error)
+	ExecuteEmployeeID(employeeID string) (*IFindUserByIDMessageResponse, error)
 }
 
 type FindUserByIDMessage struct {
@@ -35,6 +36,22 @@ func NewFindUserByIDMessage(log *logrus.Logger, repository repository.IUserRepos
 
 func (m *FindUserByIDMessage) Execute(request IFindUserByIDMessageRequest) (*IFindUserByIDMessageResponse, error) {
 	user, err := m.Repository.FindById(request.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	return &IFindUserByIDMessageResponse{
+		UserID: user.ID,
+		Name:   user.Name,
+	}, nil
+}
+
+func (m *FindUserByIDMessage) ExecuteEmployeeID(employeeID string) (*IFindUserByIDMessageResponse, error) {
+	user, err := m.Repository.FindByEmployeeID(employeeID)
 	if err != nil {
 		return nil, err
 	}

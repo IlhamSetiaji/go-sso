@@ -15,6 +15,7 @@ type IUserRepository interface {
 	FindByEmail(email string) (*entity.User, error)
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.User, int64, error)
 	FindById(id uuid.UUID) (*entity.User, error)
+	FindByEmployeeID(employeeID string) (*entity.User, error)
 	FindByIdOnly(id uuid.UUID) (*entity.User, error)
 	FindByEmailOnly(email string) (*entity.User, error)
 	GetAllUsers() (*[]entity.User, error)
@@ -114,6 +115,21 @@ func (r *UserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 		} else {
 			r.Log.Error("[UserRepository.FindById] " + err.Error())
 			return nil, errors.New("[UserRepository.FindById] " + err.Error())
+		}
+	}
+	return &user, nil
+}
+
+func (r *UserRepository) FindByEmployeeID(employeeID string) (*entity.User, error) {
+	var user entity.User
+	err := r.DB.Preload("Roles.Permissions").Preload("Employee.Organization").Where("employee_id = ?", employeeID).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			r.Log.Warn("[UserRepository.FindByEmployeeID] User not found")
+			return nil, nil
+		} else {
+			r.Log.Error("[UserRepository.FindByEmployeeID] " + err.Error())
+			return nil, errors.New("[UserRepository.FindByEmployeeID] " + err.Error())
 		}
 	}
 	return &user, nil
