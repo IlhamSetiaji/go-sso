@@ -18,6 +18,11 @@ import (
 
 func WebAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if len(c.Request.URL.Path) >= 4 && c.Request.URL.Path[:4] == "/api" {
+			c.Next()
+			return
+		}
+
 		session := sessions.Default(c)
 		profile := session.Get("profile")
 
