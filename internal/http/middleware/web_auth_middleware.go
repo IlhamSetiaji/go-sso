@@ -4,24 +4,18 @@ import (
 	"app/go-sso/internal/entity"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
-// func WebAuthMiddleware(ctx *gin.Context) {
-// 	if sessions.Default(ctx).Get("profile") == nil {
-// 		ctx.Redirect(http.StatusSeeOther, "/")
-// 	} else {
-// 		ctx.Next()
-// 	}
-// }
-
 func WebAuthMiddleware() gin.HandlerFunc {
-	// add logs to check if the middleware is being called
-	log.Println("WebAuthMiddleware called")
 	return func(c *gin.Context) {
-		if len(c.Request.URL.Path) >= 4 && c.Request.URL.Path[:4] == "/api" {
+		log.Println("WebAuthMiddleware checking:", c.Request.URL.Path)
+
+		if strings.HasPrefix(c.Request.URL.Path, "/api") || strings.HasPrefix(c.Request.URL.Path, "/oauth") {
+			// Don't apply web auth middleware to API or OAuth paths
 			c.Next()
 			return
 		}

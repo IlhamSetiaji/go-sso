@@ -102,31 +102,32 @@ func (c *RouteConfig) SetupApiRoutes() {
 }
 
 func (c *RouteConfig) SetupWebRoutes() {
-	c.App.GET("/login", c.AuthWebHandler.LoginView)
-	c.App.GET("/choose-roles", c.AuthWebHandler.ChooseRoles)
-	c.App.POST("/continue-login", c.AuthWebHandler.ContinueLogin)
-	c.App.POST("/login", c.AuthWebHandler.Login)
-	c.App.GET("/register", c.AuthWebHandler.RegisterView)
-	c.App.POST("/register", c.AuthWebHandler.Register)
-	c.App.Use(c.WebAuthMiddleware)
+	webRoute := c.App.Group("/")
+	webRoute.GET("/login", c.AuthWebHandler.LoginView)
+	webRoute.GET("/choose-roles", c.AuthWebHandler.ChooseRoles)
+	webRoute.POST("/continue-login", c.AuthWebHandler.ContinueLogin)
+	webRoute.POST("/login", c.AuthWebHandler.Login)
+	webRoute.GET("/register", c.AuthWebHandler.RegisterView)
+	webRoute.POST("/register", c.AuthWebHandler.Register)
+	webRoute.Use(c.WebAuthMiddleware)
 	{
-		c.App.GET("/", c.DashboardHandler.Index)
-		c.App.GET("/test", c.AuthWebHandler.CheckCookieTest)
-		c.App.GET("/logout", c.AuthWebHandler.Logout)
-		c.App.GET("/otp", c.AuthWebHandler.OtpView)
-		c.App.POST("/verify-email", c.AuthWebHandler.VerifyEmail)
-		c.App.GET("/resend-verify-email/:email", c.AuthWebHandler.ResendVerifyEmail)
-		c.App.Use(c.EmailVerifiedMiddleware)
+		webRoute.GET("/", c.DashboardHandler.Index)
+		webRoute.GET("/test", c.AuthWebHandler.CheckCookieTest)
+		webRoute.GET("/logout", c.AuthWebHandler.Logout)
+		webRoute.GET("/otp", c.AuthWebHandler.OtpView)
+		webRoute.POST("/verify-email", c.AuthWebHandler.VerifyEmail)
+		webRoute.GET("/resend-verify-email/:email", c.AuthWebHandler.ResendVerifyEmail)
+		webRoute.Use(c.EmailVerifiedMiddleware)
 		{
-			c.App.GET("/portal", c.DashboardHandler.Portal)
-			userRoutes := c.App.Group("/users")
+			webRoute.GET("/portal", c.DashboardHandler.Portal)
+			userRoutes := webRoute.Group("/users")
 			{
 				userRoutes.GET("/", c.UserWebHandler.Index)
 				userRoutes.POST("/", c.UserWebHandler.StoreUser)
 				userRoutes.POST("/update", c.UserWebHandler.UpdateUser)
 				userRoutes.POST("/delete", c.UserWebHandler.DeleteUser)
 			}
-			roleRoutes := c.App.Group("/roles")
+			roleRoutes := webRoute.Group("/roles")
 			{
 				roleRoutes.GET("/", c.RoleWebHandler.Index)
 				roleRoutes.POST("/", c.RoleWebHandler.StoreRole)
@@ -135,7 +136,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 				roleRoutes.POST("/update", c.RoleWebHandler.UpdateRole)
 				roleRoutes.POST("/delete", c.RoleWebHandler.DeleteRole)
 			}
-			permissionRoutes := c.App.Group("/permissions")
+			permissionRoutes := webRoute.Group("/permissions")
 			{
 				permissionRoutes.GET("/", c.PermissionWebHandler.Index)
 				permissionRoutes.GET("/role/:role_id", c.PermissionWebHandler.GetPermissionsByRoleID)
@@ -143,7 +144,7 @@ func (c *RouteConfig) SetupWebRoutes() {
 				permissionRoutes.POST("/update", c.PermissionWebHandler.UpdatePermission)
 				permissionRoutes.POST("/delete", c.PermissionWebHandler.DeletePermission)
 			}
-			employeeRoutes := c.App.Group("/employees")
+			employeeRoutes := webRoute.Group("/employees")
 			{
 				employeeRoutes.GET("/", c.EmployeeWebHandler.Index)
 				employeeRoutes.POST("/", c.EmployeeWebHandler.Store)
