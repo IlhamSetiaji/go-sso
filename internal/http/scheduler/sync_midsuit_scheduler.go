@@ -1477,6 +1477,23 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 			}
 		}
 
+		var jobLevelID *uuid.UUID
+		if record.JobLevelID != 0 {
+			var jobLevel entity.JobLevel
+			if err := s.DB.Where("midsuit_id = ?", strconv.Itoa(record.JobLevelID)).First(&jobLevel).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					s.Log.Errorf("Job level with ID %d not found", record.JobLevelID)
+					s.createLogTxt("Job level with ID %d not found", "storage/logs/sync_employee_jobs/")
+					jobLevelID = nil
+				}
+				s.Log.Error(err)
+				s.createLogTxt("Error when querying job level: "+err.Error(), "storage/logs/sync_employee_jobs/")
+				jobLevelID = nil
+			} else {
+				jobLevelID = &jobLevel.ID
+			}
+		}
+
 		employeeJob := &entity.EmployeeJob{
 			MidsuitID:  strconv.Itoa(record.ID),
 			EmployeeID: &employee.ID,
@@ -1490,6 +1507,7 @@ func (s *SyncMidsuitScheduler) SyncEmployeeJob(jwtToken string) error {
 			OrganizationLocationID:  *orgLocationID,
 			OrganizationStructureID: *orgStructureID,
 			GradeID:                 gradeID,
+			JobLevelID:              jobLevelID.String(),
 		}
 
 		// Check if the record already exists
@@ -1630,6 +1648,7 @@ func (s *SyncMidsuitScheduler) SyncUserProfile(jwtToken string) error {
 			BirthPlace:    record.BirthPlace,
 			MaritalStatus: strings.ToLower(record.MaritalStatus),
 			PhoneNumber:   record.PhoneNumber,
+			MidsuitID:     strconv.Itoa(record.ID),
 		})
 		if err != nil {
 			s.Log.Error(err)

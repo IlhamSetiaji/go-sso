@@ -19,6 +19,7 @@ type ISendSyncUserProfileMessageRequest struct {
 	BirthPlace    string `json:"birth_place"`
 	MaritalStatus string `json:"marital_status"`
 	PhoneNumber   string `json:"phone_number"`
+	MidsuitID     string `json:"midsuit_id"`
 }
 
 type ISendSyncUserProfileMessageResponse struct {
@@ -48,6 +49,7 @@ func (m *SendSyncUserProfileMessage) Execute(req *ISendSyncUserProfileMessageReq
 		"birth_place":    req.BirthPlace,
 		"marital_status": req.MaritalStatus,
 		"phone_number":   req.PhoneNumber,
+		"midsuit_id":     req.MidsuitID,
 	}
 
 	docMsg := &request.RabbitMQRequest{
