@@ -10,7 +10,7 @@ import (
 )
 
 type IOrganizationRepository interface {
-	FindAllPaginated(page int, pageSize int, search string) (*[]entity.Organization, int64, error)
+	FindAllPaginated(page int, pageSize int, search string, filter map[string]interface{}) (*[]entity.Organization, int64, error)
 	FindById(id uuid.UUID) (*entity.Organization, error)
 	FindByIdOnly(id uuid.UUID) (*entity.Organization, error)
 	FindAllOrganizations() (*[]entity.Organization, error)
@@ -31,14 +31,24 @@ func NewOrganizationRepository(log *logrus.Logger, db *gorm.DB) IOrganizationRep
 	}
 }
 
-func (r *OrganizationRepository) FindAllPaginated(page int, pageSize int, search string) (*[]entity.Organization, int64, error) {
+func (r *OrganizationRepository) FindAllPaginated(page int, pageSize int, search string, filter map[string]interface{}) (*[]entity.Organization, int64, error) {
 	var organizations []entity.Organization
 	var total int64
 
 	query := r.DB.Preload("OrganizationLocations").Preload("OrganizationStructures").Preload("OrganizationType")
 
+	// region, OrganizationType.name, name
 	if search != "" {
 		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+	if filter["region"] != nil {
+		query = query.Where("region ILIKE ?", "%"+filter["region"].(string)+"%")
+	}
+	if filter["OrganizationType.name"] != nil {
+		query = query.Joins("JOIN organization_types ON organizations.organization_type_id = organization_types.id").Where("organization_types.name ILIKE ?", "%"+filter["OrganizationType.name"].(string)+"%")
+	}
+	if filter["name"] != nil {
+		query = query.Where("name ILIKE ?", "%"+filter["name"].(string)+"%")
 	}
 
 	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&organizations).Error; err != nil {

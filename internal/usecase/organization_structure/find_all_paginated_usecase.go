@@ -14,6 +14,7 @@ type IFindAllPaginatedUseCaseRequest struct {
 	PageSize       int
 	Search         string
 	OrganizationID uuid.UUID
+	Filter         map[string]interface{}
 }
 
 type IFindAllPaginatedResponse struct {
@@ -38,7 +39,7 @@ func NewFindAllPaginatedUseCase(log *logrus.Logger, repository repository.IOrgan
 }
 
 func (uc *FindAllPaginatedUseCase) Execute(request *IFindAllPaginatedUseCaseRequest) (*IFindAllPaginatedResponse, error) {
-	organizationStructures, total, err := uc.Repository.FindAllPaginatedByOrganizationID(request.OrganizationID, request.Page, request.PageSize, request.Search)
+	organizationStructures, total, err := uc.Repository.FindAllPaginatedByOrganizationID(request.OrganizationID, request.Page, request.PageSize, request.Search, request.Filter)
 	if err != nil {
 		return nil, err
 	}

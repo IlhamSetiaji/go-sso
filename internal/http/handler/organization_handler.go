@@ -88,12 +88,24 @@ func (h *OrganizationHandler) FindAllPaginated(ctx *gin.Context) {
 	if search == "" {
 		search = ""
 	}
+	filter := make(map[string]interface{})
+	// region, OrganizationType.name, name
+	if ctx.Query("region") != "" {
+		filter["region"] = ctx.Query("region")
+	}
+	if ctx.Query("OrganizationType.name") != "" {
+		filter["OrganizationType.name"] = ctx.Query("OrganizationType.name")
+	}
+	if ctx.Query("name") != "" {
+		filter["name"] = ctx.Query("name")
+	}
 
 	factory := usecase.FindAllPaginatedUseCaseFactory(h.log)
 	res, err := factory.Execute(&usecase.IFindAllPaginatedRequest{
 		Page:     page,
 		PageSize: pageSize,
 		Search:   search,
+		Filter:   filter,
 	})
 	if err != nil {
 		h.log.Errorf("Error: %v", err)
@@ -180,6 +192,18 @@ func (h *OrganizationHandler) FindOrganizationStructurePaginated(ctx *gin.Contex
 	if search == "" {
 		search = ""
 	}
+	// filter organization.name, name, parent.name
+
+	filter := make(map[string]interface{})
+	if ctx.Query("organization.name") != "" {
+		filter["organization_name"] = ctx.Query("organization.name")
+	}
+	if ctx.Query("name") != "" {
+		filter["name"] = ctx.Query("name")
+	}
+	if ctx.Query("parent.name") != "" {
+		filter["parent_name"] = ctx.Query("parent.name")
+	}
 
 	user, err := middleware.GetUser(ctx)
 	if err != nil {
@@ -211,6 +235,7 @@ func (h *OrganizationHandler) FindOrganizationStructurePaginated(ctx *gin.Contex
 		PageSize:       pageSize,
 		Search:         search,
 		OrganizationID: resp.User.Employee.OrganizationID,
+		Filter:         filter,
 	})
 	if err != nil {
 		h.log.Errorf("Error: %v", err)

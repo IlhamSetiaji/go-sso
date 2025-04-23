@@ -10,7 +10,7 @@ import (
 )
 
 type IJobRepository interface {
-	FindAllPaginated(page int, pageSize int, search string, orgStructureIds []string) (*[]entity.Job, int64, error)
+	FindAllPaginated(page int, pageSize int, search string, orgStructureIds []string, filter map[string]interface{}) (*[]entity.Job, int64, error)
 	FindById(id uuid.UUID) (*entity.Job, error)
 	GetAll() (*[]entity.Job, error)
 	FindAllJobs(includedIDs []string) (*[]entity.Job, error)
@@ -50,7 +50,7 @@ func (r *JobRepository) FindAllJobs(includedIDs []string) (*[]entity.Job, error)
 	return &jobs, nil
 }
 
-func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string, orgStructureIds []string) (*[]entity.Job, int64, error) {
+func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string, orgStructureIds []string, filter map[string]interface{}) (*[]entity.Job, int64, error) {
 	var jobs []entity.Job
 	var total int64
 
@@ -58,6 +58,15 @@ func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string, 
 
 	if search != "" {
 		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+	if filter["name"] != nil {
+		query = query.Where("name ILIKE ?", "%"+filter["name"].(string)+"%")
+	}
+	if filter["parent.name"] != nil {
+		query = query.Joins("JOIN jobs AS parent ON jobs.parent_id = parent.id").Where("parent.name ILIKE ?", "%"+filter["parent.name"].(string)+"%")
+	}
+	if filter["organization.name"] != nil {
+		query = query.Joins("JOIN organization_structures AS org_struct ON jobs.organization_structure_id = org_struct.id").Joins("JOIN organizations AS org ON org_struct.organization_id = org.id").Where("org.name ILIKE ?", "%"+filter["organization.name"].(string)+"%")
 	}
 
 	if len(orgStructureIds) > 0 {

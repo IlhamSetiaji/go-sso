@@ -11,7 +11,7 @@ import (
 
 type IOrganizationStructureRepository interface {
 	FindAllPaginated(page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error)
-	FindAllPaginatedByOrganizationID(organizationID uuid.UUID, page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error)
+	FindAllPaginatedByOrganizationID(organizationID uuid.UUID, page int, pageSize int, search string, filter map[string]interface{}) (*[]entity.OrganizationStructure, int64, error)
 	FindAllOrgStructuresByOrganizationID(organizationID uuid.UUID) (*[]entity.OrganizationStructure, error)
 	FindById(id uuid.UUID) (*entity.OrganizationStructure, error)
 	FindByIdOnly(id uuid.UUID) (*entity.OrganizationStructure, error)
@@ -59,7 +59,7 @@ func (r *OrganizationStructureRepository) FindAllPaginated(page int, pageSize in
 	return &organizationStructures, total, nil
 }
 
-func (r *OrganizationStructureRepository) FindAllPaginatedByOrganizationID(organizationID uuid.UUID, page int, pageSize int, search string) (*[]entity.OrganizationStructure, int64, error) {
+func (r *OrganizationStructureRepository) FindAllPaginatedByOrganizationID(organizationID uuid.UUID, page int, pageSize int, search string, filter map[string]interface{}) (*[]entity.OrganizationStructure, int64, error) {
 	var organizationStructures []entity.OrganizationStructure
 	var total int64
 
@@ -68,7 +68,16 @@ func (r *OrganizationStructureRepository) FindAllPaginatedByOrganizationID(organ
 	if search != "" {
 		query = query.Where("name ILIKE ?", "%"+search+"%")
 	}
-
+	// filter organization.name, name, parent.name
+	if filter["organization_name"] != nil {
+		query = query.Joins("JOIN organizations ON organizations.id = organization_structures.organization_id").Where("organizations.name ILIKE ?", "%"+filter["organization_name"].(string)+"%")
+	}
+	if filter["name"] != nil {
+		query = query.Where("name ILIKE ?", "%"+filter["name"].(string)+"%")
+	}
+	if filter["parent_name"] != nil {
+		query = query.Joins("JOIN organization_structures AS parent ON organization_structures.parent_id = parent.id").Where("parent.name ILIKE ?", "%"+filter["parent_name"].(string)+"%")
+	}
 	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&organizationStructures).Error; err != nil {
 		return nil, 0, err
 	}

@@ -86,6 +86,18 @@ func (h *JobHandler) FindAllPaginated(ctx *gin.Context) {
 	if search == "" {
 		search = ""
 	}
+	filter := make(map[string]interface{})
+	//  parent.name, name, organization_name
+
+	if ctx.Query("parent.name") != "" {
+		filter["parent.name"] = ctx.Query("parent_name")
+	}
+	if ctx.Query("name") != "" {
+		filter["name"] = ctx.Query("name")
+	}
+	if ctx.Query("organization_name") != "" {
+		filter["organization_name"] = ctx.Query("organization_name")
+	}
 
 	organizationId := ctx.Query("organization_id")
 	if organizationId == "" {
@@ -102,6 +114,7 @@ func (h *JobHandler) FindAllPaginated(ctx *gin.Context) {
 		PageSize:       pageSize,
 		Search:         search,
 		OrganizationID: organizationId,
+		Filter:         filter,
 	})
 
 	if err != nil {
