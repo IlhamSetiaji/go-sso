@@ -63,25 +63,35 @@ func (r *OrganizationStructureRepository) FindAllPaginatedByOrganizationID(organ
 	var organizationStructures []entity.OrganizationStructure
 	var total int64
 
-	query := r.DB.Preload("Organization.OrganizationType").Preload("JobLevel").Where("organization_id = ?", organizationID)
+	// Gunakan alias tabel untuk menghindari ambiguitas
+	query := r.DB.Table("organization_structures AS os").
+		Preload("Organization.OrganizationType").
+		Preload("JobLevel").
+		Where("os.organization_id = ?", organizationID)
 
 	if search != "" {
-		query = query.Where("name ILIKE ?", "%"+search+"%")
+		query = query.Where("os.name ILIKE ?", "%"+search+"%")
 	}
-	// filter organization.name, name, parent.name
+
+	// Filter dengan alias tabel
 	if filter["organization_name"] != nil {
-		query = query.Joins("JOIN organizations ON organizations.id = organization_structures.organization_id").Where("organizations.name ILIKE ?", "%"+filter["organization_name"].(string)+"%")
+		query = query.Joins("JOIN organizations ON organizations.id = os.organization_id").
+			Where("organizations.name ILIKE ?", "%"+filter["organization_name"].(string)+"%")
 	}
 	if filter["name"] != nil {
-		query = query.Where("name ILIKE ?", "%"+filter["name"].(string)+"%")
+		query = query.Where("os.name ILIKE ?", "%"+filter["name"].(string)+"%")
 	}
 	if filter["parent_name"] != nil {
-		query = query.Joins("JOIN organization_structures AS parent ON organization_structures.parent_id = parent.id").Where("parent.name ILIKE ?", "%"+filter["parent_name"].(string)+"%")
+		query = query.Joins("JOIN organization_structures AS parent ON os.parent_id = parent.id").
+			Where("parent.name ILIKE ?", "%"+filter["parent_name"].(string)+"%")
 	}
+
+	// Ambil data dengan pagination
 	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&organizationStructures).Error; err != nil {
 		return nil, 0, err
 	}
 
+	// Hitung total data
 	if err := query.Model(&entity.OrganizationStructure{}).Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
