@@ -70,7 +70,7 @@ func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string, 
 	}
 
 	if len(orgStructureIds) > 0 {
-		query = query.Where("organization_structure_id IN ?", orgStructureIds)
+		query = query.Where("jobs.organization_structure_id IN ?", orgStructureIds)
 	}
 
 	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&jobs).Error; err != nil {
