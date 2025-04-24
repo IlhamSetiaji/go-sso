@@ -90,7 +90,7 @@ func (h *JobHandler) FindAllPaginated(ctx *gin.Context) {
 	//  parent.name, name, organization_name
 
 	if ctx.Query("parent.name") != "" {
-		filter["parent.name"] = ctx.Query("parent_name")
+		filter["parent.name"] = ctx.Query("parent.name")
 	}
 	if ctx.Query("name") != "" {
 		filter["name"] = ctx.Query("name")

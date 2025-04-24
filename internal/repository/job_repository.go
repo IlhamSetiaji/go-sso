@@ -65,8 +65,8 @@ func (r *JobRepository) FindAllPaginated(page int, pageSize int, search string, 
 	if filter["parent.name"] != nil {
 		query = query.Joins("JOIN jobs AS parent ON jobs.parent_id = parent.id").Where("parent.name ILIKE ?", "%"+filter["parent.name"].(string)+"%")
 	}
-	if filter["organization.name"] != nil {
-		query = query.Joins("JOIN organization_structures AS org_struct ON jobs.organization_structure_id = org_struct.id").Joins("JOIN organizations AS org ON org_struct.organization_id = org.id").Where("org.name ILIKE ?", "%"+filter["organization.name"].(string)+"%")
+	if filter["organization_name"] != nil {
+		query = query.Joins("JOIN organization_structures AS org_struct ON jobs.organization_structure_id = org_struct.id").Joins("JOIN organizations AS org ON org_struct.organization_id = org.id").Where("org.name ILIKE ?", "%"+filter["organization_name"].(string)+"%")
 	}
 
 	if len(orgStructureIds) > 0 {
