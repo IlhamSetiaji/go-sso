@@ -48,5 +48,5 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: "/root/data/julong-sso/storage"
+      device: "~/avolut/data/julong-sso/storage"
       o: bind
