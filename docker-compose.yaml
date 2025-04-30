@@ -23,7 +23,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=gEJIfovgvDAroHhqRiKhYVvrkn2OqXfF3tw8xJmnvw7JhrZgN24pTD9iWMIUIUL6
       - DB_NAME=julong-sync-portal
-      - RABBITMQ_URL=amqp://julong:julong@192.168.12.39:5672/
+      - RABBITMQ_URL=amqp://guest:guest@192.168.12.39:5672/
       - RABBITMQ_QUEUE=julong_sso
       - JWT_SECRET=wanhasib
       - MAIL_HOST=smtp.gmail.com
