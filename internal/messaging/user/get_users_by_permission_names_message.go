@@ -50,3 +50,8 @@ func (m *GetUsersByPermissionNamesMessage) Execute(request IGetUsersByPermission
 		UserIDs: userIDs,
 	}, nil
 }
+
+func GetUsersByPermissionNamesMessageFactory(log *logrus.Logger) IGetUsersByPermissionNamesMessage {
+	userRepository := repository.UserRepositoryFactory(log)
+	return NewGetUsersByPermissionNamesMessage(log, userRepository)
+}

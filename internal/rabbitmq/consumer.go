@@ -1067,6 +1067,41 @@ func handleMsg(docMsg *request.RabbitMQRequest, log *logrus.Logger, viper *viper
 		msgData = map[string]interface{}{
 			"chart": empResponse,
 		}
+	case "get_user_ids_by_permission_names":
+		permissionNames, ok := docMsg.MessageData["permission_names"].([]interface{})
+		if !ok {
+			log.Printf("Invalid request format: missing 'permission_names'")
+			msgData = map[string]interface{}{
+				"error": errors.New("missing 'permission_names'").Error(),
+			}
+			break
+		}
+		permissionNamesStr := make([]string, len(permissionNames))
+		for i, v := range permissionNames {
+			str, ok := v.(string)
+			if !ok {
+				log.Printf("Invalid request format: missing 'permission_names'")
+				msgData = map[string]interface{}{
+					"error": errors.New("missing 'permission_names'").Error(),
+				}
+				break
+			}
+			permissionNamesStr[i] = str
+		}
+		messageFactory := userMessaging.GetUsersByPermissionNamesMessageFactory(log)
+		message, err := messageFactory.Execute(userMessaging.IGetUsersByPermissionNamesMessageRequest{
+			PermissionNames: permissionNamesStr,
+		})
+		if err != nil {
+			log.Printf("Failed to execute message: %v", err)
+			msgData = map[string]interface{}{
+				"error": err.Error(),
+			}
+			break
+		}
+		msgData = map[string]interface{}{
+			"user_ids": message.UserIDs,
+		}
 	default:
 		log.Printf("Unknown message type, please recheck your type: %s", docMsg.MessageType)
 
