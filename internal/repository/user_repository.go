@@ -31,6 +31,7 @@ type IUserRepository interface {
 	FindUserTokenByEmail(email string) (*entity.UserToken, error)
 	FindUserTokenByEmailAndToken(email string, token int) (*entity.UserToken, error)
 	DeleteUserToken(email string, tokenType entity.UserTokenType) error
+	GetAllUsersByPermissionNames(permissionNames []string) (*[]entity.User, error)
 }
 
 type UserRepository struct {
@@ -497,6 +498,24 @@ func (r *UserRepository) FindUserTokenByEmailAndToken(email string, token int) (
 		}
 	}
 	return &userToken, nil
+}
+
+func (r *UserRepository) GetAllUsersByPermissionNames(permissionNames []string) (*[]entity.User, error) {
+	var users []entity.User
+	err := r.DB.Preload("Roles.Permissions").
+		Joins("JOIN user_roles ON user_roles.user_id = users.id").
+		Joins("JOIN roles ON roles.id = user_roles.role_id").
+		Joins("JOIN role_permissions ON role_permissions.role_id = roles.id").
+		Joins("JOIN permissions ON permissions.id = role_permissions.permission_id").
+		Where("permissions.name IN (?)", permissionNames).
+		Distinct().
+		Find(&users).Error
+	if err != nil {
+		r.Log.Error("[UserRepository.GetAllUsersByPermissionNames] " + err.Error())
+		return nil, err
+	}
+
+	return &users, nil
 }
 
 func UserRepositoryFactory(log *logrus.Logger) IUserRepository {

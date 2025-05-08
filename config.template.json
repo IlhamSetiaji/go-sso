@@ -10,6 +10,7 @@
   "web": {
     "prefork": false,
     "port": 3000,
+    "mode": "release",
     "cookie": {
       "name": "go-sso",
       "secure": false,

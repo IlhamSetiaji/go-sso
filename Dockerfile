@@ -36,6 +36,9 @@ COPY views /app/views
 # Copy the static directory
 COPY public /app/public
 
+# Copy the certificates directory
+COPY cert /app/certs
+
 # Create the /storage directory
 RUN mkdir -p /storage && chmod -R 777 /storage
 
