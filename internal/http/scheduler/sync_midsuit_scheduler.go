@@ -70,11 +70,11 @@ type CategoryMidsuitResponse struct {
 }
 
 type OrganizationTypeMidsuitResponse struct {
-	ID int `json:"id"`
-	// Category  string `json:"category"`
-	Category  CategoryMidsuitResponse `json:"category"`
-	Name      string                  `json:"name"`
-	ModelName string                  `json:"model-name"`
+	ID       int    `json:"id"`
+	Category string `json:"Category"`
+	// Category  CategoryMidsuitResponse `json:"category"`
+	Name      string `json:"Name"`
+	ModelName string `json:"model-name"`
 }
 
 type OrganizationTypeMidsuitAPIResponse struct {
@@ -169,9 +169,10 @@ type JobMidsuitResponse struct {
 	OrganizationStructureID int    `json:"organization_structure_id"`
 	ParentID                int    `json:"parent_id"`
 	JobLevelID              int    `json:"job_level_id"`
-	Existing                string `json:"existing"`
-	Promotion               int    `json:"promotion"`
-	OrganizationID          int    `json:"organization_id"`
+	// Existing                string `json:"existing"`
+	Existing       int `json:"existing"`
+	Promotion      int `json:"promotion"`
+	OrganizationID int `json:"organization_id"`
 }
 
 type JobMidsuitAPIResponse struct {
@@ -400,7 +401,8 @@ func (s *SyncMidsuitScheduler) SyncOrganizationType(jwtToken string) error {
 		orgType := &entity.OrganizationType{
 			MidsuitID: strconv.Itoa(record.ID),
 			Name:      record.Name,
-			Category:  record.Category.ID,
+			// Category:  record.Category.ID,
+			Category: record.Category,
 		}
 
 		// Check if the record already exists
@@ -1068,14 +1070,15 @@ func (s *SyncMidsuitScheduler) SyncJob(jwtToken string) error {
 			Name:                    record.Name,
 			OrganizationStructureID: orgStructure.ID,
 			ParentID:                parentID,
-			Existing: func() int {
-				existing, err := strconv.Atoi(record.Existing)
-				if err != nil {
-					s.Log.Error(err)
-					return 0
-				}
-				return existing
-			}(),
+			// Existing: func() int {
+			// 	existing, err := strconv.Atoi(record.Existing)
+			// 	if err != nil {
+			// 		s.Log.Error(err)
+			// 		return 0
+			// 	}
+			// 	return existing
+			// }(),
+			Existing:       record.Existing,
 			Promotion:      record.Promotion,
 			JobLevelID:     jobLevel.ID,
 			OrganizationID: org.ID,

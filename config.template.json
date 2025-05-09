@@ -78,8 +78,8 @@
     "redirect_url": "${ZITADEL_REDIRECT_URL}"
   },
   "midsuit": {
-    "url": "https://15.235.214.158:36014",
-    "api_endpoint": "/api/v1",
+    "url": "https://erp.julongindonesia.com:8443",
+    "api_endpoint": "/midsuit/api/v1",
     "auth_endpoint": "/auth/tokens",
     "username": "SuperUser",
     "client_id": "1000000",
