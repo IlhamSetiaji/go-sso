@@ -157,7 +157,7 @@
     <script src="{{.AssetBase}}/mazer/assets/static/js/initTheme.js"></script>
     <div id="app " class="bg-portal flex-grow flex flex-row">
       {{ if call .HasRole "superadmin" }} {{template "sidebar" .}} {{ end }}
-      <div id="main" class="flex-grow flex flex-col {{ if call .HasRole "superadmin" }}layout-navbar navbar-fixed {{ else }}layout-navbar navbar-fixed no-sidebar ml-0 {{ end }}">
+      <div id="main" class="flex-grow flex flex-col {{ if call .HasRole "superadmin" }}layout-navbar navbar-fixed {{ else }}layout-navbar navbar-fixed no-sidebar ml-0 {{ end }}" style="display: flex !important;">
         <!-- <header class="hidden">
           <nav class="navbar navbar-expand navbar-light navbar-top">
             <div class="container-fluid">
